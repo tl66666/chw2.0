@@ -1,0 +1,111 @@
+<view class="container">
+  <!-- 顶部欢迎区域 -->
+  <view class="welcome-section">
+    <view class="welcome-text">
+      <text class="welcome-title">探索中国</text>
+      <text class="welcome-subtitle">点亮城市，收集旅行角色卡</text>
+    </view>
+  </view>
+
+  <!-- 统计栏 -->
+  <view class="stats-bar">
+    <view class="stat-card">
+      <text class="stat-number">{{visitedCount}}</text>
+      <text class="stat-label">已点亮城市</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-number">{{visitedProvinces}}</text>
+      <text class="stat-label">已点亮省份</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-number">{{photoCount}}</text>
+      <text class="stat-label">旅行照片</text>
+    </view>
+  </view>
+
+  <!-- 中国地图区域 -->
+  <view class="map-section">
+    <view class="section-header">
+      <text class="section-title">中国地图</text>
+      <text class="section-subtitle">{{selectedProvince ? '选中：' + selectedProvince : '点击标记探索省份'}}</text>
+    </view>
+
+    <!-- 地图容器 -->
+    <view class="map-wrapper">
+      <map
+        id="chinaMap"
+        class="map-component"
+        longitude="105"
+        latitude="38"
+        scale="4"
+        show-location="{{false}}"
+        markers="{{mapMarkers}}"
+        bindmarkertap="onMarkerTap"
+      />
+    </view>
+
+    <!-- 图例 -->
+    <view class="map-legend">
+      <view class="legend-item">
+        <view class="legend-dot visited"></view>
+        <text class="legend-text">已点亮</text>
+      </view>
+      <view class="legend-item">
+        <view class="legend-dot unvisited"></view>
+        <text class="legend-text">未探索</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 探索进度 -->
+  <view class="progress-section" wx:if="{{visitedCount > 0}}">
+    <view class="progress-header">
+      <text class="progress-title">探索进度</text>
+      <text class="progress-percent">{{completionRate}}%</text>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{completionRate}}%"></view>
+    </view>
+    <text class="progress-desc">已探索 {{visitedCount}}/{{totalCities}} 座城市</text>
+  </view>
+
+  <!-- 最近访问城市 -->
+  <view class="recent-section" wx:if="{{recentCities.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">最近记录</text>
+      <text class="section-more" bindtap="goToAlbum">查看全部</text>
+    </view>
+    <scroll-view scroll-x class="recent-scroll" enhanced show-scrollbar="{{false}}">
+      <view class="recent-list">
+        <view
+          wx:for="{{recentCities}}"
+          wx:key="id"
+          class="recent-item"
+          bindtap="goToCityDetail"
+          data-cityid="{{item.id}}"
+        >
+          <view class="recent-image-wrapper">
+            <image class="recent-image" src="{{item.photoUrl}}" mode="aspectFill" wx:if="{{item.photoUrl}}"/>
+            <view class="recent-placeholder" wx:else>
+              <text class="placeholder-text">照片</text>
+            </view>
+          </view>
+          <view class="recent-info">
+            <text class="recent-name">{{item.name}}</text>
+            <text class="recent-date">{{item.visitDate}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 快捷操作 -->
+  <view class="quick-actions">
+    <view class="action-btn btn-pink" bindtap="goToUpload">
+      <text>记录新足迹</text>
+    </view>
+    <view class="action-btn btn-secondary" bindtap="shareMap">
+      <text>分享地图</text>
+    </view>
+  </view>
+</view>

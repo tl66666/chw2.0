@@ -1,0 +1,276 @@
+<view class="page-container">
+  <!-- 头部 -->
+  <view class="header-section">
+    <view class="header-bg-decoration">
+      <view class="decoration-circle circle-1"></view>
+      <view class="decoration-circle circle-2"></view>
+      <view class="decoration-circle circle-3"></view>
+    </view>
+    <view class="header-content">
+      <text class="header-title">我的群组</text>
+      <text class="header-desc">和好友一起探索世界</text>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-section" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 已有群组 -->
+  <block wx:if="{{groupInfo && !loading}}">
+    <!-- 群组信息卡片 -->
+    <view class="group-info-card">
+      <view class="group-info-header">
+        <view class="group-name-wrapper">
+          <text class="group-name">{{groupInfo.name}}</text>
+          <view class="group-badge" wx:if="{{isCreator}}">创建者</view>
+          <view class="group-badge member-badge" wx:elif="{{isAdmin}}">管理员</view>
+        </view>
+        <view class="group-type-row">
+          <view class="type-tag type-{{groupInfo.type}}">{{groupTypeText}}</view>
+          <text class="group-code">邀请码: {{inviteCode}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 统计卡片 -->
+    <view class="stats-grid">
+      <view class="stat-card">
+        <view class="stat-icon icon-members"></view>
+        <view class="stat-number">{{stats.totalMembers}}</view>
+        <view class="stat-label">成员</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-icon icon-cities"></view>
+        <view class="stat-number">{{stats.totalCities}}</view>
+        <view class="stat-label">点亮城市</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-icon icon-provinces"></view>
+        <view class="stat-number">{{stats.totalProvinces}}</view>
+        <view class="stat-label">覆盖省份</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-icon icon-photos"></view>
+        <view class="stat-number">{{stats.totalPhotos}}</view>
+        <view class="stat-label">共享照片</view>
+      </view>
+    </view>
+
+    <!-- 共享照片预览 -->
+    <view class="photos-section" wx:if="{{sharedPhotos.length > 0}}">
+      <view class="section-header">
+        <text class="section-title">共享照片</text>
+        <view class="section-more" bindtap="showPhotoWall">
+          <text>查看全部</text>
+          <view class="arrow-right"></view>
+        </view>
+      </view>
+      <view class="photos-grid">
+        <view class="photo-item" wx:for="{{sharedPhotos}}" wx:key="index" bindtap="previewImage" data-url="{{item.url}}">
+          <image class="photo-img" src="{{item.url}}" mode="aspectFill" lazy-load/>
+          <view class="photo-overlay">
+            <image class="photo-user-avatar" src="{{item.userAvatar || '/images/avatar.jpg'}}" mode="aspectFill"/>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 成员列表 -->
+    <view class="members-section">
+      <view class="section-header">
+        <text class="section-title">成员排行</text>
+        <text class="section-subtitle">按点亮城市数排序</text>
+      </view>
+      <view class="member-list">
+        <view class="member-item {{item.isCreator ? 'creator-item' : ''}}" wx:for="{{members}}" wx:key="openid">
+          <view class="member-rank">
+            <view class="rank-badge rank-{{index < 3 ? index : 'other'}}">{{index + 1}}</view>
+          </view>
+          <image class="member-avatar" src="{{item.avatarUrl || '/images/avatar.jpg'}}" mode="aspectFill"/>
+          <view class="member-info">
+            <view class="member-name-row">
+              <text class="member-name">{{item.nickName}}</text>
+              <view class="role-tag" wx:if="{{item.isCreator}}">创建者</view>
+              <view class="role-tag admin-tag" wx:elif="{{item.role === '管理员'}}">管理员</view>
+            </view>
+            <view class="member-stats-row">
+              <view class="member-stat">
+                <view class="stat-dot dot-city"></view>
+                <text>{{item.cityCount}} 城市</text>
+              </view>
+              <view class="member-stat">
+                <view class="stat-dot dot-photo"></view>
+                <text>{{item.photoCount}} 照片</text>
+              </view>
+            </view>
+          </view>
+          <view class="member-score">
+            <text class="score-number">{{item.cityCount}}</text>
+            <text class="score-label">城市</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-section">
+      <view class="action-btn invite-btn" bindtap="showInvite">
+        <view class="btn-icon icon-invite"></view>
+        <text>邀请好友</text>
+      </view>
+      <button class="action-btn share-btn" open-type="share">
+        <view class="btn-icon icon-share"></view>
+        <text>分享给好友</text>
+      </button>
+      <view class="action-btn leave-btn" bindtap="leaveGroup">
+        <view class="btn-icon icon-leave"></view>
+        <text>退出群组</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- 无群组 -->
+  <view class="empty-section" wx:if="{{!groupInfo && !loading}}">
+    <view class="empty-illustration">
+      <view class="empty-circle outer"></view>
+      <view class="empty-circle inner"></view>
+      <view class="empty-icon-wrapper">
+        <view class="empty-icon icon-group"></view>
+      </view>
+    </view>
+    <text class="empty-title">还没有群组</text>
+    <text class="empty-desc">创建或加入一个群组，和朋友一起点亮城市吧</text>
+    
+    <view class="action-buttons">
+      <view class="btn-primary" bindtap="showCreate">
+        <view class="btn-icon icon-create"></view>
+        <text>创建群组</text>
+      </view>
+      <view class="btn-secondary" bindtap="showJoin">
+        <view class="btn-icon icon-join"></view>
+        <text>加入群组</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 创建群组弹窗 -->
+  <view class="modal" wx:if="{{showCreateModal}}" catchtap="hideCreateModal">
+    <view class="modal-content" catchtap="preventClose">
+      <view class="modal-header">
+        <text class="modal-title">创建群组</text>
+        <view class="modal-close" bindtap="hideCreateModal"></view>
+      </view>
+      <view class="modal-body">
+        <view class="form-group">
+          <text class="form-label">群组名称</text>
+          <input 
+            class="form-input" 
+            type="text"
+            placeholder="输入群组名称，如：周末旅行团" 
+            value="{{newGroupName}}" 
+            bindinput="onGroupNameInput"
+            bindconfirm="createGroup"
+            maxlength="20"
+            focus="{{showCreateModal}}"
+            confirm-type="done"
+          />
+        </view>
+        <view class="form-group">
+          <text class="form-label">群组类型</text>
+          <view class="type-selector">
+            <view class="type-option {{newGroupType === 'friends' ? 'active' : ''}}" bindtap="selectGroupType" data-type="friends">
+              <text class="type-icon">👫</text>
+              <text class="type-name">朋友</text>
+            </view>
+            <view class="type-option {{newGroupType === 'couple' ? 'active' : ''}}" bindtap="selectGroupType" data-type="couple">
+              <text class="type-icon">💑</text>
+              <text class="type-name">情侣</text>
+            </view>
+            <view class="type-option {{newGroupType === 'family' ? 'active' : ''}}" bindtap="selectGroupType" data-type="family">
+              <text class="type-icon">👨‍👩‍👧</text>
+              <text class="type-name">家人</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-actions">
+        <view class="modal-btn cancel" bindtap="hideCreateModal">取消</view>
+        <view class="modal-btn confirm" bindtap="createGroup">创建</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 邀请弹窗 -->
+  <view class="modal" wx:if="{{showInviteModal}}" catchtap="hideInviteModal">
+    <view class="modal-content" catchtap="preventClose">
+      <view class="modal-header">
+        <text class="modal-title">邀请好友</text>
+        <view class="modal-close" bindtap="hideInviteModal"></view>
+      </view>
+      <view class="modal-body">
+        <view class="invite-code-box">
+          <text class="invite-code-label">邀请码</text>
+          <text class="invite-code-text">{{inviteCode}}</text>
+          <text class="invite-code-hint">将邀请码分享给好友，好友输入即可加入</text>
+        </view>
+      </view>
+      <view class="modal-actions">
+        <view class="modal-btn confirm" bindtap="copyInviteCode">复制邀请码</view>
+        <button class="modal-btn share-confirm" open-type="share">直接分享</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加入弹窗 -->
+  <view class="modal" wx:if="{{showJoinModal}}" catchtap="hideJoinModal">
+    <view class="modal-content" catchtap="preventClose">
+      <view class="modal-header">
+        <text class="modal-title">加入群组</text>
+        <view class="modal-close" bindtap="hideJoinModal"></view>
+      </view>
+      <view class="modal-body">
+        <view class="form-group">
+          <text class="form-label">邀请码</text>
+          <input 
+            class="code-input" 
+            type="text"
+            placeholder="请输入6位邀请码" 
+            value="{{joinCode}}" 
+            bindinput="onJoinCodeInput"
+            bindconfirm="joinGroup"
+            maxlength="6"
+            focus="{{showJoinModal}}"
+            confirm-type="done"
+          />
+        </view>
+      </view>
+      <view class="modal-actions">
+        <view class="modal-btn cancel" bindtap="hideJoinModal">取消</view>
+        <view class="modal-btn confirm" bindtap="joinGroup">确认加入</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 照片墙弹窗 -->
+  <view class="photos-modal" wx:if="{{showPhotosModal}}">
+    <view class="photos-modal-header">
+      <text class="photos-modal-title">共享照片</text>
+      <view class="photos-modal-close" bindtap="hidePhotosModal"></view>
+    </view>
+    <swiper class="photos-swiper" current="{{currentPhotoIndex}}" bindchange="onPhotoChange">
+      <swiper-item wx:for="{{sharedPhotos}}" wx:key="index">
+        <view class="swiper-image-wrapper">
+          <image class="swiper-image" src="{{item.url}}" mode="aspectFit"/>
+          <view class="photo-info-bar">
+            <image class="photo-info-avatar" src="{{item.userAvatar || '/images/avatar.jpg'}}" mode="aspectFill"/>
+            <text class="photo-info-name">{{item.userName}}</text>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+    <view class="photos-indicator">{{currentPhotoIndex + 1}} / {{sharedPhotos.length}}</view>
+  </view>
+</view>

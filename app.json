@@ -1,0 +1,77 @@
+{
+  "pages": [
+    "pages/launch/launch",
+    "pages/index/index",
+    "pages/city-detail/city-detail",
+    "pages/cards/cards",
+    "pages/album/album",
+    "pages/profile/profile"
+  ],
+  "subpackages": [
+    {
+      "root": "package-cards",
+      "pages": [
+        "pages/card-detail/card-detail",
+        "pages/unlock-card/unlock-card",
+        "pages/cards/cards"
+      ]
+    },
+    {
+      "root": "package-album",
+      "pages": [
+        "pages/album/album",
+        "pages/upload/upload"
+      ]
+    },
+    {
+      "root": "package-others",
+      "pages": [
+        "pages/achievements/achievements",
+        "pages/group/group",
+        "pages/settings/settings"
+      ]
+    }
+  ],
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#F8F5F2",
+    "navigationBarTitleText": "城会玩2.0",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F8F5F2"
+  },
+  "tabBar": {
+    "color": "#9B9B9B",
+    "selectedColor": "#F4A6B5",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "地图",
+        "iconPath": "images/tab-map.png",
+        "selectedIconPath": "images/tab-map.png"
+      },
+      {
+        "pagePath": "pages/cards/cards",
+        "text": "角色卡",
+        "iconPath": "images/tab-cards.png",
+        "selectedIconPath": "images/tab-cards.png"
+      },
+      {
+        "pagePath": "pages/album/album",
+        "text": "相册",
+        "iconPath": "images/tab-album.png",
+        "selectedIconPath": "images/tab-album.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/tab-profile.png",
+        "selectedIconPath": "images/tab-profile.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

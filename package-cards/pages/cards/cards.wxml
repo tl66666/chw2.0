@@ -1,0 +1,72 @@
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="cards-header">
+    <text class="cards-title">我的角色卡</text>
+    <view class="cards-stats">
+      <text class="stats-text">已收集 {{collectedCount}}/{{totalCount}}</text>
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{(collectedCount/totalCount)*100}}%"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选标签 -->
+  <view class="filter-tabs">
+    <view class="filter-tab {{selectedRarity === 'all' ? 'active' : ''}}" bindtap="filterByRarity" data-rarity="all">
+      <text>全部</text>
+    </view>
+    <view class="filter-tab {{selectedRarity === 'UR' ? 'active' : ''}}" bindtap="filterByRarity" data-rarity="UR">
+      <text>UR</text>
+    </view>
+    <view class="filter-tab {{selectedRarity === 'SSR' ? 'active' : ''}}" bindtap="filterByRarity" data-rarity="SSR">
+      <text>SSR</text>
+    </view>
+    <view class="filter-tab {{selectedRarity === 'SR' ? 'active' : ''}}" bindtap="filterByRarity" data-rarity="SR">
+      <text>SR</text>
+    </view>
+    <view class="filter-tab {{selectedRarity === 'R' ? 'active' : ''}}" bindtap="filterByRarity" data-rarity="R">
+      <text>R</text>
+    </view>
+    <view class="filter-tab owned-tab {{ownedOnly ? 'active' : ''}}" bindtap="toggleOwnedOnly">
+      <text>已拥有</text>
+    </view>
+  </view>
+
+  <!-- 角色卡网格 -->
+  <view class="cards-grid">
+    <view
+      wx:for="{{cards}}"
+      wx:key="provinceId"
+      class="card-item {{item.isCollected ? '' : 'locked'}}"
+      bindtap="{{item.isCollected ? 'goToCardDetail' : ''}}"
+      data-id="{{item.provinceId}}"
+      wx:if="{{(selectedRarity === 'all' || selectedRarity === item.rarity) && (!ownedOnly || item.isCollected)}}"
+    >
+      <view class="card-image-wrapper">
+        <image
+          class="card-image {{item.isCollected ? '' : 'grayscale'}}"
+          src="{{item.imagePath}}"
+          mode="aspectFill"
+        />
+        <view class="card-overlay" wx:if="{{!item.isCollected}}">
+          <text class="lock-text">未解锁</text>
+        </view>
+        <view class="rarity-badge" style="background: {{item.rarityColor}}">
+          <text>{{item.rarity}}</text>
+        </view>
+      </view>
+      <view class="card-info">
+        <text class="card-name">{{item.name}}</text>
+        <text class="card-title">{{item.title}}</text>
+        <text class="card-province">{{item.provinceName}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{collectedCount === 0}}">
+    <image class="empty-image" src="/images/ui/empty-travel.jpg" mode="aspectFit"/>
+    <text class="empty-title">还没有角色卡</text>
+    <text class="empty-desc">去地图页面点亮城市，解锁专属角色卡</text>
+  </view>
+</view>

@@ -1,0 +1,128 @@
+<view class="container">
+  <!-- 头部区域：城市大图 + 核心信息 -->
+  <view class="header-card">
+    <view class="city-hero">
+      <image class="city-image" src="{{cityImage}}" mode="widthFix" binderror="onImageError" wx:if="{{cityImage}}"/>
+      <view class="city-gradient" wx:if="{{!cityImage}}">
+        <text class="gradient-text">城市</text>
+      </view>
+      <view class="city-overlay">
+        <view class="city-badge" wx:if="{{isVisited}}">
+          <text>已点亮</text>
+        </view>
+        <text class="city-name">{{cityName}}</text>
+        <text class="city-province">{{provinceName}}</text>
+        <view class="city-stats" wx:if="{{travelPhotos.length > 0 || foodPhotos.length > 0}}">
+          <text class="city-stat" wx:if="{{travelPhotos.length > 0}}">{{travelPhotos.length}} 张旅行照</text>
+          <text class="city-stat" wx:if="{{foodPhotos.length > 0}}">{{foodPhotos.length}} 张美食照</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷操作栏：打卡 + 角色卡 -->
+  <view class="quick-actions">
+    <view class="action-item {{isVisited ? 'visited' : ''}}" bindtap="toggleVisit">
+      <view class="action-icon">
+        <view class="icon-pin"></view>
+      </view>
+      <text class="action-label">{{isVisited ? '已打卡' : '点亮城市'}}</text>
+    </view>
+    <view class="action-divider"></view>
+    <view class="action-item" bindtap="goToCard">
+      <view class="action-icon icon-card">
+        <view class="icon-card-inner"></view>
+      </view>
+      <text class="action-label">角色卡</text>
+    </view>
+  </view>
+
+  <!-- 城市简介 -->
+  <view class="intro-card" wx:if="{{cityIntro}}">
+    <view class="intro-header">
+      <text class="intro-title">城市印象</text>
+    </view>
+    <text class="intro-text">{{cityIntro}}</text>
+  </view>
+
+  <!-- 地标推荐 -->
+  <view class="landmark-card" wx:if="{{landmark}}">
+    <view class="landmark-header">
+      <text class="landmark-title">必打卡地标</text>
+    </view>
+    <text class="landmark-text">{{landmark}}</text>
+  </view>
+
+  <!-- 照片分类标签 -->
+  <view class="photo-tabs">
+    <view class="photo-tab {{activeTab === 'travel' ? 'active' : ''}}" bindtap="switchTab" data-tab="travel">
+      <text class="tab-text">城市记录</text>
+      <text class="tab-count" wx:if="{{travelPhotos.length > 0}}">{{travelPhotos.length}}</text>
+    </view>
+    <view class="photo-tab {{activeTab === 'food' ? 'active' : ''}}" bindtap="switchTab" data-tab="food">
+      <text class="tab-text">美食记录</text>
+      <text class="tab-count" wx:if="{{foodPhotos.length > 0}}">{{foodPhotos.length}}</text>
+    </view>
+  </view>
+
+  <!-- 添加照片按钮（整合到标签下方，更醒目） -->
+  <view class="add-photo-btn" bindtap="addPhoto">
+    <view class="add-photo-icon-wrap">
+      <text class="add-photo-icon">+</text>
+    </view>
+    <text class="add-photo-text">添加{{activeTab === 'travel' ? '旅行' : '美食'}}照片</text>
+  </view>
+
+  <!-- 照片网格 -->
+  <view class="photos-card" wx:if="{{activeTab === 'travel' && travelPhotos.length > 0}}">
+    <view class="photos-header">
+      <text class="photos-title">旅行回忆</text>
+      <text class="photos-count">{{travelPhotos.length}} 张</text>
+    </view>
+    <view class="photos-grid">
+      <view wx:for="{{travelPhotos}}" wx:key="index" class="photo-item" bindtap="previewPhoto" data-index="{{index}}">
+        <image class="photo-image" src="{{item}}" mode="aspectFill"/>
+        <view class="photo-delete" catchtap="deletePhoto" data-index="{{index}}">
+          <text>×</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="photos-card" wx:if="{{activeTab === 'food' && foodPhotos.length > 0}}">
+    <view class="photos-header">
+      <text class="photos-title">美食记忆</text>
+      <text class="photos-count">{{foodPhotos.length}} 张</text>
+    </view>
+    <view class="photos-grid">
+      <view wx:for="{{foodPhotos}}" wx:key="index" class="photo-item" bindtap="previewPhoto" data-index="{{index}}">
+        <image class="photo-image" src="{{item}}" mode="aspectFill"/>
+        <view class="photo-delete" catchtap="deletePhoto" data-index="{{index}}">
+          <text>×</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-card" wx:if="{{(activeTab === 'travel' && travelPhotos.length === 0) || (activeTab === 'food' && foodPhotos.length === 0)}}">
+    <view class="empty-content">
+      <text class="empty-text">{{activeTab === 'travel' ? '还没有旅行照片' : '还没有美食照片'}}</text>
+      <text class="empty-hint">点击上方按钮添加</text>
+    </view>
+  </view>
+
+  <!-- 旅行笔记 -->
+  <view class="note-card">
+    <view class="note-header">
+      <text class="note-title">旅行笔记</text>
+    </view>
+    <textarea class="note-textarea" placeholder="记录你的旅行感受..." value="{{note}}" bindinput="onNoteInput" maxlength="200"/>
+    <view class="note-footer">
+      <text class="note-count">{{note.length}}/200</text>
+      <view class="note-save" bindtap="saveNote">
+        <text>保存</text>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,9 @@
+{
+  "name": "getAssetUrl",
+  "version": "1.0.0",
+  "description": "Resolve cloud storage file id to a temporary URL",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

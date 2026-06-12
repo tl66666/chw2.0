@@ -1,0 +1,79 @@
+<view class="launch-container">
+  <image class="bg-image" src="/images/launch/bg.jpg" mode="aspectFill"/>
+
+  <view class="bg-decoration">
+    <view class="circle circle-1"></view>
+    <view class="circle circle-2"></view>
+    <view class="circle circle-3"></view>
+  </view>
+
+  <view class="content">
+    <view class="logo-section">
+      <view class="logo-wrapper">
+        <image class="logo-image" src="/images/launch/logo.jpg" mode="aspectFit"/>
+        <view class="logo-glow"></view>
+      </view>
+      <view class="app-name">城会玩2.0</view>
+      <view class="app-slogan">点亮城市，收集你的旅行角色卡</view>
+    </view>
+
+    <view class="stats-section" wx:if="{{showStats}}">
+      <view class="stat-item">
+        <view class="stat-number">{{totalUsers}}</view>
+        <view class="stat-label">旅行者</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <view class="stat-number">{{totalCities}}</view>
+        <view class="stat-label">城市坐标</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <view class="stat-number">{{totalPhotos}}</view>
+        <view class="stat-label">旅行照片</view>
+      </view>
+    </view>
+
+    <view class="features-section" wx:if="{{showFeatures}}">
+      <view class="feature-item">
+        <image class="feature-icon-img" src="/images/launch/icon-map.jpg" mode="aspectFit"/>
+        <view class="feature-text">点亮中国地图</view>
+      </view>
+      <view class="feature-item">
+        <image class="feature-icon-img" src="/images/launch/icon-camera.jpg" mode="aspectFit"/>
+        <view class="feature-text">记录旅行瞬间</view>
+      </view>
+      <view class="feature-item">
+        <image class="feature-icon-img" src="/images/launch/icon-friends.jpg" mode="aspectFit"/>
+        <view class="feature-text">解锁城市角色</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom-section">
+    <view class="btn btn-wechat" wx:if="{{!isLogin}}" bindtap="onWechatLogin">
+      <view class="btn-icon-wechat"></view>
+      <view class="btn-text">微信一键登录</view>
+    </view>
+
+    <view class="btn btn-guest" wx:if="{{!isLogin}}" bindtap="onGuestLogin">
+      <view class="btn-text">游客模式体验</view>
+    </view>
+
+    <view class="btn btn-enter" wx:if="{{isLogin}}" bindtap="enterApp">
+      <view class="btn-text">进入城会玩</view>
+      <view class="btn-arrow">→</view>
+    </view>
+
+    <view class="user-info" wx:if="{{isLogin && userInfo}}">
+      <image class="user-avatar" src="{{userInfo.avatarUrl || '/images/avatar.jpg'}}" mode="aspectFill"/>
+      <view class="user-name">{{userInfo.nickName}}</view>
+    </view>
+
+    <view class="agreement-text" wx:if="{{!isLogin}}">
+      登录即表示同意《用户协议》和《隐私政策》
+    </view>
+  </view>
+
+  <view class="version">城会玩2.0</view>
+</view>

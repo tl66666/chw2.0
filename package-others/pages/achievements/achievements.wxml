@@ -1,0 +1,148 @@
+<view class="page-container">
+  <!-- 顶部区域：背景装饰 + 统计信息 -->
+  <view class="header-section">
+    <view class="header-bg-decoration"></view>
+
+    <!-- 统计信息 -->
+    <view class="header-stats">
+      <view class="stat-box">
+        <text class="stat-num">{{unlockedCount}}</text>
+        <text class="stat-label">已解锁</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-box">
+        <text class="stat-num">{{totalCount}}</text>
+        <text class="stat-label">总成就</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-box">
+        <text class="stat-num">{{totalReward}}</text>
+        <text class="stat-label">已获得积分</text>
+      </view>
+    </view>
+
+    <!-- 总进度条 -->
+    <view class="total-progress-container">
+      <view class="total-progress-bar-bg">
+        <view class="total-progress-bar-fill" style="width: {{totalProgress}}%;"></view>
+      </view>
+      <text class="total-progress-text">总进度 {{totalProgress}}%</text>
+    </view>
+  </view>
+
+  <!-- 分类标签 -->
+  <view class="category-tabs">
+    <view 
+      class="category-tab {{activeCategory === 'all' ? 'active' : ''}}" 
+      data-category="all"
+      bindtap="switchCategory"
+    >
+      <text class="tab-text">全部</text>
+      <text class="tab-count">{{categoryCounts.all}}</text>
+    </view>
+    <view 
+      class="category-tab {{activeCategory === 'explore' ? 'active' : ''}} tab-explore" 
+      data-category="explore"
+      bindtap="switchCategory"
+    >
+      <text class="tab-text">探索</text>
+      <text class="tab-count">{{categoryCounts.explore}}</text>
+    </view>
+    <view 
+      class="category-tab {{activeCategory === 'collect' ? 'active' : ''}} tab-collect" 
+      data-category="collect"
+      bindtap="switchCategory"
+    >
+      <text class="tab-text">收集</text>
+      <text class="tab-count">{{categoryCounts.collect}}</text>
+    </view>
+    <view 
+      class="category-tab {{activeCategory === 'social' ? 'active' : ''}} tab-social" 
+      data-category="social"
+      bindtap="switchCategory"
+    >
+      <text class="tab-text">社交</text>
+      <text class="tab-count">{{categoryCounts.social}}</text>
+    </view>
+    <view 
+      class="category-tab {{activeCategory === 'special' ? 'active' : ''}} tab-special" 
+      data-category="special"
+      bindtap="switchCategory"
+    >
+      <text class="tab-text">特殊</text>
+      <text class="tab-count">{{categoryCounts.special}}</text>
+    </view>
+  </view>
+
+  <!-- 成就列表 -->
+  <view class="achievement-list">
+    <view 
+      class="achievement-item {{item.unlocked ? 'unlocked' : 'locked'}} {{item.canUnlock ? 'can-unlock' : ''}}" 
+      wx:for="{{filteredAchievements}}" 
+      wx:key="id"
+    >
+      <!-- 完成标识 -->
+      <view class="completed-badge" wx:if="{{item.unlocked}}">
+        <view class="check-icon"></view>
+      </view>
+
+      <!-- 徽章图标区域 -->
+      <view class="achievement-icon">
+        <image class="achievement-badge-img {{item.unlocked ? '' : 'grayscale'}}" src="{{item.badge}}" mode="aspectFit"/>
+      </view>
+
+      <!-- 信息区域 -->
+      <view class="achievement-info">
+        <view class="achievement-header">
+          <text class="achievement-title">{{item.title}}</text>
+          <view class="category-tag {{item.category}}">{{item.categoryName}}</view>
+        </view>
+        <text class="achievement-desc">{{item.desc}}</text>
+        
+        <!-- 进度条 -->
+        <view class="progress-bar-container" wx:if="{{!item.unlocked}}">
+          <view class="progress-bar-bg">
+            <view class="progress-bar-fill" style="width: {{item.progressPercent}}%;"></view>
+          </view>
+          <text class="progress-text">{{item.progressText}}</text>
+        </view>
+        <view class="unlocked-date" wx:if="{{item.unlocked}}">
+          <text>已完成</text>
+        </view>
+      </view>
+
+      <!-- 奖励区域 -->
+      <view class="achievement-reward">
+        <view class="reward-box {{item.unlocked ? 'unlocked' : ''}}">
+          <text class="reward-value">+{{item.reward}}</text>
+          <text class="reward-unit">积分</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{filteredAchievements.length === 0}}">
+    <view class="empty-icon">
+      <view class="empty-icon-bg"></view>
+    </view>
+    <text class="empty-text">该分类下暂无成就</text>
+    <text class="empty-desc">去其他分类看看吧</text>
+  </view>
+
+  <!-- 成就解锁弹窗 -->
+  <view class="achievement-popup {{showAchievementPopup ? 'show' : ''}}">
+    <view class="achievement-popup-bg" bindtap="closeAchievementPopup"></view>
+    <view class="achievement-popup-content">
+      <view class="achievement-popup-icon">
+        <text>🏆</text>
+      </view>
+      <text class="achievement-popup-title">成就解锁</text>
+      <text class="achievement-popup-name">{{newAchievement.title}}</text>
+      <view class="achievement-popup-reward">
+        <text>+{{newAchievement.reward}} 积分</text>
+      </view>
+      <view class="achievement-popup-btn" bindtap="closeAchievementPopup">太棒了</view>
+    </view>
+  </view>
+</view>

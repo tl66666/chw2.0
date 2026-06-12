@@ -1,0 +1,187 @@
+<view class="container">
+  <!-- 顶部粉色渐变背景 -->
+  <view class="header-bg">
+    <view class="header-wave"></view>
+  </view>
+
+  <!-- 用户信息卡片 -->
+  <view class="user-card">
+    <view class="user-avatar-section">
+      <view class="avatar-wrapper" bindtap="changeAvatar">
+        <image class="user-avatar" src="{{userInfo.avatarUrl || '/images/avatar.jpg'}}" mode="aspectFill" binderror="onAvatarError"/>
+        <view class="avatar-edit-mask">
+          <image class="avatar-edit-icon" src="/images/launch/icon-camera.jpg" mode="aspectFit"/>
+          <text class="avatar-edit-text">更换头像</text>
+        </view>
+        <view class="avatar-glow"></view>
+      </view>
+      <view class="user-info">
+        <text class="user-name">{{userInfo.nickName || '旅行者'}}</text>
+        <view class="user-level-tag">
+          <view class="level-icon-wrap">
+            <text class="level-icon-text">Lv</text>
+          </view>
+          <text class="level-text">{{levelInfo.title}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 经验值进度条 -->
+    <view class="exp-section">
+      <view class="exp-header">
+        <text class="exp-label">探索经验</text>
+        <text class="exp-value">{{levelInfo.currentExp}} / {{levelInfo.nextExp}}</text>
+      </view>
+      <view class="exp-progress-bg">
+        <view class="exp-progress-fill" style="width: {{levelInfo.progress}}%;"></view>
+      </view>
+      <text class="exp-hint" wx:if="{{levelInfo.needCities > 0}}">再点亮 {{levelInfo.needCities}} 座城市可升级</text>
+      <text class="exp-hint" wx:else>已达到最高等级</text>
+    </view>
+  </view>
+
+  <!-- 统计卡片 -->
+  <view class="stats-section">
+    <view class="stats-title">城市图鉴</view>
+    <view class="stats-grid">
+      <view class="stat-card stat-card-cities">
+        <view class="stat-icon-wrap">
+          <text class="stat-icon-text">城</text>
+        </view>
+        <text class="stat-value">{{visitedCount}}</text>
+        <text class="stat-label">点亮城市</text>
+      </view>
+      <view class="stat-card stat-card-provinces">
+        <view class="stat-icon-wrap">
+          <text class="stat-icon-text">省</text>
+        </view>
+        <text class="stat-value">{{visitedProvinces}}</text>
+        <text class="stat-label">探索省份</text>
+      </view>
+      <view class="stat-card stat-card-photos">
+        <view class="stat-icon-wrap">
+          <text class="stat-icon-text">照</text>
+        </view>
+        <text class="stat-value">{{photoCount}}</text>
+        <text class="stat-label">照片总数</text>
+      </view>
+      <view class="stat-card stat-card-progress">
+        <view class="stat-icon-wrap">
+          <text class="stat-icon-text">%</text>
+        </view>
+        <text class="stat-value">{{completionRate}}%</text>
+        <text class="stat-label">探索进度</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 照片分类统计 -->
+  <view class="photo-stats" wx:if="{{photoCount > 0}}">
+    <view class="photo-stat-item">
+      <view class="photo-stat-icon-wrap photo-stat-travel">
+        <text class="photo-stat-icon-text">旅</text>
+      </view>
+      <text class="photo-stat-value">{{travelPhotoCount}}</text>
+      <text class="photo-stat-label">旅行照片</text>
+    </view>
+    <view class="photo-stat-divider"></view>
+    <view class="photo-stat-item">
+      <view class="photo-stat-icon-wrap photo-stat-food">
+        <text class="photo-stat-icon-text">食</text>
+      </view>
+      <text class="photo-stat-value">{{foodPhotoCount}}</text>
+      <text class="photo-stat-label">美食照片</text>
+    </view>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="menu-section">
+    <view class="menu-title">功能</view>
+    <view class="menu-grid">
+      <view class="menu-grid-item" bindtap="goToUpload">
+        <view class="menu-grid-icon menu-icon-upload">
+          <text class="menu-grid-icon-text">+</text>
+        </view>
+        <text class="menu-grid-name">记录足迹</text>
+        <text class="menu-grid-desc">添加新记录</text>
+      </view>
+
+      <view class="menu-grid-item" bindtap="goToAlbum">
+        <view class="menu-grid-icon menu-icon-album">
+          <text class="menu-grid-icon-text">图</text>
+        </view>
+        <text class="menu-grid-name">我的相册</text>
+        <text class="menu-grid-desc">查看旅行照片</text>
+      </view>
+
+      <view class="menu-grid-item" bindtap="goToGroup">
+        <view class="menu-grid-icon menu-icon-group">
+          <image class="menu-grid-img" src="/images/launch/icon-friends.jpg" mode="aspectFit"/>
+        </view>
+        <text class="menu-grid-name">我的群组</text>
+        <text class="menu-grid-desc">和好友一起</text>
+      </view>
+
+      <view class="menu-grid-item" bindtap="goToAchievements">
+        <view class="menu-grid-icon menu-icon-achievement">
+          <text class="menu-grid-icon-text">奖</text>
+        </view>
+        <text class="menu-grid-name">成就系统</text>
+        <text class="menu-grid-desc">解锁奖励</text>
+      </view>
+
+      <view class="menu-grid-item" bindtap="shareApp">
+        <view class="menu-grid-icon menu-icon-share">
+          <text class="menu-grid-icon-text">享</text>
+        </view>
+        <text class="menu-grid-name">分享好友</text>
+        <text class="menu-grid-desc">邀请一起记录</text>
+      </view>
+
+      <view class="menu-grid-item" bindtap="goToSettings">
+        <view class="menu-grid-icon menu-icon-settings">
+          <text class="menu-grid-icon-text">设</text>
+        </view>
+        <text class="menu-grid-name">设置</text>
+        <text class="menu-grid-desc">应用设置</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最近活动 -->
+  <view class="activity-section" wx:if="{{recentActivities.length > 0}}">
+    <view class="activity-header">
+      <text class="activity-title">最近活动</text>
+      <text class="activity-more" bindtap="goToAlbum">查看全部</text>
+    </view>
+    <view class="activity-list">
+      <view class="activity-item" wx:for="{{recentActivities}}" wx:key="index">
+        <view class="activity-icon-wrap activity-icon-{{item.type}}">
+          <text class="activity-icon-text">{{item.iconText}}</text>
+        </view>
+        <view class="activity-content">
+          <text class="activity-text">{{item.text}}</text>
+          <text class="activity-time">{{item.time}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 清除数据 -->
+  <view class="danger-zone">
+    <view class="danger-item" bindtap="clearData">
+      <view class="danger-icon-wrap">
+        <text class="danger-icon-text">×</text>
+      </view>
+      <text class="danger-text">清除所有数据</text>
+      <text class="danger-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 底部装饰 -->
+  <view class="bottom-decoration">
+    <view class="bottom-line"></view>
+    <text class="bottom-text">用脚步丈量世界</text>
+    <view class="bottom-line"></view>
+  </view>
+</view>
