@@ -3,103 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>城会玩2.0 - 城市探索旅行小程序</title>
+    <title>城会玩2.0 - 微信小程序 · 城市探索 · 旅行记录</title>
+    <meta name="description" content="城会玩2.0 是一款围绕城市探索、旅行记录、角色卡收集、成就激励设计的微信小程序。支持34个省级行政区、300+城市的足迹点亮，30+成就徽章和角色卡收集。">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #F4A6B5;
-            --primary-dark: #E890A0;
-            --secondary: #A8D8EA;
-            --accent: #FFD93D;
+            --pink: #F4A6B5;
+            --pink-dark: #E890A0;
+            --blue: #A8D8EA;
+            --gold: #FFD93D;
             --bg: #FAF7F4;
-            --bg-warm: #FFF5F0;
             --text: #2D3436;
             --text-light: #636E72;
-            --card-bg: #FFFFFF;
-            --shadow: 0 4px 20px rgba(0,0,0,0.06);
-            --shadow-hover: 0 12px 40px rgba(0,0,0,0.12);
+            --white: #FFFFFF;
+            --shadow-sm: 0 2px 12px rgba(0,0,0,0.05);
+            --shadow: 0 4px 24px rgba(0,0,0,0.07);
+            --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+            --radius: 20px;
+            --radius-sm: 12px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: 'Noto Sans SC', -apple-system, sans-serif;
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--bg);
             color: var(--text);
-            line-height: 1.6;
+            line-height: 1.7;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ===== HERO ===== */
+        /* ========================================
+           HERO
+           ======================================== */
         .hero {
             min-height: 100vh;
             display: flex;
             align-items: center;
-            background: linear-gradient(135deg, #FFE4EC 0%, #E8F4F8 50%, #FFF8E7 100%);
+            justify-content: center;
+            background: linear-gradient(160deg, #FFE4EC 0%, #E8F4F8 40%, #FFF8E7 100%);
             position: relative;
             overflow: hidden;
-            padding: 2rem;
+            padding: 3rem 2rem;
         }
 
         .hero::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: url('site-assets/loading-bg.jpg') center/cover;
-            opacity: 0.08;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(244,166,181,0.12) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(168,216,234,0.12) 0%, transparent 50%);
         }
 
         .hero-container {
             max-width: 1200px;
-            margin: 0 auto;
+            width: 100%;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 4rem;
+            gap: 3rem;
             align-items: center;
             position: relative;
             z-index: 1;
-        }
-
-        .hero-left {
-            padding: 2rem 0;
         }
 
         .hero-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(10px);
-            padding: 0.6rem 1.5rem;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(12px);
+            padding: 0.55rem 1.4rem;
             border-radius: 50px;
-            font-size: 0.9rem;
-            color: var(--primary-dark);
-            margin-bottom: 2rem;
-            border: 1px solid rgba(244,166,181,0.3);
+            font-size: 0.88rem;
             font-weight: 500;
+            color: var(--pink-dark);
+            margin-bottom: 1.8rem;
+            border: 1px solid rgba(244,166,181,0.25);
+            letter-spacing: 0.02em;
         }
+
+        .hero-badge span { font-size: 1.1rem; }
 
         .hero h1 {
-            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-size: clamp(2.8rem, 5.5vw, 4.5rem);
             font-weight: 900;
-            color: var(--text);
+            line-height: 1.15;
             margin-bottom: 1.2rem;
-            line-height: 1.2;
+            letter-spacing: -0.02em;
         }
 
-        .hero h1 span {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, var(--pink) 0%, var(--blue) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .hero-subtitle {
-            font-size: 1.15rem;
+        .hero-desc {
+            font-size: 1.08rem;
             color: var(--text-light);
-            margin-bottom: 2.5rem;
             line-height: 1.8;
-            max-width: 480px;
+            margin-bottom: 2.5rem;
+            max-width: 500px;
         }
 
         .hero-btns {
@@ -109,41 +118,33 @@
         }
 
         .btn {
-            padding: 0.9rem 2rem;
+            padding: 0.85rem 2rem;
             border-radius: 50px;
-            font-size: 1rem;
-            font-weight: 500;
+            font-size: 0.95rem;
+            font-weight: 600;
             text-decoration: none;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            cursor: pointer;
+            border: none;
+            letter-spacing: 0.01em;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(135deg, var(--pink), var(--pink-dark));
             color: white;
-            box-shadow: 0 4px 20px rgba(244,166,181,0.4);
+            box-shadow: 0 6px 24px rgba(244,166,181,0.4);
         }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(244,166,181,0.5); }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(244,166,181,0.5);
-        }
-
-        .btn-secondary {
+        .btn-outline {
             background: white;
             color: var(--text);
-            border: 2px solid rgba(0,0,0,0.08);
+            border: 2px solid rgba(0,0,0,0.06);
         }
-
-        .btn-secondary:hover {
-            border-color: var(--primary);
-            color: var(--primary-dark);
-            transform: translateY(-2px);
-        }
+        .btn-outline:hover { border-color: var(--pink); color: var(--pink-dark); transform: translateY(-2px); }
 
         .hero-right {
             display: flex;
@@ -152,338 +153,212 @@
             position: relative;
         }
 
-        .hero-img {
+        .hero-phone {
             width: 100%;
-            max-width: 420px;
-            border-radius: 24px;
-            box-shadow: var(--shadow-hover);
-            animation: floatImg 6s ease-in-out infinite;
+            max-width: 380px;
+            border-radius: 28px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.15);
+            transition: transform 0.6s ease;
         }
+        .hero-phone:hover { transform: translateY(-6px) rotate(-1deg); }
 
-        @keyframes floatImg {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-
-        .hero-float-card {
+        .hero-float {
             position: absolute;
             background: white;
-            border-radius: 16px;
-            padding: 1rem 1.2rem;
-            box-shadow: var(--shadow-hover);
+            border-radius: 14px;
+            padding: 0.8rem 1rem;
+            box-shadow: var(--shadow-lg);
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-            animation: floatCard 5s ease-in-out infinite;
-        }
-
-        .hero-float-card.card1 {
-            top: 10%;
-            right: -10%;
-            animation-delay: 0s;
-        }
-
-        .hero-float-card.card2 {
-            bottom: 15%;
-            left: -5%;
-            animation-delay: 2s;
-        }
-
-        .hero-float-card img {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            object-fit: cover;
-        }
-
-        .hero-float-card span {
+            gap: 0.7rem;
             font-size: 0.85rem;
             font-weight: 600;
-            color: var(--text);
+            animation: float 5s ease-in-out infinite;
+        }
+        .hero-float img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
+        .float-1 { top: 8%; right: 5%; animation-delay: 0s; }
+        .float-2 { bottom: 18%; left: 2%; animation-delay: 2.5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
         }
 
-        @keyframes floatCard {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(2deg); }
-        }
+        /* ========================================
+           SECTION COMMON
+           ======================================== */
+        section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
 
-        /* ===== SECTIONS ===== */
-        section {
-            padding: 5rem 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .section-title {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .section-title h2 {
-            font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+        .section-header { text-align: center; margin-bottom: 3.5rem; }
+        .section-header h2 {
+            font-size: clamp(1.7rem, 3.5vw, 2.3rem);
             font-weight: 700;
             margin-bottom: 0.8rem;
+            letter-spacing: -0.01em;
         }
+        .section-header p { color: var(--text-light); font-size: 1.05rem; max-width: 520px; margin: 0 auto; }
 
-        .section-title p {
-            color: var(--text-light);
-            font-size: 1.05rem;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        /* ===== STATS ===== */
-        .stats-bar {
-            background: white;
-            border-radius: 20px;
-            padding: 2.5rem;
+        /* ========================================
+           STATS
+           ======================================== */
+        .stats-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 2.5rem 3rem;
             box-shadow: var(--shadow);
-            margin: 2rem auto;
-        }
-
-        .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 2rem;
             text-align: center;
         }
-
-        .stat-item h3 {
-            font-size: 2.2rem;
+        .stat-value {
+            font-size: 2.4rem;
             font-weight: 900;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, var(--pink), var(--blue));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
         }
+        .stat-label { color: var(--text-light); font-size: 0.9rem; margin-top: 0.3rem; font-weight: 500; }
 
-        .stat-item p {
-            color: var(--text-light);
-            font-size: 0.9rem;
-            margin-top: 0.3rem;
-        }
-
-        /* ===== FEATURES ===== */
-        .features-wrap {
-            background: white;
-            border-radius: 24px;
-            padding: 3rem 2.5rem;
-            box-shadow: var(--shadow);
-        }
-
-        .feature-grid {
+        /* ========================================
+           FEATURES
+           ======================================== */
+        .features-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
         }
-
-        .feature-card {
-            background: var(--bg);
-            border-radius: 16px;
-            padding: 2rem 1.5rem;
+        .feature {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 2.2rem 1.8rem;
             text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0,0,0,0.04);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.35s ease;
+            border: 1px solid rgba(0,0,0,0.03);
         }
-
-        .feature-card:hover {
-            transform: translateY(-6px);
-            box-shadow: var(--shadow-hover);
-            background: white;
-        }
-
+        .feature:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
         .feature-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            margin: 0 auto 1.2rem;
+            width: 64px; height: 64px; border-radius: 18px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; margin: 0 auto 1.2rem;
         }
+        .fi-map { background: linear-gradient(135deg, #FFE4EC, #FFF0F3); }
+        .fi-city { background: linear-gradient(135deg, #E8F4F8, #F0F9FC); }
+        .fi-card { background: linear-gradient(135deg, #FFF8E7, #FFFBE8); }
+        .fi-achieve { background: linear-gradient(135deg, #F0E8FF, #F5F0FF); }
+        .fi-photo { background: linear-gradient(135deg, #E8F5E9, #F0F8F0); }
+        .fi-group { background: linear-gradient(135deg, #FFF3E0, #FFF8E1); }
 
-        .feature-card:nth-child(1) .feature-icon { background: linear-gradient(135deg, #FFE4EC, #FFF0F3); }
-        .feature-card:nth-child(2) .feature-icon { background: linear-gradient(135deg, #E8F4F8, #F0F9FC); }
-        .feature-card:nth-child(3) .feature-icon { background: linear-gradient(135deg, #FFF8E7, #FFFBE8); }
-        .feature-card:nth-child(4) .feature-icon { background: linear-gradient(135deg, #F0E8FF, #F5F0FF); }
-        .feature-card:nth-child(5) .feature-icon { background: linear-gradient(135deg, #E8F5E9, #F0F8F0); }
-        .feature-card:nth-child(6) .feature-icon { background: linear-gradient(135deg, #FFF3E0, #FFF8E1); }
+        .feature h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.6rem; }
+        .feature p { color: var(--text-light); font-size: 0.88rem; line-height: 1.7; }
 
-        .feature-card h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.6rem;
-            font-weight: 600;
-        }
-
-        .feature-card p {
-            color: var(--text-light);
-            font-size: 0.88rem;
-            line-height: 1.7;
-        }
-
-        /* ===== SHOWCASE ===== */
-        .showcase-grid {
+        /* ========================================
+           SCREENSHOTS
+           ======================================== */
+        .screenshots-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 2rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
         }
-
-        .showcase-card {
-            background: white;
-            border-radius: 20px;
+        .screenshot {
+            background: var(--white);
+            border-radius: var(--radius);
             overflow: hidden;
             box-shadow: var(--shadow);
-            transition: all 0.3s ease;
+            transition: all 0.35s ease;
+            cursor: pointer;
         }
-
-        .showcase-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-hover);
+        .screenshot:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+        .screenshot img {
+            width: 100%; height: 200px; object-fit: cover; display: block;
+            transition: transform 0.4s ease;
         }
-
-        .showcase-img {
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-            display: block;
-        }
-
-        .showcase-info {
-            padding: 1.5rem 1.8rem;
-        }
-
-        .showcase-info h3 {
-            font-size: 1.15rem;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .showcase-info p {
-            color: var(--text-light);
+        .screenshot:hover img { transform: scale(1.04); }
+        .screenshot-caption {
+            padding: 1rem 1.2rem;
+            text-align: center;
+            font-weight: 600;
             font-size: 0.9rem;
-            line-height: 1.7;
         }
 
-        /* ===== BADGES ===== */
+        /* ========================================
+           ACHIEVEMENT BADGES
+           ======================================== */
         .badges-section {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             border-radius: 24px;
-            padding: 3rem 2.5rem;
+            padding: 3.5rem 2.5rem;
             color: white;
         }
+        .badges-section .section-header h2 { color: white; }
+        .badges-section .section-header p { color: rgba(255,255,255,0.65); }
 
-        .badges-section .section-title h2 {
-            color: white;
-        }
-
-        .badges-section .section-title p {
-            color: rgba(255,255,255,0.7);
-        }
-
-        .badge-grid {
+        .badges-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 1.5rem;
-            margin-top: 2rem;
+            gap: 2rem;
+            margin-top: 2.5rem;
         }
-
-        .badge-item {
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .badge-item:hover {
-            transform: translateY(-8px) scale(1.05);
-        }
-
+        .badge-item { text-align: center; transition: all 0.3s ease; }
+        .badge-item:hover { transform: translateY(-8px) scale(1.06); }
         .badge-item img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
+            width: 85px; height: 85px; border-radius: 50%; object-fit: cover;
             border: 3px solid rgba(255,255,255,0.2);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
         }
-
         .badge-item span {
-            display: block;
-            margin-top: 0.8rem;
-            font-size: 0.85rem;
-            color: rgba(255,255,255,0.8);
+            display: block; margin-top: 0.8rem;
+            font-size: 0.85rem; font-weight: 500; color: rgba(255,255,255,0.8);
         }
 
-        /* ===== TECH STACK ===== */
-        .tech-wrap {
-            background: white;
-            border-radius: 24px;
-            padding: 3rem 2.5rem;
-            box-shadow: var(--shadow);
-        }
-
+        /* ========================================
+           TECH STACK
+           ======================================== */
         .tech-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 1.2rem;
+            gap: 1rem;
         }
-
         .tech-item {
-            background: var(--bg);
-            border-radius: 14px;
-            padding: 1.2rem;
+            background: var(--white);
+            border-radius: var(--radius-sm);
+            padding: 1.3rem 1.2rem;
             display: flex;
             align-items: center;
             gap: 0.8rem;
+            box-shadow: var(--shadow-sm);
             transition: all 0.3s ease;
-            border: 1px solid rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.03);
         }
-
-        .tech-item:hover {
-            background: white;
-            box-shadow: var(--shadow);
-            transform: translateX(4px);
+        .tech-item:hover { transform: translateX(5px); box-shadow: var(--shadow); }
+        .tech-dot {
+            width: 40px; height: 40px; border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; flex-shrink: 0;
         }
+        .tech-item .label { font-weight: 500; font-size: 0.9rem; }
 
-        .tech-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            flex-shrink: 0;
-        }
-
-        .tech-item span {
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        /* ===== HIGHLIGHTS ===== */
+        /* ========================================
+           HIGHLIGHTS
+           ======================================== */
         .highlights-wrap {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 24px;
-            padding: 3rem 2.5rem;
+            padding: 3.5rem 2.5rem;
             color: white;
         }
+        .highlights-wrap .section-header h2 { color: white; }
+        .highlights-wrap .section-header p { color: rgba(255,255,255,0.75); }
 
-        .highlights-wrap .section-title h2 {
-            color: white;
-        }
-
-        .highlights-wrap .section-title p {
-            color: rgba(255,255,255,0.8);
-        }
-
-        .highlight-grid {
+        .hl-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 1.5rem;
         }
-
-        .highlight-card {
+        .hl-card {
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.15);
             border-radius: 16px;
@@ -493,448 +368,299 @@
             align-items: flex-start;
             transition: all 0.3s ease;
         }
-
-        .highlight-card:hover {
-            background: rgba(255,255,255,0.15);
-            transform: translateY(-3px);
-        }
-
-        .highlight-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 14px;
+        .hl-card:hover { background: rgba(255,255,255,0.16); transform: translateY(-3px); }
+        .hl-icon {
+            width: 48px; height: 48px; border-radius: 14px;
             background: rgba(255,255,255,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; flex-shrink: 0;
         }
+        .hl-text h4 { font-size: 1.05rem; margin-bottom: 0.4rem; }
+        .hl-text p { font-size: 0.87rem; color: rgba(255,255,255,0.7); line-height: 1.6; }
 
-        .highlight-content h4 {
-            font-size: 1.1rem;
-            margin-bottom: 0.4rem;
+        /* ========================================
+           GET STARTED
+           ======================================== */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
         }
-
-        .highlight-content p {
-            font-size: 0.9rem;
-            color: rgba(255,255,255,0.75);
-            line-height: 1.6;
-        }
-
-        /* ===== CTA ===== */
-        .cta-section {
+        .step {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 2rem 1.8rem;
+            box-shadow: var(--shadow-sm);
             text-align: center;
-            padding: 4rem 2rem;
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        .step-num {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--pink), var(--blue));
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1.1rem;
+            margin: 0 auto 1rem;
+        }
+        .step h4 { font-size: 1rem; margin-bottom: 0.4rem; }
+        .step p { color: var(--text-light); font-size: 0.85rem; }
+        .step code {
+            background: var(--bg); padding: 0.2rem 0.5rem; border-radius: 6px;
+            font-size: 0.82rem; color: var(--pink-dark);
         }
 
-        .cta-section h2 {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .cta-section p {
-            color: var(--text-light);
-            margin-bottom: 2rem;
-        }
-
-        /* ===== FOOTER ===== */
+        /* ========================================
+           FOOTER
+           ======================================== */
         footer {
             background: #1a1a2e;
             color: white;
             text-align: center;
             padding: 2.5rem 2rem;
         }
+        footer .brand { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.4rem; }
+        footer .sub { color: rgba(255,255,255,0.5); font-size: 0.88rem; margin-bottom: 1rem; }
+        footer a { color: var(--pink); text-decoration: none; margin: 0 0.8rem; font-size: 0.9rem; transition: opacity 0.3s; }
+        footer a:hover { opacity: 0.75; }
 
-        footer p {
-            color: rgba(255,255,255,0.6);
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
+        /* ========================================
+           ANIMATIONS
+           ======================================== */
+        .reveal {
+            opacity: 0; transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
         }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
 
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-            margin-top: 1rem;
-        }
-
-        .footer-links a {
-            color: var(--primary);
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: opacity 0.3s;
-        }
-
-        .footer-links a:hover {
-            opacity: 0.8;
-        }
-
-        /* ===== SCROLL ANIMATION ===== */
-        .fade-in {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.7s ease;
-        }
-
-        .fade-in.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* ===== RESPONSIVE ===== */
+        /* ========================================
+           RESPONSIVE
+           ======================================== */
         @media (max-width: 900px) {
-            .hero-container {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-
-            .hero-left {
-                order: 2;
-            }
-
-            .hero-right {
-                order: 1;
-            }
-
-            .hero-subtitle {
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            .hero-btns {
-                justify-content: center;
-            }
-
-            .hero-float-card {
-                display: none;
-            }
-
-            .hero-img {
-                max-width: 280px;
-            }
-
-            .stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .feature-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .showcase-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .badge-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .tech-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .highlight-grid {
-                grid-template-columns: 1fr;
-            }
+            .hero-container { grid-template-columns: 1fr; text-align: center; }
+            .hero-left { order: 2; } .hero-right { order: 1; }
+            .hero-desc { margin-left: auto; margin-right: auto; }
+            .hero-btns { justify-content: center; }
+            .hero-float { display: none; }
+            .hero-phone { max-width: 260px; }
+            .stats-card { grid-template-columns: repeat(2, 1fr); }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .screenshots-grid { grid-template-columns: repeat(2, 1fr); }
+            .badges-grid { grid-template-columns: repeat(3, 1fr); }
+            .tech-grid { grid-template-columns: repeat(2, 1fr); }
+            .hl-grid { grid-template-columns: 1fr; }
+            .steps { grid-template-columns: 1fr; }
         }
-
         @media (max-width: 500px) {
-            .feature-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .badge-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .tech-grid {
-                grid-template-columns: 1fr;
-            }
-
-            section {
-                padding: 3rem 1rem;
-            }
+            section { padding: 3rem 1rem; }
+            .features-grid { grid-template-columns: 1fr; }
+            .screenshots-grid { grid-template-columns: 1fr; }
+            .badges-grid { grid-template-columns: repeat(2, 1fr); }
+            .tech-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <!-- HERO -->
+    <!-- ====== HERO ====== -->
     <section class="hero">
         <div class="hero-container">
             <div class="hero-left">
-                <div class="hero-badge">
-                    <span>🗺️</span> 微信小程序 · 城市探索 · 旅行记录
-                </div>
-                <h1>城会玩<span>2.0</span></h1>
-                <p class="hero-subtitle">
-                    点亮你的城市足迹，收集地域角色卡，解锁探索成就。让旅行记录不只是相册，而是一个持续成长的城市图鉴。
+                <div class="hero-badge"><span>🗺️</span> 微信小程序</div>
+                <h1>城会玩<span class="highlight">2.0</span></h1>
+                <p class="hero-desc">
+                    点亮城市足迹 · 收集角色卡 · 解锁成就徽章<br>
+                    让每一次旅行都成为可收藏的回忆
                 </p>
                 <div class="hero-btns">
                     <a href="https://github.com/tl66666/chw2.0" class="btn btn-primary">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                        查看源码
+                        GitHub 仓库
                     </a>
-                    <a href="#features" class="btn btn-secondary">✨ 了解功能</a>
+                    <a href="#features" class="btn btn-outline">✨ 功能概览</a>
+                    <a href="#get-started" class="btn btn-outline">🚀 快速开始</a>
                 </div>
             </div>
             <div class="hero-right">
-                <img src="site-assets/logo.jpg" alt="城会玩2.0" class="hero-img">
-                <div class="hero-float-card card1">
-                    <img src="site-assets/badge-king.jpg" alt="成就">
-                    <span>解锁成就</span>
+                <img src="site-assets/logo.jpg" alt="城会玩2.0 Logo" class="hero-phone">
+                <div class="hero-float float-1">
+                    <img src="site-assets/badge-king.jpg" alt="成就徽章">
+                    <span>成就解锁</span>
                 </div>
-                <div class="hero-float-card card2">
-                    <img src="site-assets/avatar.jpg" alt="角色">
-                    <span>收集角色卡</span>
+                <div class="hero-float float-2">
+                    <img src="site-assets/avatar.jpg" alt="角色卡">
+                    <span>角色收集</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- STATS -->
+    <!-- ====== STATS ====== -->
     <section>
-        <div class="stats-bar fade-in">
-            <div class="stats">
-                <div class="stat-item">
-                    <h3>34</h3>
-                    <p>省级行政区</p>
-                </div>
-                <div class="stat-item">
-                    <h3>300+</h3>
-                    <p>城市数据</p>
-                </div>
-                <div class="stat-item">
-                    <h3>30+</h3>
-                    <p>成就徽章</p>
-                </div>
-                <div class="stat-item">
-                    <h3>30+</h3>
-                    <p>角色卡</p>
-                </div>
-            </div>
+        <div class="stats-card reveal">
+            <div><div class="stat-value">34</div><div class="stat-label">省级行政区</div></div>
+            <div><div class="stat-value">300+</div><div class="stat-label">城市数据</div></div>
+            <div><div class="stat-value">30+</div><div class="stat-label">成就徽章</div></div>
+            <div><div class="stat-value">30+</div><div class="stat-label">角色卡</div></div>
         </div>
     </section>
 
-    <!-- FEATURES -->
+    <!-- ====== FEATURES ====== -->
     <section id="features">
-        <div class="features-wrap fade-in">
-            <div class="section-title">
-                <h2>核心功能</h2>
-                <p>地图点亮、角色卡收集、成就解锁，打造完整的城市探索体验</p>
-            </div>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🗺️</div>
-                    <h3>城市地图点亮</h3>
-                    <p>支持中国34个省级行政区、300+城市的足迹点亮，可视化展示你的旅行版图</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🏙️</div>
-                    <h3>城市详情探索</h3>
-                    <p>每个城市独立详情页，包含城市介绍、图片、探索状态和互动入口</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🃏</div>
-                    <h3>角色卡收集</h3>
-                    <p>探索城市解锁地域特色角色卡，含稀有度、角色形象和地域风格设定</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🏆</div>
-                    <h3>成就系统</h3>
-                    <p>探索、收集、社交、特殊四大类30+成就，积分等级持续反馈成长</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📸</div>
-                    <h3>旅行相册</h3>
-                    <p>记录每个城市的旅行照片和回忆，打造个人专属的城市记忆墙</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">👥</div>
-                    <h3>社交群组</h3>
-                    <p>创建或加入旅行群组，与志同道合的旅行者分享探索心得</p>
-                </div>
-            </div>
+        <div class="section-header reveal">
+            <h2>核心功能</h2>
+            <p>地图点亮、角色卡收集、成就解锁，打造完整的城市探索体验</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature reveal"><div class="feature-icon fi-map">🗺️</div><h3>城市地图点亮</h3><p>支持34个省级行政区、300+城市的足迹可视化展示</p></div>
+            <div class="feature reveal"><div class="feature-icon fi-city">🏙️</div><h3>城市详情探索</h3><p>独立详情页，含城市介绍、图片、探索状态与互动入口</p></div>
+            <div class="feature reveal"><div class="feature-icon fi-card">🃏</div><h3>角色卡收集</h3><p>探索城市解锁地域特色角色卡，含稀有度与地域风格</p></div>
+            <div class="feature reveal"><div class="feature-icon fi-achieve">🏆</div><h3>成就系统</h3><p>探索/收集/社交/特殊四大类30+成就，持续反馈成长</p></div>
+            <div class="feature reveal"><div class="feature-icon fi-photo">📸</div><h3>旅行相册</h3><p>记录城市旅行照片，打造个人专属的城市记忆墙</p></div>
+            <div class="feature reveal"><div class="feature-icon fi-group">👥</div><h3>社交群组</h3><p>创建或加入旅行群组，与旅行者分享探索心得</p></div>
         </div>
     </section>
 
-    <!-- SHOWCASE -->
+    <!-- ====== SCREENSHOTS ====== -->
     <section>
-        <div class="section-title fade-in">
+        <div class="section-header reveal">
             <h2>界面展示</h2>
-            <p>精心设计的用户界面，流畅的交互体验</p>
+            <p>原生微信小程序，精心设计的用户界面与交互体验</p>
         </div>
-        <div class="showcase-grid">
-            <div class="showcase-card fade-in">
-                <img src="site-assets/icon-map.jpg" alt="地图首页" class="showcase-img">
-                <div class="showcase-info">
-                    <h3><span>🗺️</span> 地图首页</h3>
-                    <p>中国地图可视化，已探索城市高亮显示，直观展示旅行足迹</p>
-                </div>
+        <div class="screenshots-grid">
+            <div class="screenshot reveal">
+                <img src="site-assets/icon-map.jpg" alt="地图首页">
+                <div class="screenshot-caption">🗺️ 地图首页</div>
             </div>
-            <div class="showcase-card fade-in">
-                <img src="site-assets/icon-camera.jpg" alt="城市详情" class="showcase-img">
-                <div class="showcase-info">
-                    <h3><span>🏙️</span> 城市详情</h3>
-                    <p>城市介绍、打卡按钮、探索进度、相关角色卡入口</p>
-                </div>
+            <div class="screenshot reveal">
+                <img src="site-assets/icon-camera.jpg" alt="城市详情">
+                <div class="screenshot-caption">🏙️ 城市详情</div>
             </div>
-            <div class="showcase-card fade-in">
-                <img src="site-assets/icon-friends.jpg" alt="角色卡抽卡" class="showcase-img">
-                <div class="showcase-info">
-                    <h3><span>🃏</span> 角色卡抽卡</h3>
-                    <p>探索城市后解锁抽卡动画，收集各地域特色角色卡</p>
-                </div>
+            <div class="screenshot reveal">
+                <img src="site-assets/icon-friends.jpg" alt="角色卡">
+                <div class="screenshot-caption">🃏 角色卡抽卡</div>
             </div>
-            <div class="showcase-card fade-in">
-                <img src="site-assets/loading-bg.jpg" alt="成就系统" class="showcase-img">
-                <div class="showcase-info">
-                    <h3><span>🏆</span> 成就系统</h3>
-                    <p>四大类成就徽章，进度追踪，解锁反馈，等级体系</p>
-                </div>
+            <div class="screenshot reveal">
+                <img src="site-assets/loading-bg.jpg" alt="成就系统">
+                <div class="screenshot-caption">🏆 成就系统</div>
             </div>
         </div>
     </section>
 
-    <!-- BADGES -->
+    <!-- ====== BADGES ====== -->
     <section>
-        <div class="badges-section fade-in">
-            <div class="section-title">
-                <h2>成就徽章</h2>
-                <p>探索、收集、社交、特殊四大类成就，记录你的每一步成长</p>
+        <div class="badges-section reveal">
+            <div class="section-header">
+                <h2>成就徽章体系</h2>
+                <p>从新手旅行者到城市王者，每一步成长都有徽章见证</p>
             </div>
-            <div class="badge-grid">
-                <div class="badge-item">
-                    <img src="site-assets/badge-newbie.jpg" alt="新手">
-                    <span>新手旅行者</span>
-                </div>
-                <div class="badge-item">
-                    <img src="site-assets/badge-advanced.jpg" alt="进阶">
-                    <span>进阶探索者</span>
-                </div>
-                <div class="badge-item">
-                    <img src="site-assets/badge-expert.jpg" alt="专家">
-                    <span>旅行专家</span>
-                </div>
-                <div class="badge-item">
-                    <img src="site-assets/badge-master.jpg" alt="大师">
-                    <span>探索大师</span>
-                </div>
-                <div class="badge-item">
-                    <img src="site-assets/badge-king.jpg" alt="王者">
-                    <span>城市王者</span>
-                </div>
+            <div class="badges-grid">
+                <div class="badge-item"><img src="site-assets/badge-newbie.jpg" alt="新手旅行者"><span>新手旅行者</span></div>
+                <div class="badge-item"><img src="site-assets/badge-advanced.jpg" alt="进阶探索者"><span>进阶探索者</span></div>
+                <div class="badge-item"><img src="site-assets/badge-expert.jpg" alt="旅行专家"><span>旅行专家</span></div>
+                <div class="badge-item"><img src="site-assets/badge-master.jpg" alt="探索大师"><span>探索大师</span></div>
+                <div class="badge-item"><img src="site-assets/badge-king.jpg" alt="城市王者"><span>城市王者</span></div>
             </div>
         </div>
     </section>
 
-    <!-- TECH STACK -->
+    <!-- ====== TECH STACK ====== -->
     <section>
-        <div class="tech-wrap fade-in">
-            <div class="section-title">
-                <h2>技术栈</h2>
-                <p>原生微信小程序 + 微信云开发，完整的前后端技术方案</p>
-            </div>
-            <div class="tech-grid">
-                <div class="tech-item">
-                    <div class="tech-icon" style="background: #E8F5E9;">📱</div>
-                    <span>微信小程序原生框架</span>
-                </div>
-                <div class="tech-item">
-                    <div class="tech-icon" style="background: #E3F2FD;">☁️</div>
-                    <span>微信云开发 CloudBase</span>
-                </div>
-                <div class="tech-item">
-                    <div class="tech-icon" style="background: #FFF8E1;">⚡</div>
-                    <span>云函数 Node.js</span>
-                </div>
-                <div class="tech-item">
-                    <div class="tech-icon" style="background: #F3E5F5;">🗄️</div>
-                    <span>云数据库 MongoDB</span>
-                </div>
-                <div class="tech-item">
-                    <div class="tech-icon" style="background: #FFEBEE;">🖼️</div>
-                    <span>云存储 COS</span>
-                </div>
-                <div class="tech-item">
-                    <div class="tech-icon" style="background: #E0F7FA;">📦</div>
-                    <span>分包加载优化</span>
-                </div>
-                <div class="tech-item">
-                    <div class="tech-icon" style="background: #FFF3E0;">🎵</div>
-                    <span>代码生成 WAV 音效</span>
-                </div>
-                <div class="tech-item">
-                    <div class="tech-icon" style="background: #E8EAF6;">💾</div>
-                    <span>本地缓存 Storage</span>
-                </div>
-            </div>
+        <div class="section-header reveal">
+            <h2>技术栈</h2>
+            <p>原生微信小程序 + 微信云开发，完整前后端方案</p>
+        </div>
+        <div class="tech-grid">
+            <div class="tech-item reveal"><div class="tech-dot" style="background:#E8F5E9;">📱</div><span class="label">微信小程序原生框架</span></div>
+            <div class="tech-item reveal"><div class="tech-dot" style="background:#E3F2FD;">☁️</div><span class="label">微信云开发 CloudBase</span></div>
+            <div class="tech-item reveal"><div class="tech-dot" style="background:#FFF8E1;">⚡</div><span class="label">云函数 Node.js</span></div>
+            <div class="tech-item reveal"><div class="tech-dot" style="background:#F3E5F5;">🗄️</div><span class="label">云数据库 MongoDB</span></div>
+            <div class="tech-item reveal"><div class="tech-dot" style="background:#FFEBEE;">🖼️</div><span class="label">云存储 COS</span></div>
+            <div class="tech-item reveal"><div class="tech-dot" style="background:#E0F7FA;">📦</div><span class="label">分包加载优化</span></div>
+            <div class="tech-item reveal"><div class="tech-dot" style="background:#FFF3E0;">🎵</div><span class="label">代码生成 WAV 音效</span></div>
+            <div class="tech-item reveal"><div class="tech-dot" style="background:#E8EAF6;">💾</div><span class="label">本地缓存 Storage</span></div>
         </div>
     </section>
 
-    <!-- HIGHLIGHTS -->
+    <!-- ====== HIGHLIGHTS ====== -->
     <section>
-        <div class="highlights-wrap fade-in">
-            <div class="section-title">
+        <div class="highlights-wrap reveal">
+            <div class="section-header">
                 <h2>项目亮点</h2>
                 <p>技术实现与产品设计的深度融合</p>
             </div>
-            <div class="highlight-grid">
-                <div class="highlight-card">
-                    <div class="highlight-icon">📦</div>
-                    <div class="highlight-content">
+            <div class="hl-grid">
+                <div class="hl-card">
+                    <div class="hl-icon">📦</div>
+                    <div class="hl-text">
                         <h4>分包体积优化</h4>
-                        <p>主包体积从 26MB 优化至 1.4MB，3 个分包策略，PNG 转 JPG 节省 88% 体积</p>
+                        <p>主包 26MB → 1.4MB，3 个分包策略，PNG→JPG 节省 88% 体积</p>
                     </div>
                 </div>
-                <div class="highlight-card">
-                    <div class="highlight-icon">☁️</div>
-                    <div class="highlight-content">
-                        <h4>云开发架构</h4>
-                        <p>5 个云函数处理登录、数据同步、资源解析、群组管理，云存储托管大图资源</p>
+                <div class="hl-card">
+                    <div class="hl-icon">☁️</div>
+                    <div class="hl-text">
+                        <h4>云开发全栈架构</h4>
+                        <p>5 个云函数 + 云数据库 + 云存储，完整后端能力</p>
                     </div>
                 </div>
-                <div class="highlight-card">
-                    <div class="highlight-icon">🎵</div>
-                    <div class="highlight-content">
-                        <h4>创新音频方案</h4>
-                        <p>8bit PCM WAV 代码生成音频，解决云存储音频跨域播放限制，纯代码实现音效</p>
+                <div class="hl-card">
+                    <div class="hl-icon">🎵</div>
+                    <div class="hl-text">
+                        <h4>代码生成音频</h4>
+                        <p>8bit PCM WAV 纯代码合成，无需外部音频文件</p>
                     </div>
                 </div>
-                <div class="highlight-card">
-                    <div class="highlight-icon">🎮</div>
-                    <div class="highlight-content">
-                        <h4>游戏化设计</h4>
-                        <p>抽卡动画、成就解锁动效、等级体系，让旅行记录更有目标感和持续动力</p>
+                <div class="hl-card">
+                    <div class="hl-icon">🎮</div>
+                    <div class="hl-text">
+                        <h4>游戏化体验设计</h4>
+                        <p>抽卡动画、成就解锁、等级体系，让探索更有动力</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- CTA -->
-    <section class="cta-section">
-        <div class="fade-in">
-            <h2>开始探索</h2>
-            <p>查看源码、了解技术实现，或直接在 GitHub 上体验项目</p>
-            <div class="hero-btns" style="justify-content: center;">
-                <a href="https://github.com/tl66666/chw2.0/tree/main/城会玩2.0" class="btn btn-primary">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                    浏览源码目录
-                </a>
+    <!-- ====== GET STARTED ====== -->
+    <section id="get-started">
+        <div class="section-header reveal">
+            <h2>快速开始</h2>
+            <p>三步在本地运行城会玩2.0</p>
+        </div>
+        <div class="steps">
+            <div class="step reveal">
+                <div class="step-num">1</div>
+                <h4>克隆仓库</h4>
+                <p>运行 <code>git clone https://github.com/tl66666/chw2.0.git</code></p>
             </div>
+            <div class="step reveal">
+                <div class="step-num">2</div>
+                <h4>导入开发者工具</h4>
+                <p>微信开发者工具 → 导入项目 → 选择 <code>城会玩2.0/</code> 目录</p>
+            </div>
+            <div class="step reveal">
+                <div class="step-num">3</div>
+                <h4>开通云开发 & 运行</h4>
+                <p>开通云开发环境，部署云函数，点击编译运行</p>
+            </div>
+        </div>
+        <div style="text-align:center;margin-top:2.5rem;">
+            <a href="https://github.com/tl66666/chw2.0/tree/main/%E5%9F%8E%E4%BC%9A%E7%8E%A92.0" class="btn btn-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                浏览源码目录
+            </a>
         </div>
     </section>
 
-    <!-- FOOTER -->
+    <!-- ====== FOOTER ====== -->
     <footer>
-        <p>城会玩2.0 · 城市探索旅行小程序</p>
-        <p>Made with ❤️ by 唐乐</p>
-        <div class="footer-links">
+        <div class="brand">城会玩 2.0</div>
+        <div class="sub">城市探索旅行小程序 · Made with ❤️ by 唐乐</div>
+        <div>
             <a href="https://github.com/tl66666/chw2.0">GitHub</a>
-            <a href="https://github.com/tl66666/chw2.0/tree/main/城会玩2.0">源码</a>
-            <a href="https://github.com/tl66666/chw2.0/blob/main/LICENSE">License</a>
+            <a href="https://github.com/tl66666/chw2.0/tree/main/%E5%9F%8E%E4%BC%9A%E7%8E%A92.0">源码</a>
+            <a href="https://github.com/tl66666/chw2.0/blob/main/LICENSE">MIT License</a>
         </div>
     </footer>
 
@@ -945,9 +671,9 @@
                     entry.target.classList.add('visible');
                 }
             });
-        }, { threshold: 0.1 });
+        }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 
-        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     </script>
 </body>
 </html>
