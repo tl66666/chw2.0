@@ -365,7 +365,9 @@ Page({
           });
           wx.showToast({ title: '创建成功', icon: 'success' });
         } else {
-          // 云端失败，群组仅本地可用
+          // 云端失败，群组仅本地可用，好友将无法加入！
+          var failMsg = (result && result.message) || '未知错误';
+          console.error('[group] 云端创建失败:', failMsg);
           self.setData({
             showCreateModal: false,
             groupInfo: groupData.groupInfo,
@@ -378,8 +380,8 @@ Page({
             sharedPhotos: groupData.sharedPhotos
           });
           wx.showModal({
-            title: '云端同步失败',
-            content: '群组已在本地创建，好友可能暂时无法通过云端加入。请稍后重试或检查云函数是否已部署。',
+            title: '⚠️ 云端同步失败',
+            content: '群组已在本机创建，但云端写入失败：' + failMsg + '\n\n好友将无法通过云端加入！请先在微信开发者工具中：\n1) 右键 cloudfunctions/group → 上传并部署\n2) 确认云数据库集合 groups 和 group_members 已创建',
             showCancel: false
           });
         }
@@ -548,22 +550,22 @@ Page({
           });
         } else {
           var msg = (result && result.message) || '邀请码无效或群组不存在';
+          console.error('[group] joinGroup 失败:', result);
           wx.showModal({
             title: '加入失败',
-            content: msg,
+            content: msg + '\n\n请确认：\n1. 邀请码输入正确（6位，无空格）\n2. 创建者的云函数 group 已部署\n3. 创建者的数据库集合 groups 已创建',
             showCancel: false
           });
         }
       }).catch(function(err) {
         wx.hideLoading();
-        console.error('加入群组失败:', err);
-        
-        // 云函数失败时，提供本地模式
+        console.error('[group] joinGroup 云函数调用失败:', err);
         wx.showModal({
-          title: '云端加入失败',
-          content: '云函数暂不可用，是否使用本地模式加入？（本地模式群组数据仅保存在本机）',
+          title: '网络错误',
+          content: '云函数调用失败: ' + (err.errMsg || err.message || '未知错误') + '\n\n请检查：\n1. 云开发环境是否已开通\n2. 云函数 group 是否已上传并部署\n3. 网络连接是否正常\n\n或者使用本地模式加入（数据仅保存在本机）',
           confirmText: '本地加入',
           cancelText: '取消',
+          showCancel: true,
           success: function(modalRes) {
             if (modalRes.confirm) {
               self.doLocalJoin(code);
