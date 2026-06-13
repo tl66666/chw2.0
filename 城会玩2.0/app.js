@@ -5,6 +5,7 @@ App({
     isLogin: false,
     visitedCities: [],
     visitedProvinces: [],
+    visitDates: {},       // 城市访问日期记录 { cityId: '2024-01-15' }
     cityPhotos: {},
     cityTravelPhotos: {},
     cityFoodPhotos: {},
@@ -96,7 +97,7 @@ App({
                   code: res.code,
                   userInfo: userInfo
                 },
-                timeout: 15000
+                timeout: 10000
               }).then(function(res) {
                 wx.hideLoading();
                 var result = res.result;
@@ -207,7 +208,7 @@ App({
       data: {
         action: 'getAllData'
       },
-      timeout: 15000
+      timeout: 8000
     }).then(function(res) {
       var result = res.result;
       if (result && result.success && result.data) {
@@ -218,11 +219,6 @@ App({
       console.error('同步失败:', err);
       // 云函数未部署或超时，切换到本地模式
       self.globalData.useCloud = false;
-      wx.showToast({
-        title: '使用本地数据模式',
-        icon: 'none',
-        duration: 2000
-      });
     });
   },
 
@@ -299,8 +295,8 @@ App({
           action: 'syncCityRecords',
           data: cityRecords
         },
-        timeout: 15000
-      });
+        timeout: 8000
+      }).catch(function() { /* 静默失败 */ });
     }
     
     // 同步笔记
@@ -322,8 +318,8 @@ App({
           action: 'syncNotes',
           data: notes
         },
-        timeout: 15000
-      });
+        timeout: 8000
+      }).catch(function() { /* 静默失败 */ });
     }
   },
 
@@ -343,6 +339,7 @@ App({
     try {
       var visitedCities = wx.getStorageSync('visitedCities');
       var visitedProvinces = wx.getStorageSync('visitedProvinces');
+      var visitDates = wx.getStorageSync('visitDates');
       var cityPhotos = wx.getStorageSync('cityPhotos');
       var cityTravelPhotos = wx.getStorageSync('cityTravelPhotos');
       var cityFoodPhotos = wx.getStorageSync('cityFoodPhotos');
@@ -357,6 +354,9 @@ App({
       }
       if (visitedProvinces) {
         this.globalData.visitedProvinces = JSON.parse(visitedProvinces);
+      }
+      if (visitDates) {
+        this.globalData.visitDates = JSON.parse(visitDates);
       }
       if (cityPhotos) {
         this.globalData.cityPhotos = JSON.parse(cityPhotos);
@@ -402,6 +402,7 @@ App({
     try {
       wx.setStorageSync('visitedCities', JSON.stringify(this.globalData.visitedCities));
       wx.setStorageSync('visitedProvinces', JSON.stringify(this.globalData.visitedProvinces));
+      wx.setStorageSync('visitDates', JSON.stringify(this.globalData.visitDates));
       wx.setStorageSync('cityPhotos', JSON.stringify(this.globalData.cityPhotos));
       wx.setStorageSync('cityTravelPhotos', JSON.stringify(this.globalData.cityTravelPhotos));
       wx.setStorageSync('cityFoodPhotos', JSON.stringify(this.globalData.cityFoodPhotos));

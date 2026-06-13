@@ -120,12 +120,87 @@ page {
   height: 100%;
 }
 
-/* 图例 */
+/* 图例 + 省份统计 */
+.map-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20rpx;
+  padding: 0 8rpx;
+}
+
 .map-legend {
   display: flex;
   justify-content: center;
   gap: 40rpx;
-  margin-top: 20rpx;
+  margin-top: 0;
+}
+
+.province-summary {
+  font-size: 22rpx;
+  color: var(--pink-primary);
+  font-weight: 500;
+}
+
+/* 已点亮省份标签栏 */
+.visited-provinces-bar {
+  margin-top: 16rpx;
+  padding: 12rpx 0;
+}
+
+.provinces-scroll {
+  width: 100%;
+}
+
+.provinces-row {
+  display: flex;
+  gap: 12rpx;
+  padding: 4rpx 0;
+}
+
+.province-tag {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 8rpx 18rpx;
+  border-radius: 24rpx;
+  font-size: 22rpx;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.tag-visited {
+  background: linear-gradient(135deg, #FDE8ED, #FCE4EC);
+  border: 1rpx solid #F4A6B5;
+  color: #D4687C;
+}
+
+.tag-normal {
+  background: #F5F5F5;
+  border: 1rpx solid #E0E0E0;
+  color: #999;
+}
+
+.tag-hint {
+  background: transparent;
+  border: 1rpx dashed #D0D0D0;
+  color: #B0B0B0;
+  font-size: 22rpx;
+}
+
+.tag-check {
+  font-size: 20rpx;
+  color: #E98296;
+  font-weight: 700;
+}
+
+.tag-count {
+  font-size: 18rpx;
+  color: #C4909C;
+  background: rgba(244, 166, 181, 0.15);
+  padding: 2rpx 8rpx;
+  border-radius: 12rpx;
 }
 
 .legend-item {
@@ -264,6 +339,17 @@ page {
   color: var(--text-primary);
   display: block;
   margin-bottom: 2rpx;
+}
+
+.recent-landmark {
+  font-size: 18rpx;
+  color: #B0A090;
+  display: block;
+  margin-bottom: 2rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140rpx;
 }
 
 .recent-date {

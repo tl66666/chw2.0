@@ -60,6 +60,24 @@ async function getMyGroup(openid) {
     const membersRes = await db.collection('group_members').where({ groupId: member.groupId }).get();
     const members = membersRes.data || [];
 
+    // 获取群组共享照片
+    const photosRes = await db.collection('group_photos')
+      .where({ groupId: member.groupId })
+      .orderBy('createTime', 'desc')
+      .limit(20)
+      .get();
+    const sharedPhotos = (photosRes.data || []).map(function(p) {
+      return {
+        id: p._id,
+        url: p.url || p.fileId,
+        userId: p.openid,
+        userName: p.nickName || '成员',
+        userAvatar: p.avatarUrl || '/images/avatar.jpg',
+        cityName: p.cityName || '',
+        createTime: p.createTime
+      };
+    });
+
     return {
       success: true,
       groupInfo,
@@ -73,7 +91,7 @@ async function getMyGroup(openid) {
         totalProvinces: groupInfo.totalProvinces || 0,
         totalPhotos: members.reduce((sum, item) => sum + (item.photoCount || 0), 0)
       },
-      sharedPhotos: groupInfo.sharedPhotos || []
+      sharedPhotos: sharedPhotos
     };
   } catch (err) {
     return { success: true, groupInfo: null, offline: true, error: err.message };
@@ -117,6 +135,91 @@ async function leaveGroup(openid) {
   return { success: true };
 }
 
+// 通过邀请码加入群组
+async function joinGroup(data, openid) {
+  const inviteCode = (data && data.inviteCode || '').trim().toUpperCase();
+  if (!inviteCode || inviteCode.length !== 6) {
+    return { success: false, error: 'INVALID_CODE', message: '邀请码格式不正确' };
+  }
+
+  try {
+    // 1. 根据邀请码查找群组
+    const groupRes = await db.collection('groups').where({ inviteCode }).limit(1).get();
+    const group = groupRes.data && groupRes.data[0];
+    if (!group) {
+      return { success: false, error: 'CODE_NOT_FOUND', message: '邀请码不存在' };
+    }
+
+    // 2. 检查是否已经是成员
+    const memberCheck = await db.collection('group_members')
+      .where({ openid, groupId: group._id }).limit(1).get();
+    if (memberCheck.data && memberCheck.data.length > 0) {
+      return { success: false, error: 'ALREADY_MEMBER', message: '你已经是该群组成员' };
+    }
+
+    // 3. 检查群组人数上限（最多20人）
+    const countRes = await db.collection('group_members').where({ groupId: group._id }).count();
+    if (countRes.total >= 20) {
+      return { success: false, error: 'GROUP_FULL', message: '群组已满（最多20人）' };
+    }
+
+    // 4. 添加为新成员
+    const userInfo = data.userInfo || {};
+    const memberData = {
+      openid,
+      groupId: group._id,
+      nickName: userInfo.nickName || '城会玩旅人',
+      avatarUrl: userInfo.avatarUrl || '/images/avatar.jpg',
+      isCreator: false,
+      role: '成员',
+      cityCount: data.cityCount || 0,
+      photoCount: data.photoCount || 0,
+      joinedAt: db.serverDate()
+    };
+
+    const addRes = await db.collection('group_members').add({ data: memberData });
+
+    // 5. 获取群组完整信息返回
+    const membersRes = await db.collection('group_members').where({ groupId: group._id }).get();
+    const members = membersRes.data || [];
+
+    return {
+      success: true,
+      groupInfo: {
+        id: group._id,
+        name: group.name,
+        type: group.type,
+        createTime: group.createTime,
+        creatorOpenid: group.creatorOpenid,
+        inviteCode: group.inviteCode
+      },
+      isCreator: group.creatorOpenid === openid,
+      isAdmin: false,
+      inviteCode: group.inviteCode || '',
+      members: members.map(function(m) {
+        return {
+          openid: m.openid,
+          nickName: m.nickName,
+          avatarUrl: m.avatarUrl,
+          isCreator: m.isCreator || false,
+          role: m.role || '成员',
+          cityCount: m.cityCount || 0,
+          photoCount: m.photoCount || 0
+        };
+      }),
+      stats: {
+        totalMembers: members.length,
+        totalCities: members.reduce(function(sum, item) { return sum + (item.cityCount || 0); }, 0),
+        totalProvinces: group.totalProvinces || 0,
+        totalPhotos: members.reduce(function(sum, item) { return sum + (item.photoCount || 0); }, 0)
+      },
+      sharedPhotos: group.sharedPhotos || []
+    };
+  } catch (err) {
+    return { success: false, error: 'CLOUD_ERROR', message: '加入失败：' + err.message };
+  }
+}
+
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext();
   const openid = (event && event.openid) || wxContext.OPENID || 'mock_openid';
@@ -132,6 +235,94 @@ exports.main = async (event) => {
   if (action === 'leaveGroup') {
     return leaveGroup(openid);
   }
+  if (action === 'joinGroup') {
+    return joinGroup(data, openid);
+  }
+  if (action === 'sharePhoto') {
+    return shareGroupPhoto(data, openid);
+  }
+  if (action === 'getSharedPhotos') {
+    return getSharedPhotos(data, openid);
+  }
+  if (action === 'syncMemberStats') {
+    return syncMemberStats(data, openid);
+  }
 
   return { success: false, error: 'UNKNOWN_ACTION' };
 };
+
+// 共享照片到群组
+async function shareGroupPhoto(data, openid) {
+  const { groupId, fileId, url, cityName } = data;
+  if (!groupId) {
+    return { success: false, error: '缺少群组ID' };
+  }
+  try {
+    // 获取用户信息
+    const userRes = await db.collection('group_members').where({ openid, groupId }).limit(1).get();
+    const member = userRes.data && userRes.data[0];
+    if (!member) return { success: false, error: '你不是该群组成员' };
+
+    const res = await db.collection('group_photos').add({
+      data: {
+        groupId,
+        openid,
+        nickName: member.nickName || '成员',
+        avatarUrl: member.avatarUrl || '',
+        fileId: fileId || '',
+        url: url || fileId || '',
+        cityName: cityName || '',
+        createTime: db.serverDate()
+      }
+    });
+
+    return { success: true, photoId: res._id, message: '照片已共享到群组' };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+// 获取群组共享照片
+async function getSharedPhotos(data, openid) {
+  const { groupId } = data;
+  if (!groupId) return { success: false, error: '缺少群组ID' };
+  try {
+    const res = await db.collection('group_photos')
+      .where({ groupId })
+      .orderBy('createTime', 'desc')
+      .limit(50)
+      .get();
+    const photos = (res.data || []).map(function(p) {
+      return {
+        id: p._id,
+        url: p.url || p.fileId,
+        userId: p.openid,
+        userName: p.nickName || '成员',
+        userAvatar: p.avatarUrl || '/images/avatar.jpg',
+        cityName: p.cityName || '',
+        createTime: p.createTime
+      };
+    });
+    return { success: true, photos };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+// 同步成员统计数据
+async function syncMemberStats(data, openid) {
+  const { groupId, cityCount, photoCount } = data;
+  if (!groupId) return { success: false, error: '缺少群组ID' };
+  try {
+    await db.collection('group_members').where({ openid, groupId }).update({
+      data: {
+        cityCount: cityCount || 0,
+        photoCount: photoCount || 0,
+        syncTime: db.serverDate()
+      }
+    });
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}

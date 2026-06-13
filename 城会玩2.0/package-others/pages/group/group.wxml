@@ -60,21 +60,29 @@
     </view>
 
     <!-- 共享照片预览 -->
-    <view class="photos-section" wx:if="{{sharedPhotos.length > 0}}">
+    <view class="photos-section">
       <view class="section-header">
         <text class="section-title">共享照片</text>
-        <view class="section-more" bindtap="showPhotoWall">
-          <text>查看全部</text>
-          <view class="arrow-right"></view>
+        <view class="section-actions">
+          <view class="section-action-btn" bindtap="uploadSharePhoto">
+            <text class="action-btn-text">+ 上传</text>
+          </view>
+          <view class="section-more" bindtap="showPhotoWall" wx:if="{{sharedPhotos.length > 0}}">
+            <text>查看全部</text>
+            <view class="arrow-right"></view>
+          </view>
         </view>
       </view>
-      <view class="photos-grid">
-        <view class="photo-item" wx:for="{{sharedPhotos}}" wx:key="index" bindtap="previewImage" data-url="{{item.url}}">
+      <view class="photos-grid" wx:if="{{sharedPhotos.length > 0}}">
+        <view class="photo-item" wx:for="{{sharedPhotos}}" wx:key="id" bindtap="previewImage" data-url="{{item.url}}">
           <image class="photo-img" src="{{item.url}}" mode="aspectFill" lazy-load/>
           <view class="photo-overlay">
             <image class="photo-user-avatar" src="{{item.userAvatar || '/images/avatar.jpg'}}" mode="aspectFill"/>
           </view>
         </view>
+      </view>
+      <view class="no-photos-hint" wx:else>
+        <text class="hint-text">还没有共享照片，点击上传分享你的旅行瞬间</text>
       </view>
     </view>
 

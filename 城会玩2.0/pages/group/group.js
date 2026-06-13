@@ -381,31 +381,145 @@ Page({
       return;
     }
     
-    wx.showLoading({ title: '加入中...' });
+    wx.showLoading({ title: '验证中...' });
     
-    // 模拟加入成功（实际应该查询云端）
-    setTimeout(function() {
-      wx.hideLoading();
-      
-      // 这里简化处理，实际应该调用云函数验证邀请码
-      wx.showModal({
-        title: '加入群组',
-        content: '邀请码 ' + code + ' 验证成功，确认加入该群组吗？',
-        confirmText: '确认加入',
-        success: function(res) {
-          if (res.confirm) {
-            self.setData({
-              showJoinModal: false,
-              joinCode: ''
-            });
-            wx.showToast({
-              title: '加入成功',
-              icon: 'success'
-            });
+    var userInfo = app.globalData.userInfo;
+    var openid = app.globalData.openid || wx.getStorageSync('openid');
+    
+    // 调用云函数验证邀请码并加入群组
+    if (app.globalData.useCloud) {
+      wx.cloud.callFunction({
+        name: 'group',
+        data: {
+          action: 'joinGroup',
+          data: {
+            inviteCode: code,
+            userInfo: userInfo,
+            openid: openid,
+            cityCount: app.getVisitedCityCount(),
+            photoCount: app.getStats().photoCount
           }
+        },
+        timeout: 15000
+      }).then(function(res) {
+        wx.hideLoading();
+        var result = res.result;
+        
+        if (result && result.success) {
+          // 加入成功，保存群组信息
+          var groupData = {
+            groupInfo: result.groupInfo,
+            isCreator: result.isCreator || false,
+            isAdmin: result.isAdmin || false,
+            inviteCode: result.inviteCode || code,
+            members: result.members || [],
+            stats: result.stats || self.data.stats,
+            sharedPhotos: result.sharedPhotos || []
+          };
+          
+          wx.setStorageSync('myGroup', JSON.stringify(groupData));
+          
+          self.setData({
+            showJoinModal: false,
+            joinCode: '',
+            groupInfo: result.groupInfo,
+            isCreator: result.isCreator || false,
+            isAdmin: result.isAdmin || false,
+            inviteCode: result.inviteCode || code,
+            members: result.members || [],
+            stats: result.stats || self.data.stats,
+            sharedPhotos: result.sharedPhotos || []
+          });
+          
+          wx.showToast({
+            title: '加入成功！',
+            icon: 'success'
+          });
+        } else {
+          var msg = (result && result.message) || '邀请码无效或群组不存在';
+          wx.showModal({
+            title: '加入失败',
+            content: msg,
+            showCancel: false
+          });
         }
+      }).catch(function(err) {
+        wx.hideLoading();
+        console.error('加入群组失败:', err);
+        
+        // 云函数失败时，提供本地模拟模式
+        wx.showModal({
+          title: '云端加入失败',
+          content: '云函数暂不可用，是否使用本地模式加入？（本地模式群组数据仅保存在本机）',
+          confirmText: '本地加入',
+          cancelText: '取消',
+          success: function(modalRes) {
+            if (modalRes.confirm) {
+              self.doLocalJoin(code, userInfo, openid);
+            }
+          }
+        });
       });
-    }, 1000);
+    } else {
+      // 纯本地模式
+      wx.hideLoading();
+      self.doLocalJoin(code, userInfo, openid);
+    }
+  },
+
+  // 本地模式加入群组（云函数不可用时的降级方案）
+  doLocalJoin: function(code, userInfo, openid) {
+    var self = this;
+    
+    // 生成本地群组数据
+    var groupData = {
+      groupInfo: {
+        id: 'group_local_' + Date.now(),
+        name: '我的旅行小队',
+        type: 'friends',
+        createTime: new Date().toISOString(),
+        creatorOpenid: openid,
+        inviteCode: code
+      },
+      isCreator: false,
+      isAdmin: false,
+      inviteCode: code,
+      members: [{
+        openid: openid,
+        nickName: (userInfo && userInfo.nickName) || '用户',
+        avatarUrl: (userInfo && userInfo.avatarUrl) || '/images/avatar.jpg',
+        isCreator: true,
+        role: '创建者',
+        cityCount: app.getVisitedCityCount(),
+        photoCount: app.getStats().photoCount
+      }],
+      stats: {
+        totalMembers: 1,
+        totalCities: app.getVisitedCityCount(),
+        totalProvinces: app.getVisitedProvinceCount(),
+        totalPhotos: app.getStats().photoCount
+      },
+      sharedPhotos: []
+    };
+    
+    wx.setStorageSync('myGroup', JSON.stringify(groupData));
+    
+    self.setData({
+      showJoinModal: false,
+      joinCode: '',
+      groupInfo: groupData.groupInfo,
+      isCreator: false,
+      isAdmin: false,
+      inviteCode: code,
+      members: groupData.members,
+      stats: groupData.stats,
+      sharedPhotos: groupData.sharedPhotos
+    });
+    
+    wx.showToast({
+      title: '已加入（本地模式）',
+      icon: 'success'
+    });
   },
 
   // 退出群组

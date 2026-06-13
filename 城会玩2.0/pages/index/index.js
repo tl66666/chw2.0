@@ -45,6 +45,44 @@ var provinceCoords = {
 
 var hotCities = ['beijing', 'shanghai', 'hangzhou', 'xian', 'chengdu', 'guangzhou', 'nanjing', 'suzhou'];
 
+// 省份级别必打卡地标（精选每个省最知名的2-3个地标）
+var provinceLandmarks = {
+  beijing: '故宫 / 长城 / 天安门',
+  tianjin: '天津之眼 / 五大道 / 瓷房子',
+  hebei: '避暑山庄 / 山海关 / 白洋淀',
+  shanxi: '云冈石窟 / 平遥古城 / 五台山',
+  neimenggu: '呼伦贝尔大草原 / 额济纳胡杨林 / 成吉思汗陵',
+  liaoning: '沈阳故宫 / 星海广场 / 鸭绿江断桥',
+  jilin: '长白山天池 / 吉林雾凇 / 伪满皇宫',
+  heilongjiang: '冰雪大世界 / 圣索菲亚教堂 / 北极村',
+  shanghai: '东方明珠 / 外滩 / 豫园',
+  jiangsu: '中山陵 / 苏州园林 / 瘦西湖',
+  zhejiang: '西湖 / 雷峰塔 / 普陀山',
+  anhui: '黄山 / 宏村 / 九华山',
+  fujian: '鼓浪屿 / 武夷山 / 永定土楼',
+  jiangxi: '庐山 / 滕王阁 / 景德镇陶瓷',
+  shandong: '泰山 / 趵突泉 / 蓬莱阁',
+  henan: '少林寺 / 龙门石窟 / 清明上河园',
+  hubei: '黄鹤楼 / 武当山 / 三峡大坝',
+  hunan: '张家界 / 岳阳楼 / 凤凰古城',
+  guangdong: '广州塔 / 丹霞山 / 开平碉楼',
+  guangxi: '漓江 / 象鼻山 / 德天瀑布',
+  hainan: '天涯海角 / 骑楼老街 / 蜈支洲岛',
+  chongqing: '洪崖洞 / 解放碑 / 磁器口',
+  sichuan: '九寨沟 / 大熊猫基地 / 乐山大佛',
+  guizhou: '黄果树瀑布 / 千户苗寨 / 梵净山',
+  yunnan: '丽江古城 / 大理洱海 / 西双版纳',
+  xizang: '布达拉宫 / 纳木错 / 珠峰大本营',
+  shaanxi: '兵马俑 / 大雁塔 / 华山',
+  gansu: '莫高窟 / 月牙泉 / 嘉峪关',
+  qinghai: '青海湖 / 茶卡盐湖 / 塔尔寺',
+  ningxia: '西夏王陵 / 沙坡头 / 镇北堡影城',
+  xinjiang: '天山天池 / 喀纳斯 / 喀什古城',
+  taiwan: '台北101 / 日月潭 / 阿里山',
+  hongkong: '维多利亚港 / 太平山顶 / 迪士尼',
+  macau: '大三巴 / 澳门塔 / 威尼斯人'
+};
+
 // 预构建城市ID到省份ID的映射，避免重复循环
 var cityToProvinceMap = {};
 for (var i = 0; i < cities.length; i++) {
@@ -85,7 +123,10 @@ Page({
 
   loadData: function() {
     var visitedCities = app.globalData.visitedCities || [];
+    var cityTravelPhotos = app.globalData.cityTravelPhotos || {};
+    var cityFoodPhotos = app.globalData.cityFoodPhotos || {};
     var cityPhotos = app.globalData.cityPhotos || {};
+    var visitDates = app.globalData.visitDates || {};
 
     // 计算已访问省份
     var visitedProvinceIds = [];
@@ -96,11 +137,19 @@ Page({
       }
     }
 
-    // 计算照片数量
+    // 计算照片总数（合并新旧格式）
     var photoCount = 0;
-    var photoKeys = Object.keys(cityPhotos);
+    var photoKeys = Object.keys(cityTravelPhotos);
     for (var k = 0; k < photoKeys.length; k++) {
-      photoCount += cityPhotos[photoKeys[k]].length;
+      photoCount += cityTravelPhotos[photoKeys[k]].length;
+    }
+    var foodKeys = Object.keys(cityFoodPhotos);
+    for (var f = 0; f < foodKeys.length; f++) {
+      photoCount += cityFoodPhotos[foodKeys[f]].length;
+    }
+    var oldKeys = Object.keys(cityPhotos);
+    for (var o = 0; o < oldKeys.length; o++) {
+      photoCount += cityPhotos[oldKeys[o]].length;
     }
 
     var completionRate = cities.length > 0 ? Math.round((visitedCities.length / cities.length) * 100) : 0;
@@ -116,11 +165,13 @@ Page({
 
       var provinceCityIds = provinceToCitiesMap[province.id] || [];
       
+      // 计算省份下照片总数
       var provincePhotoCount = 0;
       for (var pc = 0; pc < provinceCityIds.length; pc++) {
-        if (cityPhotos[provinceCityIds[pc]]) {
-          provincePhotoCount += cityPhotos[provinceCityIds[pc]].length;
-        }
+        var cid = provinceCityIds[pc];
+        if (cityTravelPhotos[cid]) provincePhotoCount += cityTravelPhotos[cid].length;
+        if (cityFoodPhotos[cid]) provincePhotoCount += cityFoodPhotos[cid].length;
+        if (cityPhotos[cid]) provincePhotoCount += cityPhotos[cid].length;
       }
 
       var isHot = false;
@@ -132,55 +183,94 @@ Page({
       }
 
       var isVisited = visitedProvinceIds.indexOf(province.id) !== -1;
+      
+      // 计算该省已打卡城市数
+      var visitedInProvince = 0;
+      for (var vc = 0; vc < provinceCityIds.length; vc++) {
+        if (visitedCities.indexOf(provinceCityIds[vc]) !== -1) {
+          visitedInProvince++;
+        }
+      }
 
       provinceList.push({
         id: province.id,
         name: province.name,
         visited: isVisited,
         hot: isHot,
-        photoCount: provincePhotoCount
+        photoCount: provincePhotoCount,
+        totalCities: provinceCityIds.length,
+        visitedCities: visitedInProvince
       });
+
+      // 使用PNG格式标记（手机端兼容性更好）
+      var markerIcon = isVisited ? '/images/marker-visited.png' : '/images/marker-normal.png';
+      var markerWidth = isVisited ? 30 : 26;
+      var markerHeight = isVisited ? 30 : 26;
 
       mapMarkers.push({
         id: p + 1,
         latitude: coords.lat,
         longitude: coords.lng,
-        title: province.name,
-        iconPath: isVisited ? '/images/marker-visited.svg' : '/images/marker-normal.svg',
-        width: 24,
-        height: 24,
+        title: province.name + (isVisited ? ' ✓已点亮' : ''),
+        iconPath: markerIcon,
+        width: markerWidth,
+        height: markerHeight,
         callout: {
-          content: province.name,
-          color: '#4A4A4A',
-          fontSize: 12,
+          content: province.name + (isVisited ? ' ✓' : '') + '\n' + visitedInProvince + '/' + provinceCityIds.length + ' 城',
+          color: isVisited ? '#E98296' : '#666666',
+          fontSize: 11,
           borderRadius: 8,
           bgColor: '#FFFFFF',
           padding: 6,
           display: 'BYCLICK',
           borderWidth: 1,
-          borderColor: '#F4A6B5'
+          borderColor: isVisited ? '#F4A6B5' : '#CCCCCC'
         }
       });
     }
 
-    // 最近访问的城市
+    // 最近记录——按省份聚合（去重，最近5个省份）
     var recentCities = [];
-    var count = Math.min(5, visitedCities.length);
-    for (var i = 0; i < count; i++) {
-      var cityId = visitedCities[visitedCities.length - 1 - i];
-      var cityName = cityId;
-      for (var j = 0; j < cities.length; j++) {
-        if (cities[j].id === cityId) {
-          cityName = cities[j].name;
-          break;
-        }
+    var seenProvinces = {};
+    var maxItems = 5;
+    for (var i = visitedCities.length - 1; i >= 0 && recentCities.length < maxItems; i--) {
+      var cityId = visitedCities[i];
+      var pid = cityToProvinceMap[cityId];
+      if (!pid || seenProvinces[pid]) continue;  // 跳过已出现的省份，去重
+      seenProvinces[pid] = true;
+
+      // 省份名
+      var pName = pid;
+      for (var pn = 0; pn < provinces.length; pn++) {
+        if (provinces[pn].id === pid) { pName = provinces[pn].name; break; }
       }
-      var photos = cityPhotos[cityId] || [];
+
+      // 省份下所有城市的照片汇总
+      var provinceCityIds = provinceToCitiesMap[pid] || [];
+      var allPhotos = [];
+      for (var pc = 0; pc < provinceCityIds.length; pc++) {
+        var cid2 = provinceCityIds[pc];
+        if (cityTravelPhotos[cid2]) allPhotos = allPhotos.concat(cityTravelPhotos[cid2]);
+        if (cityFoodPhotos[cid2]) allPhotos = allPhotos.concat(cityFoodPhotos[cid2]);
+        if (cityPhotos[cid2]) allPhotos = allPhotos.concat(cityPhotos[cid2]);
+      }
+
+      // 取该城市的打卡日期
+      var visitDateStr = visitDates[cityId];
+      var displayDate = '';
+      if (visitDateStr) {
+        var parts = visitDateStr.split('-');
+        displayDate = parseInt(parts[1]) + '月' + parseInt(parts[2]) + '日';
+      } else {
+        displayDate = this.formatDate(new Date());
+      }
+
       recentCities.push({
-        id: cityId,
-        name: cityName,
-        photoUrl: photos.length > 0 ? photos[photos.length - 1] : '',
-        visitDate: this.formatDate(new Date())
+        id: pid,                          // 省份ID，用于跳转省份详情
+        name: pName,                     // 省份名，如"安徽"
+        provinceName: provinceLandmarks[pid] || '',   // 省份地标，如"黄山 / 宏村 / 九华山"
+        photoUrl: allPhotos.length > 0 ? allPhotos[allPhotos.length - 1] : '',
+        visitDate: displayDate
       });
     }
 
@@ -194,7 +284,7 @@ Page({
       recentCities: recentCities
     });
 
-    console.log('mapMarkers loaded:', mapMarkers.length);
+    console.log('mapMarkers loaded:', mapMarkers.length, 'visitedProvinces:', visitedProvinceIds.length);
   },
 
   formatDate: function(date) {
@@ -215,6 +305,25 @@ Page({
       wx.navigateTo({
         url: '/pages/city-detail/city-detail?provinceId=' + province.id
       });
+    }
+  },
+
+  // 省份标签点击（从已点亮列表点击）
+  onProvinceTagTap: function(e) {
+    audioManager.play('button_tap');
+    var provinceId = e.currentTarget.dataset.provinceid;
+    var provinceList = this.data.provinceList;
+    for (var i = 0; i < provinceList.length; i++) {
+      if (provinceList[i].id === provinceId) {
+        this.setData({
+          selectedProvince: provinceList[i].name,
+          selectedProvinceId: provinceId
+        });
+        wx.navigateTo({
+          url: '/pages/city-detail/city-detail?provinceId=' + provinceId
+        });
+        break;
+      }
     }
   },
 

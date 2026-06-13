@@ -44,7 +44,8 @@
       />
     </view>
 
-    <!-- 图例 -->
+    <!-- 图例 + 已点亮省份 -->
+  <view class="map-info-row">
     <view class="map-legend">
       <view class="legend-item">
         <view class="legend-dot visited"></view>
@@ -55,6 +56,26 @@
         <text class="legend-text">未探索</text>
       </view>
     </view>
+    <text class="province-summary" wx:if="{{visitedProvinces > 0}}">已点亮 {{visitedProvinces}} 个省份</text>
+  </view>
+
+  <!-- 已点亮省份标签 -->
+  <view class="visited-provinces-bar" wx:if="{{provinceList.length > 0}}">
+    <scroll-view scroll-x class="provinces-scroll" enhanced show-scrollbar="{{false}}">
+      <view class="provinces-row">
+        <block wx:for="{{provinceList}}" wx:key="id">
+          <view class="province-tag {{item.visited ? 'tag-visited' : 'tag-normal'}}" wx:if="{{item.visited}}" bindtap="onProvinceTagTap" data-provinceid="{{item.id}}">
+            <text class="tag-check">✓</text>
+            <text>{{item.name}}</text>
+            <text class="tag-count">{{item.visitedCities}}/{{item.totalCities}}</text>
+          </view>
+        </block>
+        <view class="province-tag tag-hint" wx:if="{{visitedProvinces === 0}}">
+          <text>点击地图上的标记开始探索</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
   </view>
 
   <!-- 探索进度 -->
@@ -69,7 +90,7 @@
     <text class="progress-desc">已探索 {{visitedCount}}/{{totalCities}} 座城市</text>
   </view>
 
-  <!-- 最近访问城市 -->
+  <!-- 最近记录 — 按省份展示 -->
   <view class="recent-section" wx:if="{{recentCities.length > 0}}">
     <view class="section-header">
       <text class="section-title">最近记录</text>
@@ -81,17 +102,18 @@
           wx:for="{{recentCities}}"
           wx:key="id"
           class="recent-item"
-          bindtap="goToCityDetail"
-          data-cityid="{{item.id}}"
+          bindtap="onProvinceTagTap"
+          data-provinceid="{{item.id}}"
         >
           <view class="recent-image-wrapper">
             <image class="recent-image" src="{{item.photoUrl}}" mode="aspectFill" wx:if="{{item.photoUrl}}"/>
             <view class="recent-placeholder" wx:else>
-              <text class="placeholder-text">照片</text>
+              <text class="placeholder-text">{{item.name}}</text>
             </view>
           </view>
           <view class="recent-info">
             <text class="recent-name">{{item.name}}</text>
+            <text class="recent-landmark" wx:if="{{item.provinceName}}">{{item.provinceName}}</text>
             <text class="recent-date">{{item.visitDate}}</text>
           </view>
         </view>

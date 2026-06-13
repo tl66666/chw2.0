@@ -78,7 +78,7 @@
 
   <!-- 空状态 -->
   <view class="empty-state" wx:else>
-    <image class="empty-image" src="/images/ui/{{activeTab === 'food' ? 'empty-food' : 'empty-travel'}}.png" mode="aspectFit"/>
+    <image class="empty-image" src="/images/ui/{{activeTab === 'food' ? 'empty-food' : 'empty-travel'}}.jpg" mode="aspectFit"/>
     <text class="empty-title">还没有{{activeTab === 'food' ? '美食' : '旅行'}}照片</text>
     <text class="empty-desc">去记录你的第一次{{activeTab === 'food' ? '美食' : '旅行'}}吧</text>
     <view class="empty-btn btn-gold" bindtap="goToUpload">
