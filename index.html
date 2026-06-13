@@ -83,7 +83,6 @@
         .float-2 { bottom: 18%; left: 2%; animation-delay: 2.5s; }
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 
-        /* SECTIONS */
         section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
         .section-header { text-align: center; margin-bottom: 3.5rem; }
         .section-header h2 { font-size: clamp(1.7rem, 3.5vw, 2.3rem); font-weight: 700; margin-bottom: 0.8rem; letter-spacing: -0.01em; }
@@ -91,51 +90,104 @@
         .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
         .reveal.visible { opacity: 1; transform: translateY(0); }
 
-        /* FEATURE CARDS */
-        .feature-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-        .fcard {
-            background: var(--white); border-radius: var(--radius); padding: 2rem 1.5rem;
-            text-align: center; box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.03);
-            transition: all 0.35s ease; cursor: default;
-        }
-        .fcard:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
-        .fcard .icon {
-            width: 64px; height: 64px; border-radius: 18px; display: flex;
-            align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 1rem;
-        }
-        .fmap { background: linear-gradient(135deg, #FFE4EC, #FFF0F3); }
-        .fcity { background: linear-gradient(135deg, #E8F4F8, #F0F9FC); }
-        .fcard-icon { background: linear-gradient(135deg, #FFF8E7, #FFFBE8); }
-        .fachieve { background: linear-gradient(135deg, #F0E8FF, #F5F0FF); }
-        .fphoto { background: linear-gradient(135deg, #E8F5E9, #F0F8F0); }
-        .fgroup { background: linear-gradient(135deg, #EDE7F6, #F5F0FF); }
-        .fcloud { background: linear-gradient(135deg, #E3F2FD, #F0F8FF); }
-        .fshare { background: linear-gradient(135deg, #FFF3E0, #FFF8E1); }
-        .fcard h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
-        .fcard p { color: var(--text-light); font-size: 0.84rem; line-height: 1.6; }
-
-        /* FEATURE SPOTLIGHT */
+        /* Spotlights */
         .spotlight { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center; margin-bottom: 5rem; }
-        .spotlight.reverse { grid-template-columns: 1fr 1fr; }
+        .spotlight.reverse .spotlight-image { order: 1; }
+        .spotlight.reverse .spotlight-text { order: 2; }
         .spotlight-image {
             background: var(--white); border-radius: var(--radius); overflow: hidden;
             box-shadow: var(--shadow); aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center;
         }
         .spotlight-image img { width: 100%; height: 100%; object-fit: cover; }
-        .spotlight-image .empty-icon { font-size: 5rem; opacity: 0.5; }
         .spotlight-text h3 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.8rem; }
-        .spotlight-text h3 span { 
+        .spotlight-text h3 span {
             background: linear-gradient(135deg, var(--purple), var(--pink));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
         .spotlight-text p { color: var(--text-light); font-size: 0.95rem; line-height: 1.8; margin-bottom: 1.2rem; }
         .spotlight-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-        .stag {
-            padding: 0.35rem 1rem; border-radius: 50px; font-size: 0.8rem; font-weight: 500;
-            background: rgba(102,126,234,0.08); color: var(--purple);
+        .stag { padding: 0.35rem 1rem; border-radius: 50px; font-size: 0.8rem; font-weight: 500; background: rgba(102,126,234,0.08); color: var(--purple); }
+
+        /* Stats */
+        .stats-card {
+            background: var(--white); border-radius: var(--radius); padding: 2.5rem 3rem;
+            box-shadow: var(--shadow); display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; text-align: center;
+        }
+        .stat-value { font-size: 2.4rem; font-weight: 900; background: linear-gradient(135deg, var(--pink), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; }
+        .stat-label { color: var(--text-light); font-size: 0.9rem; margin-top: 0.3rem; font-weight: 500; }
+
+        /* ==================== CITY GALLERY ==================== */
+        .city-gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: stretch; }
+        .city-card {
+            position: relative; border-radius: var(--radius); overflow: hidden;
+            box-shadow: var(--shadow); transition: all 0.4s ease; aspect-ratio: 16/10;
+            cursor: pointer;
+        }
+        .city-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+        .city-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+        .city-card:hover img { transform: scale(1.06); }
+        .city-card-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(0deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0) 100%);
+            display: flex; flex-direction: column; justify-content: flex-end; padding: 2rem;
+        }
+        .city-card-overlay .cc-province {
+            font-size: 0.75rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+            color: rgba(255,255,255,0.65); margin-bottom: 0.3rem;
+        }
+        .city-card-overlay .cc-name {
+            font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 0.3rem;
+        }
+        .city-card-overlay .cc-landmarks {
+            font-size: 0.85rem; color: rgba(255,255,255,0.75); line-height: 1.5;
+        }
+        .city-card .cc-badge {
+            position: absolute; top: 1.2rem; right: 1.2rem;
+            background: rgba(255,255,255,0.2); backdrop-filter: blur(8px);
+            padding: 0.4rem 0.9rem; border-radius: 50px; font-size: 0.75rem;
+            font-weight: 600; color: white; border: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* GROUP FLOW */
+        /* ==================== CHARACTER CARDS ==================== */
+        .cards-showcase {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: stretch;
+        }
+        .ccard-wrapper {
+            perspective: 1000px; aspect-ratio: 3/4.5; max-width: 300px; margin: 0 auto;
+        }
+        .ccard {
+            position: relative; width: 100%; height: 100%;
+            border-radius: 18px; overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .ccard-wrapper:hover .ccard { transform: rotateY(8deg) scale(1.05); }
+        .ccard img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .ccard-shine {
+            position: absolute; inset: 0; background: linear-gradient(135deg, 
+                rgba(255,255,255,0.35) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.15) 100%);
+            pointer-events: none;
+        }
+        .ccard-label {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+            padding: 2.5rem 1.2rem 1.2rem; color: white;
+        }
+        .ccard-label .cl-rarity {
+            display: inline-block; padding: 0.2rem 0.8rem; border-radius: 50px;
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 0.5rem;
+        }
+        .cl-rarity.ssr { background: linear-gradient(135deg, #FFD93D, #FFA800); color: #5D3A00; }
+        .cl-rarity.ur { background: linear-gradient(135deg, #E040FB, #7C4DFF); color: white; }
+        .ccard-label .cl-name { font-size: 1.15rem; font-weight: 700; display: block; margin-bottom: 0.15rem; }
+        .ccard-label .cl-desc { font-size: 0.78rem; color: rgba(255,255,255,0.7); }
+        .ccard-info {
+            margin-top: 1.2rem; text-align: center; padding: 0 0.5rem;
+        }
+        .ccard-info h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; }
+        .ccard-info p { color: var(--text-light); font-size: 0.84rem; }
+
+        /* Group showcase */
         .group-showcase {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             border-radius: 24px; padding: 3.5rem 2.5rem; color: white;
@@ -168,7 +220,7 @@
         .gf-text h5 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.15rem; }
         .gf-text p { font-size: 0.82rem; color: rgba(255,255,255,0.6); }
 
-        /* ACHIEVEMENT BADGES */
+        /* Badges */
         .badges-section {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             border-radius: 24px; padding: 3rem 2.5rem; color: white;
@@ -178,13 +230,10 @@
         .badges-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2rem; margin-top: 2rem; }
         .badge-item { text-align: center; transition: all 0.3s ease; }
         .badge-item:hover { transform: translateY(-8px) scale(1.06); }
-        .badge-item img {
-            width: 85px; height: 85px; border-radius: 50%; object-fit: cover;
-            border: 3px solid rgba(255,255,255,0.2); box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-        }
+        .badge-item img { width: 85px; height: 85px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,0.2); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
         .badge-item span { display: block; margin-top: 0.8rem; font-size: 0.85rem; font-weight: 500; color: rgba(255,255,255,0.8); }
 
-        /* TECH */
+        /* Tech */
         .tech-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
         .tech-item {
             background: var(--white); border-radius: var(--radius-sm); padding: 1.3rem 1.2rem;
@@ -195,15 +244,7 @@
         .tech-dot { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
         .tech-item .label { font-weight: 500; font-size: 0.9rem; }
 
-        /* STATS */
-        .stats-card {
-            background: var(--white); border-radius: var(--radius); padding: 2.5rem 3rem;
-            box-shadow: var(--shadow); display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; text-align: center;
-        }
-        .stat-value { font-size: 2.4rem; font-weight: 900; background: linear-gradient(135deg, var(--pink), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; }
-        .stat-label { color: var(--text-light); font-size: 0.9rem; margin-top: 0.3rem; font-weight: 500; }
-
-        /* HIGHLIGHTS */
+        /* Highlights */
         .hl-wrap {
             background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
             border-radius: 24px; padding: 3.5rem 2.5rem; color: white;
@@ -217,7 +258,7 @@
         .hl-text h4 { font-size: 1.05rem; margin-bottom: 0.4rem; }
         .hl-text p { font-size: 0.87rem; color: rgba(255,255,255,0.7); line-height: 1.6; }
 
-        /* GET STARTED */
+        /* Get started */
         .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
         .step { background: var(--white); border-radius: var(--radius); padding: 2rem 1.8rem; box-shadow: var(--shadow-sm); text-align: center; border: 1px solid rgba(0,0,0,0.03); }
         .step-num { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), var(--blue)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; margin: 0 auto 1rem; }
@@ -225,26 +266,26 @@
         .step p { color: var(--text-light); font-size: 0.85rem; }
         .step code { background: var(--bg); padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.82rem; color: var(--pink-dark); }
 
-        /* FOOTER */
         footer { background: #1a1a2e; color: white; text-align: center; padding: 2.5rem 2rem; }
         footer .brand { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.4rem; }
         footer .sub { color: rgba(255,255,255,0.5); font-size: 0.88rem; margin-bottom: 1rem; }
         footer a { color: var(--pink); text-decoration: none; margin: 0 0.8rem; font-size: 0.9rem; transition: opacity 0.3s; }
         footer a:hover { opacity: 0.75; }
 
-        /* RESPONSIVE */
         @media (max-width: 900px) {
             .hero-container { grid-template-columns: 1fr; text-align: center; }
             .hero-left { order: 2; } .hero-right { order: 1; }
             .hero-desc { margin-left: auto; margin-right: auto; }
-            .hero-btns { justify-content: center; }
-            .hero-stats { justify-content: center; }
+            .hero-btns, .hero-stats { justify-content: center; }
             .hero-float { display: none; }
             .hero-phone { max-width: 260px; }
             .stats-card { grid-template-columns: repeat(2, 1fr); }
-            .feature-grid { grid-template-columns: repeat(2, 1fr); }
-            .spotlight { grid-template-columns: 1fr; } .spotlight.reverse { grid-template-columns: 1fr; }
-            .spotlight.reverse .spotlight-image { order: 2; } .spotlight.reverse .spotlight-text { order: 1; }
+            .spotlight { grid-template-columns: 1fr; }
+            .spotlight.reverse { grid-template-columns: 1fr; }
+            .spotlight.reverse .spotlight-image { order: 1; }
+            .city-gallery { grid-template-columns: 1fr; }
+            .cards-showcase { grid-template-columns: 1fr; }
+            .ccard-wrapper { max-width: 240px; }
             .flow-steps { grid-template-columns: 1fr; gap: 1.5rem; }
             .flow-arrow { display: none; }
             .group-showcase { padding: 2rem 1.5rem; }
@@ -256,7 +297,6 @@
         }
         @media (max-width: 500px) {
             section { padding: 3rem 1rem; }
-            .feature-grid { grid-template-columns: 1fr; }
             .badges-grid { grid-template-columns: repeat(2, 1fr); }
             .tech-grid { grid-template-columns: 1fr; }
         }
@@ -315,63 +355,111 @@
         <p>地图点亮、抽卡收集、成就激励、群组共享——完整的旅行探索体验</p>
     </div>
 
-    <!-- 特色 1: 地图点亮 -->
     <div class="spotlight reveal">
-        <div class="spotlight-image">
-            <img src="site-assets/icon-map.jpg" alt="中国地图点亮" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-            <div class="empty-icon" style="display:none">🗺️</div>
-        </div>
+        <div class="spotlight-image"><img src="site-assets/icon-map.jpg" alt="中国地图点亮"></div>
         <div class="spotlight-text">
             <h3><span>🗺️ 中国地图点亮</span></h3>
-            <p>34个省级行政区、391个城市覆盖全国每个角落。基于微信原生 map 组件，每个省份标注在真实经纬度。已打卡省份用粉色标记显示，气泡展示打卡进度，地图下方省份标签栏横向滚动一目了然。</p>
-            <div class="spotlight-tags">
-                <span class="stag">真实地理坐标</span><span class="stag">已打卡视觉标识</span><span class="stag">省份进度标签</span><span class="stag">391个真实地标</span>
-            </div>
+            <p>34个省级行政区、391个城市覆盖全国每个角落。基于微信原生 map 组件，已打卡省份用粉色标记显示，气泡展示打卡进度，地图下方省份标签栏横向滚动一目了然。</p>
+            <div class="spotlight-tags"><span class="stag">真实地理坐标</span><span class="stag">已打卡视觉标识</span><span class="stag">省份进度标签</span><span class="stag">391个真实地标</span></div>
         </div>
     </div>
 
-    <!-- 特色 2: 角色卡 -->
-    <div class="spotlight reverse reveal">
+    <div class="spotlight reveal">
         <div class="spotlight-text">
             <h3><span>🃏 抽卡收集系统</span></h3>
             <p>每个省份首次点亮时触发精美抽卡动画！角色卡分为 N/R/SR/SSR/UR 五个稀有度等级，每张卡拥有地域主题设计和个性描述。卡组图鉴展示收集进度，谁能集齐全部稀有度？</p>
-            <div class="spotlight-tags">
-                <span class="stag">抽卡动画</span><span class="stag">五级稀有度</span><span class="stag">地域主题</span><span class="stag">卡组图鉴</span>
-            </div>
+            <div class="spotlight-tags"><span class="stag">抽卡动画</span><span class="stag">五级稀有度</span><span class="stag">地域主题</span><span class="stag">卡组图鉴</span></div>
         </div>
-        <div class="spotlight-image">
-            <img src="site-assets/icon-friends.jpg" alt="角色卡抽卡" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-            <div class="empty-icon" style="display:none">🃏</div>
-        </div>
+        <div class="spotlight-image"><img src="site-assets/icon-friends.jpg" alt="角色卡抽卡"></div>
     </div>
 
-    <!-- 特色 3: 成就 -->
     <div class="spotlight reveal">
-        <div class="spotlight-image">
-            <img src="site-assets/loading-bg.jpg" alt="成就系统" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-            <div class="empty-icon" style="display:none">🏆</div>
-        </div>
+        <div class="spotlight-image"><img src="site-assets/loading-bg.jpg" alt="成就系统"></div>
         <div class="spotlight-text">
             <h3><span>🏆 成就徽章体系</span></h3>
-            <p>探索、收集、社交、特殊四大类 30+ 成就徽章。从点亮第一座城市到成为中国旅行王者，每一步成长都有徽章见证。夜猫子凌晨打卡、早鸟清晨出发、闪电侠单日狂刷——你的旅行习惯也会解锁隐藏成就。</p>
-            <div class="spotlight-tags">
-                <span class="stag">四大类别</span><span class="stag">30+徽章</span><span class="stag">实时反馈</span><span class="stag">隐藏成就</span>
-            </div>
+            <p>探索、收集、社交、特殊四大类 30+ 成就徽章。从点亮第一座城市到成为中国旅行王者，夜猫子凌晨打卡、早鸟清晨出发、闪电侠单日狂刷——你的旅行习惯也会解锁隐藏成就。</p>
+            <div class="spotlight-tags"><span class="stag">四大类别</span><span class="stag">30+徽章</span><span class="stag">实时反馈</span><span class="stag">隐藏成就</span></div>
         </div>
     </div>
 
-    <!-- 特色 4: 群组 -->
-    <div class="spotlight reverse reveal">
+    <div class="spotlight reveal">
         <div class="spotlight-text">
             <h3><span>👥 群组共享</span></h3>
             <p>创建旅行小队，生成6位邀请码分享给好友。成员可上传共享照片、查看彼此打卡进度，排行榜按点亮城市数自动排序。云端实时同步，让旅行不再孤单。</p>
-            <div class="spotlight-tags">
-                <span class="stag">邀请码机制</span><span class="stag">共享照片流</span><span class="stag">成员排行</span><span class="stag">云同步</span>
+            <div class="spotlight-tags"><span class="stag">邀请码机制</span><span class="stag">共享照片流</span><span class="stag">成员排行</span><span class="stag">云同步</span></div>
+        </div>
+        <div class="spotlight-image"><img src="site-assets/icon-camera.jpg" alt="群组共享"></div>
+    </div>
+</section>
+
+<!-- ====== 城市风采 ====== -->
+<section>
+    <div class="section-header reveal">
+        <h2>🏙️ 城市风采</h2>
+        <p>每个省份都拥有精心设计的打卡地标，从繁华都市到秘境山水</p>
+    </div>
+    <div class="city-gallery">
+        <div class="city-card reveal">
+            <img src="site-assets/city-shanghai.jpg" alt="上海">
+            <div class="cc-badge">直辖市</div>
+            <div class="city-card-overlay">
+                <span class="cc-province">上海市</span>
+                <span class="cc-name">上海</span>
+                <span class="cc-landmarks">东方明珠 / 外滩 / 豫园 / 陆家嘴</span>
             </div>
         </div>
-        <div class="spotlight-image">
-            <img src="site-assets/icon-camera.jpg" alt="群组共享" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-            <div class="empty-icon" style="display:none">👥</div>
+        <div class="city-card reveal">
+            <img src="site-assets/city-hebei.jpg" alt="河北">
+            <div class="cc-badge">华北</div>
+            <div class="city-card-overlay">
+                <span class="cc-province">河北省</span>
+                <span class="cc-name">河北</span>
+                <span class="cc-landmarks">避暑山庄 / 山海关 / 白洋淀 / 北戴河</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== 角色卡展示 ====== -->
+<section>
+    <div class="section-header reveal">
+        <h2>🃏 角色卡展示</h2>
+        <p>点亮省份解锁专属角色卡，收集全国各地的地域风情</p>
+    </div>
+    <div class="cards-showcase">
+        <div class="reveal" style="text-align:center">
+            <div class="ccard-wrapper">
+                <div class="ccard">
+                    <img src="site-assets/card-zhejiang.jpg" alt="浙江角色卡">
+                    <div class="ccard-shine"></div>
+                    <div class="ccard-label">
+                        <span class="cl-rarity ssr">SSR</span>
+                        <span class="cl-name">浙江 · 烟雨江南</span>
+                        <span class="cl-desc">西湖雷峰塔 · 普陀梵音</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ccard-info">
+                <h4>💎 SSR · 烟雨江南</h4>
+                <p>西湖泛舟，灵隐听钟，吴侬软语间的诗意</p>
+            </div>
+        </div>
+        <div class="reveal" style="text-align:center">
+            <div class="ccard-wrapper">
+                <div class="ccard">
+                    <img src="site-assets/card-sichuan.jpg" alt="四川角色卡">
+                    <div class="ccard-shine"></div>
+                    <div class="ccard-label">
+                        <span class="cl-rarity ur">UR</span>
+                        <span class="cl-name">四川 · 天府之国</span>
+                        <span class="cl-desc">大熊猫 · 九寨沟 · 火锅</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ccard-info">
+                <h4>🌟 UR · 天府之国</h4>
+                <p>憨态国宝，麻辣鲜香，蜀地山水间的悠然</p>
+            </div>
         </div>
     </div>
 </section>
@@ -463,8 +551,8 @@
     <div class="section-header reveal"><h2>🚀 快速开始</h2><p>三步在本地运行城会玩2.0</p></div>
     <div class="steps">
         <div class="step reveal"><div class="step-num">1</div><h4>克隆仓库</h4><p><code>git clone https://github.com/tl66666/chw2.0.git</code></p></div>
-        <div class="step reveal"><div class="step-num">2</div><h4>导入开发者工具</h4><p>微信开发者工具 → 导入项目 → 选择 <code>城会玩2.0/</code></p></div>
-        <div class="step reveal"><div class="step-num">3</div><h4>开通云开发 & 运行</h4><p>开通云开发环境，部署云函数，点击编译</p></div>
+        <div class="step reveal"><div class="step-num">2</div><h4>导入开发者工具</h4><p>微信开发者工具 → 导入 → <code>城会玩2.0/</code></p></div>
+        <div class="step reveal"><div class="step-num">3</div><h4>开通云开发 & 运行</h4><p>开通云开发环境，部署云函数，编译运行</p></div>
     </div>
     <div style="text-align:center;margin-top:2.5rem;">
         <a href="https://github.com/tl66666/chw2.0/tree/main/%E5%9F%8E%E4%BC%9A%E7%8E%A92.0" class="btn btn-purple">
@@ -474,7 +562,6 @@
     </div>
 </section>
 
-<!-- ====== FOOTER ====== -->
 <footer>
     <div class="brand">城会玩 2.0</div>
     <div class="sub">城市探索旅行小程序 · Made with ❤️ by 唐乐</div>
