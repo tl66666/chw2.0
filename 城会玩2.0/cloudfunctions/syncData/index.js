@@ -206,7 +206,7 @@ async function createGroup(openid, data) {
       _openid: openid,
       name: data.name || '未命名群组',
       type: data.type || 'friends',
-      code: groupCode,
+      inviteCode: data.inviteCode || groupCode,
       members: [openid],
       admins: [openid],
       createTime: now,
@@ -242,11 +242,11 @@ async function createGroup(openid, data) {
 // 加入群组
 async function joinGroup(openid, data) {
   try {
-    const { code } = data;
+    const { inviteCode } = data;
     
-    // 查找群组
+    // 查找群组（使用 inviteCode 字段，与 group 云函数保持一致）
     const groupRes = await db.collection('groups').where({
-      code: code
+      inviteCode: inviteCode
     }).get();
     
     if (groupRes.data.length === 0) {

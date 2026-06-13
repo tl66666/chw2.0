@@ -282,14 +282,18 @@ Page({
     var userInfo = app.globalData.userInfo;
     var openid = app.globalData.openid || wx.getStorageSync('openid');
     
-    // 生成邀请码
-    var inviteCode = Math.random().toString(36).substr(2, 6).toUpperCase();
+    // 安全生成6位邀请码（排除易混淆字符0/O/1/I/L）
+    var chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    var inviteCode = '';
+    for (var ci = 0; ci < 6; ci++) {
+      inviteCode += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
     
     var userCityCount = self.getUserCityCount();
-     var userProvinceCount = self.getUserProvinceCount();
-     var userPhotoCount = self.getUserPhotoCount();
+    var userProvinceCount = self.getUserProvinceCount();
+    var userPhotoCount = self.getUserPhotoCount();
 
-     var groupData = {
+    var groupData = {
       groupInfo: {
         id: 'group_' + Date.now(),
         name: name,
@@ -318,10 +322,10 @@ Page({
       sharedPhotos: []
     };
     
-    // 保存到本地
+    // 先本地保存，确保断网也能用
     wx.setStorageSync('myGroup', JSON.stringify(groupData));
     
-    // 如果启用云开发，同步到云端
+    // 如果启用云开发，同步到云端（等待结果再提示用户）
     if (app.globalData.useCloud) {
       wx.cloud.callFunction({
         name: 'group',
@@ -332,35 +336,89 @@ Page({
             type: type,
             inviteCode: inviteCode,
             userInfo: userInfo,
-            openid: openid
+            openid: openid,
+            cityCount: userCityCount,
+            photoCount: userPhotoCount,
+            provinceCount: userProvinceCount
           }
         },
         timeout: 15000
-      }).then(function() {
-        console.log('群组创建成功');
+      }).then(function(res) {
+        wx.hideLoading();
+        var result = res.result;
+        if (result && result.success) {
+          // 云端创建成功，用云端返回的 groupId 更新本地
+          if (result.groupInfo && result.groupInfo.id) {
+            groupData.groupInfo.id = result.groupInfo.id;
+            wx.setStorageSync('myGroup', JSON.stringify(groupData));
+          }
+          self.setData({
+            showCreateModal: false,
+            groupInfo: groupData.groupInfo,
+            groupTypeText: self.getGroupTypeText(type),
+            isCreator: true,
+            isAdmin: true,
+            inviteCode: inviteCode,
+            members: groupData.members,
+            stats: groupData.stats,
+            sharedPhotos: groupData.sharedPhotos
+          });
+          wx.showToast({ title: '创建成功', icon: 'success' });
+        } else {
+          // 云端失败，群组仅本地可用
+          self.setData({
+            showCreateModal: false,
+            groupInfo: groupData.groupInfo,
+            groupTypeText: self.getGroupTypeText(type),
+            isCreator: true,
+            isAdmin: true,
+            inviteCode: inviteCode,
+            members: groupData.members,
+            stats: groupData.stats,
+            sharedPhotos: groupData.sharedPhotos
+          });
+          wx.showModal({
+            title: '云端同步失败',
+            content: '群组已在本地创建，好友可能暂时无法通过云端加入。请稍后重试或检查云函数是否已部署。',
+            showCancel: false
+          });
+        }
       }).catch(function(err) {
+        wx.hideLoading();
         console.error('云端创建失败:', err);
+        self.setData({
+          showCreateModal: false,
+          groupInfo: groupData.groupInfo,
+          groupTypeText: self.getGroupTypeText(type),
+          isCreator: true,
+          isAdmin: true,
+          inviteCode: inviteCode,
+          members: groupData.members,
+          stats: groupData.stats,
+          sharedPhotos: groupData.sharedPhotos
+        });
+        wx.showModal({
+          title: '云端连接失败',
+          content: '群组已在本地创建，但云函数连接失败（' + (err.errMsg || '未知错误') + '）。好友可能无法加入，请检查云函数是否已部署。',
+          showCancel: false
+        });
       });
+    } else {
+      // 纯本地模式
+      wx.hideLoading();
+      self.setData({
+        showCreateModal: false,
+        groupInfo: groupData.groupInfo,
+        groupTypeText: self.getGroupTypeText(type),
+        isCreator: true,
+        isAdmin: true,
+        inviteCode: inviteCode,
+        members: groupData.members,
+        stats: groupData.stats,
+        sharedPhotos: groupData.sharedPhotos
+      });
+      wx.showToast({ title: '创建成功（本地模式）', icon: 'success' });
     }
-    
-    wx.hideLoading();
-    
-    self.setData({
-      showCreateModal: false,
-      groupInfo: groupData.groupInfo,
-      groupTypeText: self.getGroupTypeText(type),
-      isCreator: true,
-      isAdmin: true,
-      inviteCode: inviteCode,
-      members: groupData.members,
-      stats: groupData.stats,
-      sharedPhotos: groupData.sharedPhotos
-    });
-    
-    wx.showToast({
-      title: '创建成功',
-      icon: 'success'
-    });
   },
 
   // 显示邀请弹窗

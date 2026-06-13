@@ -12,7 +12,15 @@ function now() {
 
 function makeGroupPayload(data, openid) {
   const userInfo = data.userInfo || {};
-  const inviteCode = data.inviteCode || Math.random().toString(36).slice(2, 8).toUpperCase();
+  // 安全生成（前端传入优先，云函数生成兜底）
+  var inviteCode = data.inviteCode;
+  if (!inviteCode || inviteCode.length !== 6) {
+    var chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    inviteCode = '';
+    for (var i = 0; i < 6; i++) {
+      inviteCode += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+  }
   const groupInfo = {
     id: data.id || `group_${Date.now()}`,
     name: data.name || '我的旅行小队',
