@@ -29,33 +29,27 @@
 
         /* HERO with video background */
         .hero {
-            width: 100vw; height: 100vh; min-height: 100vh;
+            width: 100%; height: 100vh; min-height: 100vh;
             display: flex; align-items: center; justify-content: center;
             position: relative; overflow: hidden; padding: 0; margin: 0;
         }
         .hero-video-wrapper {
-            position: absolute; inset: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             overflow: hidden; z-index: 0;
         }
         .hero-video-bg {
             position: absolute; top: 50%; left: 50%;
-            width: 100%; height: 100%;
+            width: 100vw; height: 100vh;
             transform: translate(-50%, -50%);
             object-fit: cover;
         }
-        @media (min-aspect-ratio: 16/9) {
-            .hero-video-bg { width: 100vw; height: auto; min-height: 100vh; }
-        }
-        @media (max-aspect-ratio: 16/9) {
-            .hero-video-bg { width: auto; min-width: 100vw; height: 100vh; }
-        }
         .hero-overlay {
-            position: absolute; inset: 0;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: linear-gradient(135deg, rgba(26,26,46,0.75) 0%, rgba(22,33,62,0.6) 50%, rgba(102,126,234,0.4) 100%);
             z-index: 1;
         }
         .hero-particles {
-            position: absolute; inset: 0; z-index: 2;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 2;
             background-image: radial-gradient(circle at 20% 50%, rgba(244,166,181,0.15) 0%, transparent 25%),
                               radial-gradient(circle at 80% 20%, rgba(168,216,234,0.15) 0%, transparent 25%),
                               radial-gradient(circle at 50% 80%, rgba(255,217,61,0.1) 0%, transparent 25%);
