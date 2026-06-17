@@ -1,253 +1,582 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta
-      name="description"
-      content="城会玩2.0是一款城市探索、旅行足迹、角色卡收集与成就反馈结合的微信小程序。"
-    />
-    <title>城会玩2.0 | 城市探索旅行小程序</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>城会玩2.0 - 城市探索 · 角色卡收集 · 群组共享 · 微信小程序</title>
+    <meta name="description" content="城会玩2.0 是一款围绕城市探索、角色卡收集、成就激励、群组共享设计的微信小程序。支持34个省级行政区、391个城市的足迹点亮，30+成就徽章和角色卡收集。">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
-      :root {
-        --ink: #1d2636;
-        --muted: #667085;
-        --paper: #fffaf5;
-        --card: rgba(255, 255, 255, 0.82);
-        --rose: #f5a6b7;
-        --sky: #9dd8f0;
-        --gold: #ffd75d;
-        --green: #79c59b;
-        --line: rgba(29, 38, 54, 0.12);
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        color: var(--ink);
-        background:
-          radial-gradient(circle at 12% 4%, rgba(245,166,183,.35), transparent 28rem),
-          radial-gradient(circle at 90% 8%, rgba(157,216,240,.45), transparent 30rem),
-          linear-gradient(180deg, #fff9ef 0%, #f8f2ea 100%);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
-        line-height: 1.75;
-      }
-      a { color: inherit; }
-      .nav {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 18px max(24px, 6vw);
-        background: rgba(255,250,245,.74);
-        backdrop-filter: blur(16px);
-        border-bottom: 1px solid var(--line);
-      }
-      .brand { font-weight: 900; letter-spacing: .03em; text-decoration: none; }
-      .nav-links { display: flex; gap: 22px; font-size: 14px; }
-      .nav-links a { text-decoration: none; color: var(--muted); }
-      .hero {
-        min-height: 88vh;
-        display: grid;
-        grid-template-columns: 1fr .9fr;
-        gap: 54px;
-        align-items: center;
-        padding: 84px max(24px, 7vw);
-      }
-      .eyebrow {
-        color: #c47a44;
-        font-size: 13px;
-        letter-spacing: .18em;
-        text-transform: uppercase;
-        font-weight: 800;
-      }
-      h1 {
-        margin: 12px 0 18px;
-        max-width: 760px;
-        font-size: clamp(48px, 9vw, 104px);
-        line-height: .96;
-        letter-spacing: -.05em;
-      }
-      .lead {
-        max-width: 680px;
-        color: var(--muted);
-        font-size: 17px;
-      }
-      .actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
-      .button {
-        display: inline-flex;
-        min-height: 48px;
-        align-items: center;
-        justify-content: center;
-        border-radius: 999px;
-        padding: 0 22px;
-        text-decoration: none;
-        font-weight: 800;
-        border: 1px solid var(--line);
-      }
-      .primary { background: var(--ink); color: white; }
-      .ghost { background: rgba(255,255,255,.72); }
-      .visual {
-        position: relative;
-        min-height: 520px;
-        border-radius: 38px;
-        background:
-          linear-gradient(135deg, rgba(255,255,255,.72), rgba(255,255,255,.36)),
-          radial-gradient(circle at 50% 38%, rgba(121,197,155,.42), transparent 15rem);
-        border: 1px solid rgba(255,255,255,.8);
-        box-shadow: 0 30px 80px rgba(52, 64, 84, .16);
-        overflow: hidden;
-        display: grid;
-        place-items: center;
-      }
-      .visual img {
-        width: min(76%, 380px);
-        border-radius: 34px;
-        box-shadow: 0 28px 70px rgba(29,38,54,.22);
-      }
-      .float-card {
-        position: absolute;
-        border-radius: 18px;
-        padding: 14px 18px;
-        background: rgba(255,255,255,.78);
-        border: 1px solid rgba(255,255,255,.92);
-        box-shadow: 0 18px 46px rgba(29,38,54,.12);
-        font-weight: 800;
-      }
-      .float-card small { display: block; color: var(--muted); font-weight: 600; }
-      .fc-one { left: 26px; top: 34px; }
-      .fc-two { right: 26px; bottom: 34px; }
-      section {
-        width: min(1160px, calc(100% - 42px));
-        margin: 0 auto;
-        padding: 74px 0;
-      }
-      .section-title { margin-bottom: 26px; }
-      .section-title h2 { margin: 0; font-size: clamp(32px, 5vw, 58px); line-height: 1.05; }
-      .section-title p { color: var(--muted); max-width: 660px; }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 18px;
-      }
-      .card {
-        min-height: 210px;
-        border-radius: 26px;
-        padding: 24px;
-        background: var(--card);
-        border: 1px solid rgba(255,255,255,.82);
-        box-shadow: 0 14px 40px rgba(52,64,84,.08);
-      }
-      .card span {
-        display: inline-flex;
-        margin-bottom: 26px;
-        color: #d5913a;
-        font-weight: 900;
-      }
-      .card h3 { margin: 0 0 10px; }
-      .card p { margin: 0; color: var(--muted); font-size: 14px; }
-      .source {
-        border-radius: 32px;
-        padding: 34px;
-        background: #1d2636;
-        color: white;
-      }
-      .source code {
-        display: block;
-        padding: 18px;
-        border-radius: 18px;
-        background: rgba(255,255,255,.08);
-        color: #e8f1ff;
-        white-space: pre-wrap;
-      }
-      footer {
-        padding: 44px 24px;
-        text-align: center;
-        color: var(--muted);
-      }
-      @media (max-width: 860px) {
-        .hero { grid-template-columns: 1fr; }
-        .grid { grid-template-columns: 1fr; }
-        .visual { min-height: 430px; }
-        .nav-links { display: none; }
-      }
+        :root {
+            --pink: #F4A6B5; --pink-dark: #E890A0;
+            --blue: #A8D8EA; --gold: #FFD93D;
+            --purple: #667eea; --purple-dark: #764ba2;
+            --bg: #FAF7F4; --text: #2D3436;
+            --text-light: #636E72; --white: #FFFFFF;
+            --shadow-sm: 0 2px 12px rgba(0,0,0,0.05);
+            --shadow: 0 4px 24px rgba(0,0,0,0.07);
+            --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+            --radius: 20px; --radius-sm: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg); color: var(--text); line-height: 1.7;
+            overflow-x: hidden; -webkit-font-smoothing: antialiased;
+        }
+
+        /* HERO */
+        .hero {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(160deg, #FFE4EC 0%, #E8F4F8 40%, #FFF8E7 100%);
+            position: relative; overflow: hidden; padding: 3rem 2rem;
+        }
+        .hero::before {
+            content:''; position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(244,166,181,0.12) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(102,126,234,0.10) 0%, transparent 50%);
+        }
+        .hero-container {
+            max-width: 1200px; width: 100%; display: grid;
+            grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; position: relative; z-index: 1;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: rgba(255,255,255,0.8); backdrop-filter: blur(12px);
+            padding: 0.55rem 1.4rem; border-radius: 50px; font-size: 0.88rem;
+            font-weight: 500; color: var(--pink-dark); margin-bottom: 1.8rem;
+            border: 1px solid rgba(244,166,181,0.25);
+        }
+        .hero h1 { font-size: clamp(2.8rem, 5.5vw, 4.5rem); font-weight: 900; line-height: 1.15; margin-bottom: 1rem; letter-spacing: -0.02em; }
+        .hero h1 .hl {
+            background: linear-gradient(135deg, var(--pink) 0%, var(--blue) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .hero-desc { font-size: 1.08rem; color: var(--text-light); line-height: 1.8; margin-bottom: 2.5rem; max-width: 500px; }
+        .hero-stats { display: flex; gap: 2rem; margin-bottom: 2rem; }
+        .hero-stat { text-align: center; }
+        .hero-stat .n { font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, var(--purple), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-stat .l { font-size: 0.78rem; color: var(--text-light); }
+        .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .btn {
+            padding: 0.85rem 2rem; border-radius: 50px; font-size: 0.95rem; font-weight: 600;
+            text-decoration: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; border: none;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--pink), var(--pink-dark)); color: white; box-shadow: 0 6px 24px rgba(244,166,181,0.4); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(244,166,181,0.5); }
+        .btn-outline { background: white; color: var(--text); border: 2px solid rgba(0,0,0,0.06); }
+        .btn-outline:hover { border-color: var(--pink); color: var(--pink-dark); transform: translateY(-2px); }
+        .btn-purple { background: linear-gradient(135deg, var(--purple), var(--purple-dark)); color: white; box-shadow: 0 6px 24px rgba(102,126,234,0.4); }
+        .hero-right { display: flex; justify-content: center; align-items: center; position: relative; }
+        .hero-phone { width: 100%; max-width: 360px; border-radius: 28px; box-shadow: 0 30px 80px rgba(0,0,0,0.15); transition: transform 0.6s ease; }
+        .hero-phone:hover { transform: translateY(-6px) rotate(-1deg); }
+        .hero-float {
+            position: absolute; background: white; border-radius: 14px; padding: 0.8rem 1rem;
+            box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 0.7rem;
+            font-size: 0.85rem; font-weight: 600; animation: float 5s ease-in-out infinite;
+        }
+        .hero-float img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
+        .float-1 { top: 8%; right: 5%; animation-delay: 0s; }
+        .float-2 { bottom: 18%; left: 2%; animation-delay: 2.5s; }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+        section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
+        .section-header { text-align: center; margin-bottom: 3.5rem; }
+        .section-header h2 { font-size: clamp(1.7rem, 3.5vw, 2.3rem); font-weight: 700; margin-bottom: 0.8rem; letter-spacing: -0.01em; }
+        .section-header p { color: var(--text-light); font-size: 1.05rem; max-width: 560px; margin: 0 auto; }
+        .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* Spotlights */
+        .spotlight { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center; margin-bottom: 5rem; }
+        .spotlight.reverse .spotlight-image { order: 1; }
+        .spotlight.reverse .spotlight-text { order: 2; }
+        .spotlight-image {
+            background: var(--white); border-radius: var(--radius); overflow: hidden;
+            box-shadow: var(--shadow); aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center;
+        }
+        .spotlight-image img { width: 100%; height: 100%; object-fit: cover; }
+        .spotlight-text h3 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.8rem; }
+        .spotlight-text h3 span {
+            background: linear-gradient(135deg, var(--purple), var(--pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .spotlight-text p { color: var(--text-light); font-size: 0.95rem; line-height: 1.8; margin-bottom: 1.2rem; }
+        .spotlight-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .stag { padding: 0.35rem 1rem; border-radius: 50px; font-size: 0.8rem; font-weight: 500; background: rgba(102,126,234,0.08); color: var(--purple); }
+
+        /* Stats */
+        .stats-card {
+            background: var(--white); border-radius: var(--radius); padding: 2.5rem 3rem;
+            box-shadow: var(--shadow); display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; text-align: center;
+        }
+        .stat-value { font-size: 2.4rem; font-weight: 900; background: linear-gradient(135deg, var(--pink), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; }
+        .stat-label { color: var(--text-light); font-size: 0.9rem; margin-top: 0.3rem; font-weight: 500; }
+
+        /* ==================== CITY GALLERY ==================== */
+        .city-gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: stretch; }
+        .city-card {
+            position: relative; border-radius: var(--radius); overflow: hidden;
+            box-shadow: var(--shadow); transition: all 0.4s ease; aspect-ratio: 16/10;
+            cursor: pointer;
+        }
+        .city-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+        .city-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+        .city-card:hover img { transform: scale(1.06); }
+        .city-card-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(0deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0) 100%);
+            display: flex; flex-direction: column; justify-content: flex-end; padding: 2rem;
+        }
+        .city-card-overlay .cc-province {
+            font-size: 0.75rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+            color: rgba(255,255,255,0.65); margin-bottom: 0.3rem;
+        }
+        .city-card-overlay .cc-name {
+            font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 0.3rem;
+        }
+        .city-card-overlay .cc-landmarks {
+            font-size: 0.85rem; color: rgba(255,255,255,0.75); line-height: 1.5;
+        }
+        .city-card .cc-badge {
+            position: absolute; top: 1.2rem; right: 1.2rem;
+            background: rgba(255,255,255,0.2); backdrop-filter: blur(8px);
+            padding: 0.4rem 0.9rem; border-radius: 50px; font-size: 0.75rem;
+            font-weight: 600; color: white; border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* ==================== CHARACTER CARDS ==================== */
+        .cards-showcase {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: stretch;
+        }
+        .ccard-wrapper {
+            perspective: 1000px; aspect-ratio: 3/4.5; max-width: 300px; margin: 0 auto;
+        }
+        .ccard {
+            position: relative; width: 100%; height: 100%;
+            border-radius: 18px; overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .ccard-wrapper:hover .ccard { transform: rotateY(8deg) scale(1.05); }
+        .ccard img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .ccard-shine {
+            position: absolute; inset: 0; background: linear-gradient(135deg, 
+                rgba(255,255,255,0.35) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.15) 100%);
+            pointer-events: none;
+        }
+        .ccard-label {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+            padding: 2.5rem 1.2rem 1.2rem; color: white;
+        }
+        .ccard-label .cl-rarity {
+            display: inline-block; padding: 0.2rem 0.8rem; border-radius: 50px;
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 0.5rem;
+        }
+        .cl-rarity.ssr { background: linear-gradient(135deg, #FFD93D, #FFA800); color: #5D3A00; }
+        .cl-rarity.ur { background: linear-gradient(135deg, #E040FB, #7C4DFF); color: white; }
+        .ccard-label .cl-name { font-size: 1.15rem; font-weight: 700; display: block; margin-bottom: 0.15rem; }
+        .ccard-label .cl-desc { font-size: 0.78rem; color: rgba(255,255,255,0.7); }
+        .ccard-info {
+            margin-top: 1.2rem; text-align: center; padding: 0 0.5rem;
+        }
+        .ccard-info h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; }
+        .ccard-info p { color: var(--text-light); font-size: 0.84rem; }
+
+        /* Group showcase */
+        .group-showcase {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 24px; padding: 3.5rem 2.5rem; color: white;
+        }
+        .group-showcase .section-header h2 { color: white; }
+        .group-showcase .section-header p { color: rgba(255,255,255,0.7); }
+        .flow-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 2rem; }
+        .flow-step { text-align: center; position: relative; }
+        .flow-icon {
+            width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.2rem;
+            display: flex; align-items: center; justify-content: center; font-size: 2rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        .flow-step:nth-child(1) .flow-icon { background: linear-gradient(135deg, var(--purple), var(--purple-dark)); }
+        .flow-step:nth-child(2) .flow-icon { background: linear-gradient(135deg, var(--pink), var(--pink-dark)); }
+        .flow-step:nth-child(3) .flow-icon { background: linear-gradient(135deg, var(--blue), #6DB8D0); }
+        .flow-step h4 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.4rem; }
+        .flow-step p { color: rgba(255,255,255,0.65); font-size: 0.88rem; line-height: 1.6; }
+        .flow-arrow { position: absolute; top: 35px; right: -30px; font-size: 1.8rem; color: rgba(255,255,255,0.3); }
+        .gf-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 2.5rem; }
+        .gf-item {
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px; padding: 1.2rem 1.4rem; display: flex; align-items: center; gap: 1rem;
+            transition: all 0.3s ease;
+        }
+        .gf-item:hover { background: rgba(255,255,255,0.14); transform: translateX(4px); }
+        .gfi { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+        .gficode { background: rgba(102,126,234,0.3); } .gfiphoto { background: rgba(244,166,181,0.3); }
+        .gfirank { background: rgba(255,217,61,0.25); } .gfisync { background: rgba(168,216,234,0.3); }
+        .gf-text h5 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.15rem; }
+        .gf-text p { font-size: 0.82rem; color: rgba(255,255,255,0.6); }
+
+        /* Badges */
+        .badges-section {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 24px; padding: 3rem 2.5rem; color: white;
+        }
+        .badges-section .section-header h2 { color: white; }
+        .badges-section .section-header p { color: rgba(255,255,255,0.65); }
+        .badges-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2rem; margin-top: 2rem; }
+        .badge-item { text-align: center; transition: all 0.3s ease; }
+        .badge-item:hover { transform: translateY(-8px) scale(1.06); }
+        .badge-item img { width: 85px; height: 85px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,0.2); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+        .badge-item span { display: block; margin-top: 0.8rem; font-size: 0.85rem; font-weight: 500; color: rgba(255,255,255,0.8); }
+
+        /* Tech */
+        .tech-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+        .tech-item {
+            background: var(--white); border-radius: var(--radius-sm); padding: 1.3rem 1.2rem;
+            display: flex; align-items: center; gap: 0.8rem; box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease; border: 1px solid rgba(0,0,0,0.03);
+        }
+        .tech-item:hover { transform: translateX(5px); box-shadow: var(--shadow); }
+        .tech-dot { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .tech-item .label { font-weight: 500; font-size: 0.9rem; }
+
+        /* Highlights */
+        .hl-wrap {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+            border-radius: 24px; padding: 3.5rem 2.5rem; color: white;
+        }
+        .hl-wrap .section-header h2 { color: white; }
+        .hl-wrap .section-header p { color: rgba(255,255,255,0.75); }
+        .hl-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-top: 1rem; }
+        .hl-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 1.8rem; display: flex; gap: 1.2rem; align-items: flex-start; transition: all 0.3s ease; }
+        .hl-card:hover { background: rgba(255,255,255,0.16); transform: translateY(-3px); }
+        .hl-icon { width: 48px; height: 48px; border-radius: 14px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+        .hl-text h4 { font-size: 1.05rem; margin-bottom: 0.4rem; }
+        .hl-text p { font-size: 0.87rem; color: rgba(255,255,255,0.7); line-height: 1.6; }
+
+        /* Get started */
+        .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .step { background: var(--white); border-radius: var(--radius); padding: 2rem 1.8rem; box-shadow: var(--shadow-sm); text-align: center; border: 1px solid rgba(0,0,0,0.03); }
+        .step-num { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), var(--blue)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; margin: 0 auto 1rem; }
+        .step h4 { font-size: 1rem; margin-bottom: 0.4rem; }
+        .step p { color: var(--text-light); font-size: 0.85rem; }
+        .step code { background: var(--bg); padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.82rem; color: var(--pink-dark); }
+
+        footer { background: #1a1a2e; color: white; text-align: center; padding: 2.5rem 2rem; }
+        footer .brand { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.4rem; }
+        footer .sub { color: rgba(255,255,255,0.5); font-size: 0.88rem; margin-bottom: 1rem; }
+        footer a { color: var(--pink); text-decoration: none; margin: 0 0.8rem; font-size: 0.9rem; transition: opacity 0.3s; }
+        footer a:hover { opacity: 0.75; }
+
+        @media (max-width: 900px) {
+            .hero-container { grid-template-columns: 1fr; text-align: center; }
+            .hero-left { order: 2; } .hero-right { order: 1; }
+            .hero-desc { margin-left: auto; margin-right: auto; }
+            .hero-btns, .hero-stats { justify-content: center; }
+            .hero-float { display: none; }
+            .hero-phone { max-width: 260px; }
+            .stats-card { grid-template-columns: repeat(2, 1fr); }
+            .spotlight { grid-template-columns: 1fr; }
+            .spotlight.reverse { grid-template-columns: 1fr; }
+            .spotlight.reverse .spotlight-image { order: 1; }
+            .city-gallery { grid-template-columns: 1fr; }
+            .cards-showcase { grid-template-columns: 1fr; }
+            .ccard-wrapper { max-width: 240px; }
+            .flow-steps { grid-template-columns: 1fr; gap: 1.5rem; }
+            .flow-arrow { display: none; }
+            .group-showcase { padding: 2rem 1.5rem; }
+            .gf-grid { grid-template-columns: 1fr; }
+            .badges-grid { grid-template-columns: repeat(3, 1fr); }
+            .tech-grid { grid-template-columns: repeat(2, 1fr); }
+            .hl-grid { grid-template-columns: 1fr; }
+            .steps { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 500px) {
+            section { padding: 3rem 1rem; }
+            .badges-grid { grid-template-columns: repeat(2, 1fr); }
+            .tech-grid { grid-template-columns: 1fr; }
+        }
     </style>
-  </head>
-  <body>
-    <header class="nav">
-      <a class="brand" href="#top">城会玩2.0</a>
-      <nav class="nav-links" aria-label="页面导航">
-        <a href="#features">功能</a>
-        <a href="#tech">技术</a>
-        <a href="#source">源码</a>
-      </nav>
-    </header>
+</head>
+<body>
 
-    <main id="top">
-      <section class="hero">
-        <div>
-          <p class="eyebrow">WeChat Mini Program</p>
-          <h1>把旅行足迹，变成可以收集的城市图鉴。</h1>
-          <p class="lead">
-            城会玩2.0 是一款城市探索旅行小程序。它把地图点亮、城市详情、角色卡收集、成就系统和相册记录组合起来，
-            让用户每一次旅行都能留下可视化、可收集、可复盘的成长记录。
-          </p>
-          <div class="actions">
-            <a class="button primary" href="https://github.com/tl66666/chw2.0" target="_blank" rel="noreferrer">GitHub 仓库</a>
-            <a class="button ghost" href="https://github.com/tl66666/chw2.0/tree/main/%E5%9F%8E%E4%BC%9A%E7%8E%A92.0" target="_blank" rel="noreferrer">源码目录</a>
-          </div>
+<!-- ====== HERO ====== -->
+<section class="hero">
+    <div class="hero-container">
+        <div class="hero-left">
+            <div class="hero-badge"><span>🗺️</span> 微信小程序</div>
+            <h1>城会玩<span class="hl">2.0</span></h1>
+            <p class="hero-desc">中国城市探索打卡小程序<br>点亮足迹 · 抽取角色卡 · 解锁成就 · 群组共享</p>
+            <div class="hero-stats">
+                <div class="hero-stat"><div class="n">34</div><div class="l">省级行政区</div></div>
+                <div class="hero-stat"><div class="n">391</div><div class="l">覆盖城市</div></div>
+                <div class="hero-stat"><div class="n">30+</div><div class="l">成就徽章</div></div>
+            </div>
+            <div class="hero-btns">
+                <a href="https://github.com/tl66666/chw2.0" class="btn btn-primary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    GitHub 仓库
+                </a>
+                <a href="#features" class="btn btn-outline">✨ 功能概览</a>
+            </div>
         </div>
+        <div class="hero-right">
+            <img src="site-assets/logo.jpg" alt="城会玩2.0" class="hero-phone">
+            <div class="hero-float float-1">
+                <img src="site-assets/badge-king.jpg" alt="成就">
+                <span>成就解锁</span>
+            </div>
+            <div class="hero-float float-2">
+                <img src="site-assets/avatar.jpg" alt="角色卡">
+                <span>抽卡收集</span>
+            </div>
+        </div>
+    </div>
+</section>
 
-        <div class="visual" aria-label="项目视觉展示">
-          <img src="site-assets/logo.jpg" alt="城会玩2.0项目视觉" />
-          <div class="float-card fc-one">34 <small>省级区域</small></div>
-          <div class="float-card fc-two">角色卡 <small>探索解锁</small></div>
-        </div>
-      </section>
+<!-- ====== STATS ====== -->
+<section>
+    <div class="stats-card reveal">
+        <div><div class="stat-value">34</div><div class="stat-label">省级行政区</div></div>
+        <div><div class="stat-value">391</div><div class="stat-label">覆盖城市</div></div>
+        <div><div class="stat-value">30+</div><div class="stat-label">成就徽章</div></div>
+        <div><div class="stat-value">SSR</div><div class="stat-label">稀有角色卡</div></div>
+    </div>
+</section>
 
-      <section id="features">
-        <div class="section-title">
-          <p class="eyebrow">Feature System</p>
-          <h2>核心功能</h2>
-          <p>从地图点亮到角色卡收集，再到成就反馈，项目把旅行记录做成更有参与感的产品体验。</p>
-        </div>
-        <div class="grid">
-          <article class="card"><span>01</span><h3>城市地图点亮</h3><p>在地图上记录去过或想去的城市，形成可视化旅行足迹。</p></article>
-          <article class="card"><span>02</span><h3>城市详情</h3><p>展示城市介绍、图片、探索状态和后续扩展入口。</p></article>
-          <article class="card"><span>03</span><h3>角色卡收集</h3><p>探索城市后解锁地域特色角色卡，支持稀有度和详情展示。</p></article>
-          <article class="card"><span>04</span><h3>成就系统</h3><p>根据城市点亮、角色收集、相册记录等行为解锁成就。</p></article>
-          <article class="card"><span>05</span><h3>相册记录</h3><p>保留旅行照片和记录，后续可扩展城市笔记和路线回顾。</p></article>
-          <article class="card"><span>06</span><h3>云端资源</h3><p>大图资源迁移到微信云存储，通过云函数获取临时访问地址。</p></article>
-        </div>
-      </section>
+<!-- ====== 四大特色 ====== -->
+<section id="features">
+    <div class="section-header reveal">
+        <h2>✨ 四大核心特色</h2>
+        <p>地图点亮、抽卡收集、成就激励、群组共享——完整的旅行探索体验</p>
+    </div>
 
-      <section id="tech">
-        <div class="section-title">
-          <p class="eyebrow">Implementation</p>
-          <h2>技术实现</h2>
+    <div class="spotlight reveal">
+        <div class="spotlight-image"><img src="site-assets/icon-map.jpg" alt="中国地图点亮"></div>
+        <div class="spotlight-text">
+            <h3><span>🗺️ 中国地图点亮</span></h3>
+            <p>34个省级行政区、391个城市覆盖全国每个角落。基于微信原生 map 组件，已打卡省份用粉色标记显示，气泡展示打卡进度，地图下方省份标签栏横向滚动一目了然。</p>
+            <div class="spotlight-tags"><span class="stag">真实地理坐标</span><span class="stag">已打卡视觉标识</span><span class="stag">省份进度标签</span><span class="stag">391个真实地标</span></div>
         </div>
-        <div class="grid">
-          <article class="card"><span>Tech</span><h3>原生小程序</h3><p>使用 WXML、WXSS、JavaScript、JSON 组织页面和交互。</p></article>
-          <article class="card"><span>Cloud</span><h3>微信云开发</h3><p>使用云函数和云存储处理登录、资源访问和数据同步。</p></article>
-          <article class="card"><span>Package</span><h3>分包加载</h3><p>将角色卡、相册、成就等模块拆分到分包，降低主包压力。</p></article>
-        </div>
-      </section>
+    </div>
 
-      <section id="source">
-        <div class="source">
-          <p class="eyebrow">Source</p>
-          <h2>源码目录</h2>
-          <p>微信开发者工具导入时，请选择仓库里的 `城会玩2.0/` 目录，而不是仓库根目录。</p>
-          <code>chw2.0/
-├─ index.html        # 项目展示页
-├─ site-assets/      # 展示页资源
-└─ 城会玩2.0/         # 微信小程序源码目录</code>
+    <div class="spotlight reveal">
+        <div class="spotlight-text">
+            <h3><span>🃏 抽卡收集系统</span></h3>
+            <p>每个省份首次点亮时触发精美抽卡动画！角色卡分为 N/R/SR/SSR/UR 五个稀有度等级，每张卡拥有地域主题设计和个性描述。卡组图鉴展示收集进度，谁能集齐全部稀有度？</p>
+            <div class="spotlight-tags"><span class="stag">抽卡动画</span><span class="stag">五级稀有度</span><span class="stag">地域主题</span><span class="stag">卡组图鉴</span></div>
         </div>
-      </section>
-    </main>
+        <div class="spotlight-image"><img src="site-assets/icon-friends.jpg" alt="角色卡抽卡"></div>
+    </div>
 
-    <footer>城会玩2.0 · 城市探索旅行小程序 · 唐乐</footer>
-  </body>
+    <div class="spotlight reveal">
+        <div class="spotlight-image"><img src="site-assets/loading-bg.jpg" alt="成就系统"></div>
+        <div class="spotlight-text">
+            <h3><span>🏆 成就徽章体系</span></h3>
+            <p>探索、收集、社交、特殊四大类 30+ 成就徽章。从点亮第一座城市到成为中国旅行王者，夜猫子凌晨打卡、早鸟清晨出发、闪电侠单日狂刷——你的旅行习惯也会解锁隐藏成就。</p>
+            <div class="spotlight-tags"><span class="stag">四大类别</span><span class="stag">30+徽章</span><span class="stag">实时反馈</span><span class="stag">隐藏成就</span></div>
+        </div>
+    </div>
+
+    <div class="spotlight reveal">
+        <div class="spotlight-text">
+            <h3><span>👥 群组共享</span></h3>
+            <p>创建旅行小队，生成6位邀请码分享给好友。成员可上传共享照片、查看彼此打卡进度，排行榜按点亮城市数自动排序。云端实时同步，让旅行不再孤单。</p>
+            <div class="spotlight-tags"><span class="stag">邀请码机制</span><span class="stag">共享照片流</span><span class="stag">成员排行</span><span class="stag">云同步</span></div>
+        </div>
+        <div class="spotlight-image"><img src="site-assets/icon-camera.jpg" alt="群组共享"></div>
+    </div>
+</section>
+
+<!-- ====== 城市风采 ====== -->
+<section>
+    <div class="section-header reveal">
+        <h2>🏙️ 城市风采</h2>
+        <p>每个省份都拥有精心设计的打卡地标，从繁华都市到秘境山水</p>
+    </div>
+    <div class="city-gallery">
+        <div class="city-card reveal">
+            <img src="site-assets/city-shanghai.jpg" alt="上海">
+            <div class="cc-badge">直辖市</div>
+            <div class="city-card-overlay">
+                <span class="cc-province">上海市</span>
+                <span class="cc-name">上海</span>
+                <span class="cc-landmarks">东方明珠 / 外滩 / 豫园 / 陆家嘴</span>
+            </div>
+        </div>
+        <div class="city-card reveal">
+            <img src="site-assets/city-hebei.jpg" alt="河北">
+            <div class="cc-badge">华北</div>
+            <div class="city-card-overlay">
+                <span class="cc-province">河北省</span>
+                <span class="cc-name">河北</span>
+                <span class="cc-landmarks">避暑山庄 / 山海关 / 白洋淀 / 北戴河</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== 角色卡展示 ====== -->
+<section>
+    <div class="section-header reveal">
+        <h2>🃏 角色卡展示</h2>
+        <p>点亮省份解锁专属角色卡，收集全国各地的地域风情</p>
+    </div>
+    <div class="cards-showcase">
+        <div class="reveal" style="text-align:center">
+            <div class="ccard-wrapper">
+                <div class="ccard">
+                    <img src="site-assets/card-zhejiang.jpg" alt="浙江角色卡">
+                    <div class="ccard-shine"></div>
+                    <div class="ccard-label">
+                        <span class="cl-rarity ssr">SSR</span>
+                        <span class="cl-name">浙江 · 烟雨江南</span>
+                        <span class="cl-desc">西湖雷峰塔 · 普陀梵音</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ccard-info">
+                <h4>💎 SSR · 烟雨江南</h4>
+                <p>西湖泛舟，灵隐听钟，吴侬软语间的诗意</p>
+            </div>
+        </div>
+        <div class="reveal" style="text-align:center">
+            <div class="ccard-wrapper">
+                <div class="ccard">
+                    <img src="site-assets/card-sichuan.jpg" alt="四川角色卡">
+                    <div class="ccard-shine"></div>
+                    <div class="ccard-label">
+                        <span class="cl-rarity ur">UR</span>
+                        <span class="cl-name">四川 · 天府之国</span>
+                        <span class="cl-desc">大熊猫 · 九寨沟 · 火锅</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ccard-info">
+                <h4>🌟 UR · 天府之国</h4>
+                <p>憨态国宝，麻辣鲜香，蜀地山水间的悠然</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== 群组流程 ====== -->
+<section>
+    <div class="group-showcase reveal">
+        <div class="section-header">
+            <h2>👥 群组共享——旅行不孤单</h2>
+            <p>创建群组 → 分享邀请码 → 好友加入 → 共享打卡和照片</p>
+        </div>
+        <div class="flow-steps">
+            <div class="flow-step">
+                <div class="flow-icon">🔑</div>
+                <h4>创建/加入群组</h4>
+                <p>选择朋友/情侣/家人类型，一键创建获6位邀请码</p>
+                <div class="flow-arrow">→</div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-icon">📤</div>
+                <h4>分享邀请码</h4>
+                <p>微信分享或复制邀请码给好友，云端验证秒加入</p>
+                <div class="flow-arrow">→</div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-icon">🎉</div>
+                <h4>共享打卡 & 照片</h4>
+                <p>成员数据自动同步，上传照片全员可见，排行榜实时更新</p>
+            </div>
+        </div>
+        <div class="gf-grid">
+            <div class="gf-item"><div class="gfi gficode">🏷️</div><div class="gf-text"><h5>6位邀请码</h5><p>安全简洁，云端验证防重复加入</p></div></div>
+            <div class="gf-item"><div class="gfi gfiphoto">📸</div><div class="gf-text"><h5>共享照片流</h5><p>时间线展示，成员全员可见</p></div></div>
+            <div class="gf-item"><div class="gfi gfirank">🏅</div><div class="gf-text"><h5>成员排行榜</h5><p>按点亮城市数自动排序</p></div></div>
+            <div class="gf-item"><div class="gfi gfisync">☁️</div><div class="gf-text"><h5>云端实时同步</h5><p>云数据库存储，数据不丢失</p></div></div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== BADGES ====== -->
+<section>
+    <div class="badges-section reveal">
+        <div class="section-header">
+            <h2>🏆 成就徽章预览</h2>
+            <p>从新手旅行者到城市王者，每一步成长都有徽章见证</p>
+        </div>
+        <div class="badges-grid">
+            <div class="badge-item"><img src="site-assets/badge-newbie.jpg" alt="新手旅行者"><span>新手旅行者</span></div>
+            <div class="badge-item"><img src="site-assets/badge-advanced.jpg" alt="进阶探索者"><span>进阶探索者</span></div>
+            <div class="badge-item"><img src="site-assets/badge-expert.jpg" alt="旅行专家"><span>旅行专家</span></div>
+            <div class="badge-item"><img src="site-assets/badge-master.jpg" alt="探索大师"><span>探索大师</span></div>
+            <div class="badge-item"><img src="site-assets/badge-king.jpg" alt="城市王者"><span>城市王者</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== TECH STACK ====== -->
+<section>
+    <div class="section-header reveal"><h2>🛠️ 技术栈</h2><p>原生微信小程序 + 微信云开发，完整前后端方案</p></div>
+    <div class="tech-grid">
+        <div class="tech-item reveal"><div class="tech-dot" style="background:#E8F5E9;">📱</div><span class="label">微信小程序原生框架</span></div>
+        <div class="tech-item reveal"><div class="tech-dot" style="background:#E3F2FD;">☁️</div><span class="label">微信云开发 CloudBase</span></div>
+        <div class="tech-item reveal"><div class="tech-dot" style="background:#FFF8E1;">⚡</div><span class="label">云函数 Node.js</span></div>
+        <div class="tech-item reveal"><div class="tech-dot" style="background:#F3E5F5;">🗄️</div><span class="label">云数据库 MongoDB</span></div>
+        <div class="tech-item reveal"><div class="tech-dot" style="background:#FFEBEE;">🖼️</div><span class="label">云存储 COS</span></div>
+        <div class="tech-item reveal"><div class="tech-dot" style="background:#E0F7FA;">📦</div><span class="label">分包加载优化</span></div>
+        <div class="tech-item reveal"><div class="tech-dot" style="background:#FFF3E0;">🎵</div><span class="label">代码生成 WAV 音效</span></div>
+        <div class="tech-item reveal"><div class="tech-dot" style="background:#E8EAF6;">💾</div><span class="label">本地缓存 Storage</span></div>
+    </div>
+</section>
+
+<!-- ====== HIGHLIGHTS ====== -->
+<section>
+    <div class="hl-wrap reveal">
+        <div class="section-header"><h2>🎯 项目亮点</h2><p>技术实现与产品设计的深度融合</p></div>
+        <div class="hl-grid">
+            <div class="hl-card"><div class="hl-icon">📦</div><div class="hl-text"><h4>分包体积优化</h4><p>主包 26MB → 1.4MB，PNG→JPG 节省 88%</p></div></div>
+            <div class="hl-card"><div class="hl-icon">🗺️</div><div class="hl-text"><h4>391城市真实地标</h4><p>覆盖全国每个角落，地标数据丰富准确</p></div></div>
+            <div class="hl-card"><div class="hl-icon">🃏</div><div class="hl-text"><h4>抽卡 + 成就双循环</h4><p>游戏化设计让旅行打卡更有动力</p></div></div>
+            <div class="hl-card"><div class="hl-icon">👥</div><div class="hl-text"><h4>群组共享体系</h4><p>邀请码 + 共享照片 + 成员排行</p></div></div>
+            <div class="hl-card"><div class="hl-icon">☁️</div><div class="hl-text"><h4>全栈云开发</h4><p>5个云函数 + 云数据库，无需独立后端</p></div></div>
+            <div class="hl-card"><div class="hl-icon">🎵</div><div class="hl-text"><h4>代码生成音频</h4><p>8bit PCM WAV 纯代码合成，零外部依赖</p></div></div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== GET STARTED ====== -->
+<section id="get-started">
+    <div class="section-header reveal"><h2>🚀 快速开始</h2><p>三步在本地运行城会玩2.0</p></div>
+    <div class="steps">
+        <div class="step reveal"><div class="step-num">1</div><h4>克隆仓库</h4><p><code>git clone https://github.com/tl66666/chw2.0.git</code></p></div>
+        <div class="step reveal"><div class="step-num">2</div><h4>导入开发者工具</h4><p>微信开发者工具 → 导入 → <code>城会玩2.0/</code></p></div>
+        <div class="step reveal"><div class="step-num">3</div><h4>开通云开发 & 运行</h4><p>开通云开发环境，部署云函数，编译运行</p></div>
+    </div>
+    <div style="text-align:center;margin-top:2.5rem;">
+        <a href="https://github.com/tl66666/chw2.0/tree/main/%E5%9F%8E%E4%BC%9A%E7%8E%A92.0" class="btn btn-purple">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            浏览源码目录
+        </a>
+    </div>
+</section>
+
+<footer>
+    <div class="brand">城会玩 2.0</div>
+    <div class="sub">城市探索旅行小程序 · Made with ❤️ by 唐乐</div>
+    <div>
+        <a href="https://github.com/tl66666/chw2.0">GitHub</a>
+        <a href="https://github.com/tl66666/chw2.0/tree/main/%E5%9F%8E%E4%BC%9A%E7%8E%A92.0">源码</a>
+        <a href="https://github.com/tl66666/chw2.0/blob/main/LICENSE">MIT License</a>
+    </div>
+</footer>
+
+<script>
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
 </html>
