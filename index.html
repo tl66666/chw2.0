@@ -38,7 +38,10 @@
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
             object-fit: cover; z-index: 0;
+            transition: opacity 0.8s ease-in-out;
         }
+        .hero-video-bg.active { opacity: 1; }
+        .hero-video-bg.inactive { opacity: 0; }
         .hero-overlay {
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -381,7 +384,10 @@
 
 <!-- ====== HERO ====== -->
 <section class="hero">
-    <video class="hero-video-bg" autoplay muted loop playsinline webkit-playsinline x5-playsinline x5-video-player-type="h5" x5-video-player-fullscreen="false" preload="auto">
+    <video class="hero-video-bg active" id="video-a" autoplay muted playsinline webkit-playsinline x5-playsinline x5-video-player-type="h5" x5-video-player-fullscreen="false" preload="auto">
+        <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260602_150901_c45b90ec-18d7-42ff-90e2-b95d7109e330.mp4" type="video/mp4">
+    </video>
+    <video class="hero-video-bg inactive" id="video-b" muted playsinline webkit-playsinline x5-playsinline x5-video-player-type="h5" x5-video-player-fullscreen="false" preload="auto">
         <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260602_150901_c45b90ec-18d7-42ff-90e2-b95d7109e330.mp4" type="video/mp4">
     </video>
     <div class="hero-overlay"></div>
@@ -691,24 +697,41 @@
     }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-    // Mobile autoplay helper for hero video (does not hide video or replace background)
+    // Hero video seamless loop with crossfade
     (function() {
-        const video = document.querySelector('.hero-video-bg');
-        if (!video) return;
+        const videoA = document.getElementById('video-a');
+        const videoB = document.getElementById('video-b');
+        if (!videoA || !videoB) return;
 
-        function tryPlay() {
-            if (video.paused) {
-                video.play().catch(function() {});
-            }
+        const FADE_DURATION = 1.0;
+
+        function tryPlay(video) {
+            if (video.paused) video.play().catch(function() {});
         }
 
-        video.addEventListener('loadedmetadata', tryPlay);
-        video.addEventListener('canplay', tryPlay);
-        document.addEventListener('DOMContentLoaded', tryPlay);
-        document.addEventListener('touchstart', tryPlay, { once: true });
-        window.addEventListener('load', tryPlay);
+        function switchVideo(active, inactive) {
+            inactive.currentTime = 0;
+            tryPlay(inactive);
+            active.classList.remove('active');
+            active.classList.add('inactive');
+            inactive.classList.remove('inactive');
+            inactive.classList.add('active');
+        }
 
-        setTimeout(tryPlay, 500);
+        function onVideoEnd(e) {
+            const ended = e.target;
+            const other = ended === videoA ? videoB : videoA;
+            switchVideo(ended, other);
+        }
+
+        videoA.addEventListener('ended', onVideoEnd);
+        videoB.addEventListener('ended', onVideoEnd);
+        videoA.addEventListener('loadedmetadata', function() { tryPlay(videoA); });
+        videoA.addEventListener('canplay', function() { tryPlay(videoA); });
+        document.addEventListener('DOMContentLoaded', function() { tryPlay(videoA); });
+        document.addEventListener('touchstart', function() { tryPlay(videoA); tryPlay(videoB); }, { once: true });
+        window.addEventListener('load', function() { tryPlay(videoA); });
+        setTimeout(function() { tryPlay(videoA); }, 500);
     })();
 </script>
 </body>
