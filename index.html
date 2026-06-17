@@ -30,10 +30,11 @@
         /* HERO with video background */
         .hero {
             min-height: 100vh; display: flex; align-items: center; justify-content: center;
-            position: relative; overflow: hidden; padding: 3rem 2rem;
+            position: relative; overflow: hidden; padding: 0;
         }
         .hero-video-bg {
-            position: absolute; inset: 0; width: 100%; height: 100%;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            min-width: 100%; min-height: 100%; width: auto; height: auto;
             object-fit: cover; z-index: 0;
         }
         .hero-overlay {
@@ -49,7 +50,8 @@
         }
         .hero-container {
             max-width: 1200px; width: 100%; display: grid;
-            grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; position: relative; z-index: 3;
+            grid-template-columns: 1fr; gap: 3rem; align-items: center; position: relative; z-index: 3;
+            padding: 3rem 2rem;
         }
         .hero-badge {
             display: inline-flex; align-items: center; gap: 0.5rem;
@@ -74,24 +76,12 @@
             text-decoration: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; border: none;
         }
-        .btn-primary { background: linear-gradient(135deg, var(--pink), var(--pink-dark)); color: white; box-shadow: 0 6px 24px rgba(244,166,181,0.4); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(244,166,181,0.5); }
+        .btn-primary { background: rgba(255,255,255,0.15); color: white; border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(8px); }
+        .btn-primary:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); transform: translateY(-2px); }
         .btn-outline { background: rgba(255,255,255,0.15); color: white; border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(8px); }
         .btn-outline:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); transform: translateY(-2px); }
         .btn-purple { background: linear-gradient(135deg, var(--purple), var(--purple-dark)); color: white; box-shadow: 0 6px 24px rgba(102,126,234,0.4); }
-        .hero-right { display: flex; justify-content: center; align-items: center; position: relative; }
-        .hero-phone { width: 100%; max-width: 340px; border-radius: 28px; box-shadow: 0 30px 80px rgba(0,0,0,0.4); transition: transform 0.6s ease; border: 2px solid rgba(255,255,255,0.15); }
-        .hero-phone:hover { transform: translateY(-6px) rotate(-1deg); }
-        .hero-float {
-            position: absolute; background: rgba(255,255,255,0.15); backdrop-filter: blur(12px); border-radius: 14px; padding: 0.8rem 1rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 0.7rem;
-            font-size: 0.85rem; font-weight: 600; animation: float 5s ease-in-out infinite;
-            border: 1px solid rgba(255,255,255,0.2); color: white;
-        }
-        .hero-float img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
-        .float-1 { top: 8%; right: 5%; animation-delay: 0s; }
-        .float-2 { bottom: 18%; left: 2%; animation-delay: 2.5s; }
-        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
         .scroll-indicator {
             position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
             z-index: 3; display: flex; flex-direction: column; align-items: center;
@@ -100,6 +90,58 @@
         }
         .scroll-indicator svg { width: 24px; height: 24px; }
         @keyframes bounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(8px); } }
+
+        /* App preview section */
+        .app-preview-section {
+            background: linear-gradient(135deg, #FAF7F4 0%, #FFF5F7 50%, #F0F4FF 100%);
+            padding: 5rem 2rem;
+        }
+        .app-preview-container {
+            max-width: 1200px; margin: 0 auto;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+        }
+        .app-preview-text h2 {
+            font-size: clamp(1.8rem, 3.5vw, 2.4rem); font-weight: 700; margin-bottom: 1rem;
+            letter-spacing: -0.01em;
+        }
+        .app-preview-text h2 span {
+            background: linear-gradient(135deg, var(--purple), var(--pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .app-preview-text p { color: var(--text-light); font-size: 1.05rem; line-height: 1.8; margin-bottom: 2rem; }
+        .app-preview-features { display: flex; flex-direction: column; gap: 1rem; }
+        .app-preview-feature {
+            display: flex; align-items: center; gap: 1rem;
+            background: rgba(255,255,255,0.8); border-radius: 14px; padding: 1rem 1.2rem;
+            border: 1px solid rgba(0,0,0,0.04); transition: all 0.3s ease;
+        }
+        .app-preview-feature:hover { transform: translateX(4px); box-shadow: var(--shadow-sm); }
+        .app-preview-feature .icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;
+        }
+        .app-preview-feature .icon.map { background: rgba(244,166,181,0.15); }
+        .app-preview-feature .icon.card { background: rgba(168,216,234,0.2); }
+        .app-preview-feature .icon.badge { background: rgba(255,217,61,0.15); }
+        .app-preview-feature .icon.group { background: rgba(102,126,234,0.1); }
+        .app-preview-feature h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.15rem; }
+        .app-preview-feature p { font-size: 0.82rem; color: var(--text-light); margin: 0; }
+        .app-preview-visual { display: flex; justify-content: center; align-items: center; position: relative; }
+        .app-preview-phone {
+            width: 100%; max-width: 320px; border-radius: 28px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.15); transition: transform 0.6s ease;
+            border: 2px solid rgba(255,255,255,0.8);
+        }
+        .app-preview-phone:hover { transform: translateY(-6px) rotate(-1deg); }
+        .app-preview-float {
+            position: absolute; background: white; border-radius: 14px; padding: 0.8rem 1rem;
+            box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 0.7rem;
+            font-size: 0.85rem; font-weight: 600; animation: float 5s ease-in-out infinite;
+        }
+        .app-preview-float img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
+        .apf-1 { top: 5%; right: 10%; animation-delay: 0s; }
+        .apf-2 { bottom: 15%; left: 5%; animation-delay: 2.5s; }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 
         section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
         .section-header { text-align: center; margin-bottom: 3.5rem; }
@@ -295,11 +337,12 @@
 
         @media (max-width: 900px) {
             .hero-container { grid-template-columns: 1fr; text-align: center; }
-            .hero-left { order: 2; } .hero-right { order: 1; }
             .hero-desc { margin-left: auto; margin-right: auto; }
             .hero-btns, .hero-stats { justify-content: center; }
-            .hero-float { display: none; }
-            .hero-phone { max-width: 260px; }
+            .app-preview-container { grid-template-columns: 1fr; text-align: center; }
+            .app-preview-visual { order: -1; }
+            .app-preview-float { display: none; }
+            .app-preview-phone { max-width: 260px; }
             .stats-card { grid-template-columns: repeat(2, 1fr); }
             .spotlight { grid-template-columns: 1fr; }
             .spotlight.reverse { grid-template-columns: 1fr; }
@@ -350,23 +393,52 @@
                 <a href="#features" class="btn btn-outline">✨ 功能概览</a>
             </div>
         </div>
-        <div class="hero-right">
-            <img src="site-assets/logo.jpg" alt="城会玩2.0" class="hero-phone">
-            <div class="hero-float float-1">
-                <img src="site-assets/badge-king.jpg" alt="成就">
-                <span>成就解锁</span>
-            </div>
-            <div class="hero-float float-2">
-                <img src="site-assets/avatar.jpg" alt="角色卡">
-                <span>抽卡收集</span>
-            </div>
-        </div>
+
     </div>
     <div class="scroll-indicator">
         <span>向下探索</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
     </div>
 </section>
+
+<!-- ====== APP PREVIEW ====== -->
+<div class="app-preview-section">
+    <div class="app-preview-container reveal">
+        <div class="app-preview-text">
+            <h2>一站式<span>城市探索</span>体验</h2>
+            <p>城会玩2.0将地图打卡、角色卡收集、成就系统和群组社交融为一体，让每一次旅行都充满惊喜与动力。</p>
+            <div class="app-preview-features">
+                <div class="app-preview-feature">
+                    <div class="icon map">🗺️</div>
+                    <div><h4>地图点亮</h4><p>34省391城，足迹可视化</p></div>
+                </div>
+                <div class="app-preview-feature">
+                    <div class="icon card">🃏</div>
+                    <div><h4>抽卡收集</h4><p>N/R/SR/SSR/UR五级稀有度</p></div>
+                </div>
+                <div class="app-preview-feature">
+                    <div class="icon badge">🏆</div>
+                    <div><h4>成就徽章</h4><p>30+徽章见证每一步成长</p></div>
+                </div>
+                <div class="app-preview-feature">
+                    <div class="icon group">👥</div>
+                    <div><h4>群组共享</h4><p>邀请码组队，共享旅行记忆</p></div>
+                </div>
+            </div>
+        </div>
+        <div class="app-preview-visual">
+            <img src="site-assets/logo.jpg" alt="城会玩2.0" class="app-preview-phone">
+            <div class="app-preview-float apf-1">
+                <img src="site-assets/badge-king.jpg" alt="成就">
+                <span>成就解锁</span>
+            </div>
+            <div class="app-preview-float apf-2">
+                <img src="site-assets/avatar.jpg" alt="角色卡">
+                <span>抽卡收集</span>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- ====== STATS ====== -->
 <section>
