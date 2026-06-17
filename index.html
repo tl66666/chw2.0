@@ -381,7 +381,7 @@
 
 <!-- ====== HERO ====== -->
 <section class="hero">
-    <video class="hero-video-bg" autoplay muted loop playsinline>
+    <video class="hero-video-bg" autoplay muted loop playsinline webkit-playsinline x5-playsinline x5-video-player-type="h5" x5-video-player-fullscreen="false" preload="auto" poster="site-assets/logo.jpg">
         <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260602_150901_c45b90ec-18d7-42ff-90e2-b95d7109e330.mp4" type="video/mp4">
     </video>
     <div class="hero-overlay"></div>
@@ -685,10 +685,35 @@
 </footer>
 
 <script>
+    // Scroll reveal
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
     }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Mobile autoplay fallback for hero video
+    (function() {
+        const video = document.querySelector('.hero-video-bg');
+        if (!video) return;
+
+        function tryPlay() {
+            if (video.paused) {
+                video.play().catch(function(err) {
+                    console.log('Video autoplay blocked:', err);
+                    video.style.display = 'none';
+                    document.querySelector('.hero').style.background = 'linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #2d3561 100%)';
+                });
+            }
+        }
+
+        video.addEventListener('loadedmetadata', tryPlay);
+        video.addEventListener('canplay', tryPlay);
+        document.addEventListener('DOMContentLoaded', tryPlay);
+        document.addEventListener('touchstart', tryPlay, { once: true });
+        window.addEventListener('load', tryPlay);
+
+        setTimeout(tryPlay, 1000);
+    })();
 </script>
 </body>
 </html>
