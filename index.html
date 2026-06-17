@@ -29,13 +29,20 @@
 
         /* HERO with video background */
         .hero {
-            min-height: 100vh; display: flex; align-items: center; justify-content: center;
-            position: relative; overflow: hidden; padding: 0;
+            width: 100vw; height: 100vh; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden; padding: 0; margin: 0;
+        }
+        .hero-video-wrapper {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            overflow: hidden; z-index: 0;
         }
         .hero-video-bg {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            min-width: 100%; min-height: 100%; width: auto; height: auto;
-            object-fit: cover; z-index: 0;
+            position: absolute; top: 50%; left: 50%;
+            min-width: 100vw; min-height: 100vh;
+            width: 177.78vh; height: 56.25vw;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
         }
         .hero-overlay {
             position: absolute; inset: 0;
@@ -370,9 +377,11 @@
 
 <!-- ====== HERO ====== -->
 <section class="hero">
-    <video class="hero-video-bg" autoplay muted loop playsinline>
-        <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260602_150901_c45b90ec-18d7-42ff-90e2-b95d7109e330.mp4" type="video/mp4">
-    </video>
+    <div class="hero-video-wrapper">
+        <video class="hero-video-bg" autoplay muted loop playsinline>
+            <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260602_150901_c45b90ec-18d7-42ff-90e2-b95d7109e330.mp4" type="video/mp4">
+        </video>
+    </div>
     <div class="hero-overlay"></div>
     <div class="hero-particles"></div>
     <div class="hero-container">
