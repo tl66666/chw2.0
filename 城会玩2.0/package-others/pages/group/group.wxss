@@ -3,7 +3,7 @@
 ======================== */
 .page-container {
   min-height: 100vh;
-  background: #F8F9FA;
+  background: #FFF8F1;
   padding-bottom: 48rpx;
 }
 
@@ -12,7 +12,9 @@
 ======================== */
 .header-section {
   position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background:
+    radial-gradient(circle at 82% 16%, rgba(255, 220, 142, 0.38), transparent 32%),
+    linear-gradient(135deg, #d66f58 0%, #bf8064 48%, #78b6a6 100%);
   padding: 48rpx 32rpx 80rpx;
   overflow: hidden;
 }
@@ -87,7 +89,7 @@
   width: 48rpx;
   height: 48rpx;
   border: 4rpx solid #E0E0E0;
-  border-top-color: #667eea;
+  border-top-color: #d66f58;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -130,7 +132,7 @@
 
 .group-badge {
   padding: 4rpx 12rpx;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #d66f58, #b9574d);
   border-radius: 8rpx;
   font-size: 20rpx;
   color: #FFFFFF;
@@ -138,7 +140,7 @@
 }
 
 .member-badge {
-  background: linear-gradient(135deg, #f093fb, #f5576c);
+  background: linear-gradient(135deg, #78b6a6, #4c9b8a);
 }
 
 .group-type-row {
@@ -155,18 +157,18 @@
 }
 
 .type-friends {
-  background: #E3F2FD;
-  color: #1976D2;
+  background: #E8F3EF;
+  color: #377E70;
 }
 
 .type-couple {
-  background: #FCE4EC;
-  color: #C2185B;
+  background: #FFF0EA;
+  color: #C76252;
 }
 
 .type-family {
-  background: #E8F5E9;
-  color: #388E3C;
+  background: #FFF5D9;
+  color: #9B7428;
 }
 
 .group-code {
@@ -198,22 +200,28 @@
   height: 48rpx;
   margin: 0 auto 8rpx;
   border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-size: 22rpx;
+  font-weight: 700;
 }
 
 .icon-members {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #d66f58, #b9574d);
 }
 
 .icon-cities {
-  background: linear-gradient(135deg, #f093fb, #f5576c);
+  background: linear-gradient(135deg, #78b6a6, #4c9b8a);
 }
 
 .icon-provinces {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, #e0a84f, #ca8334);
 }
 
 .icon-photos {
-  background: linear-gradient(135deg, #43e97b, #38f9d7);
+  background: linear-gradient(135deg, #ba8f72, #8f6651);
 }
 
 .stat-number {
@@ -264,28 +272,13 @@
   align-items: center;
   gap: 4rpx;
   font-size: 24rpx;
-  color: #667eea;
+  color: #d66f58;
 }
 
 .section-actions {
   display: flex;
   align-items: center;
   gap: 16rpx;
-}
-
-.section-action-btn {
-  display: flex;
-  align-items: center;
-  padding: 8rpx 18rpx;
-  border-radius: 20rpx;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  box-shadow: 0 2rpx 8rpx rgba(102, 126, 234, 0.3);
-}
-
-.action-btn-text {
-  font-size: 22rpx;
-  color: #FFFFFF;
-  font-weight: 500;
 }
 
 .no-photos-hint {
@@ -302,8 +295,8 @@
 .arrow-right {
   width: 16rpx;
   height: 16rpx;
-  border-top: 3rpx solid #667eea;
-  border-right: 3rpx solid #667eea;
+  border-top: 3rpx solid #d66f58;
+  border-right: 3rpx solid #d66f58;
   transform: rotate(45deg);
 }
 
@@ -368,8 +361,8 @@
 }
 
 .creator-item {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-  border: 1rpx solid rgba(102, 126, 234, 0.2);
+  background: linear-gradient(135deg, rgba(214, 111, 88, 0.1), rgba(120, 182, 166, 0.12));
+  border: 1rpx solid rgba(214, 111, 88, 0.16);
 }
 
 .member-rank {
@@ -432,7 +425,7 @@
 
 .role-tag {
   padding: 2rpx 8rpx;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #d66f58, #b9574d);
   border-radius: 6rpx;
   font-size: 18rpx;
   color: #FFFFFF;
@@ -440,7 +433,7 @@
 }
 
 .admin-tag {
-  background: linear-gradient(135deg, #f093fb, #f5576c);
+  background: linear-gradient(135deg, #78b6a6, #4c9b8a);
 }
 
 .member-stats-row {
@@ -463,11 +456,11 @@
 }
 
 .dot-city {
-  background: #667eea;
+  background: #d66f58;
 }
 
 .dot-photo {
-  background: #f5576c;
+  background: #78b6a6;
 }
 
 .member-score {
@@ -478,7 +471,7 @@
 .score-number {
   font-size: 32rpx;
   font-weight: 700;
-  color: #667eea;
+  color: #d66f58;
   display: block;
 }
 
@@ -517,11 +510,11 @@
 }
 
 .invite-btn .btn-icon {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #d66f58, #b9574d);
 }
 
 .share-btn .btn-icon {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, #78b6a6, #4c9b8a);
 }
 
 .leave-btn .btn-icon {
@@ -532,6 +525,12 @@
   width: 48rpx;
   height: 48rpx;
   border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-size: 21rpx;
+  font-weight: 700;
 }
 
 /* ========================
@@ -559,7 +558,7 @@
 .outer {
   width: 200rpx;
   height: 200rpx;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  background: linear-gradient(135deg, rgba(214, 111, 88, 0.12), rgba(120, 182, 166, 0.12));
   top: 0;
   left: 0;
 }
@@ -567,7 +566,7 @@
 .inner {
   width: 140rpx;
   height: 140rpx;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+  background: linear-gradient(135deg, rgba(214, 111, 88, 0.18), rgba(120, 182, 166, 0.16));
   top: 30rpx;
   left: 30rpx;
 }
@@ -582,7 +581,7 @@
 .empty-icon {
   width: 80rpx;
   height: 80rpx;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #d66f58, #78b6a6);
   border-radius: 24rpx;
   opacity: 0.8;
 }
@@ -615,7 +614,7 @@
   justify-content: center;
   gap: 12rpx;
   padding: 24rpx;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #d66f58, #b9574d);
   border-radius: 16rpx;
   color: #FFFFFF;
   font-size: 28rpx;
@@ -631,10 +630,10 @@
   padding: 24rpx;
   background: #FFFFFF;
   border-radius: 16rpx;
-  color: #667eea;
+  color: #d66f58;
   font-size: 28rpx;
   font-weight: 600;
-  border: 2rpx solid #667eea;
+  border: 2rpx solid #d66f58;
 }
 
 /* ========================
@@ -747,7 +746,7 @@
 }
 
 .form-input:focus {
-  border-color: #667eea;
+  border-color: #d66f58;
   background: #FFFFFF;
   outline: none;
 }
@@ -777,8 +776,8 @@
 }
 
 .type-option.active {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-  border-color: #667eea;
+  background: linear-gradient(135deg, rgba(214, 111, 88, 0.1), rgba(120, 182, 166, 0.12));
+  border-color: #d66f58;
 }
 
 .type-icon {
@@ -792,7 +791,7 @@
 }
 
 .type-option.active .type-name {
-  color: #667eea;
+  color: #d66f58;
   font-weight: 600;
 }
 
@@ -806,7 +805,7 @@
   text-align: center;
   letter-spacing: 12rpx;
   font-weight: 700;
-  color: #667eea;
+  color: #d66f58;
   box-sizing: border-box;
   border: 2rpx solid #E0E0E0;
   line-height: 1.4;
@@ -815,7 +814,7 @@
 }
 
 .code-input:focus {
-  border-color: #667eea;
+  border-color: #d66f58;
   background: #FFFFFF;
   outline: none;
 }
@@ -853,12 +852,12 @@
 }
 
 .modal-btn.confirm {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #d66f58, #b9574d);
   color: #FFFFFF;
 }
 
 .modal-btn.share-confirm {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, #78b6a6, #4c9b8a);
   color: #FFFFFF;
 }
 
@@ -880,7 +879,7 @@
 .invite-code-text {
   font-size: 56rpx;
   font-weight: 700;
-  color: #667eea;
+  color: #d66f58;
   letter-spacing: 8rpx;
   display: block;
   margin-bottom: 16rpx;

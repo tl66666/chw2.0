@@ -103,21 +103,37 @@ async function syncPhotos(openid, photos) {
         }
       });
     } else {
-      // 新增照片
-      await db.collection('photos').add({
-        data: {
-          _openid: openid,
-          cityId: photo.cityId,
-          provinceId: photo.provinceId,
-          type: photo.type || 'travel',
-          fileId: photo.fileId,
-          url: photo.url,
-          thumbnail: photo.thumbnail || '',
-          description: photo.description || '',
-          createTime: now,
-          updateTime: now
-        }
-      });
+      const existRes = await db.collection('photos').where({
+        _openid: openid,
+        cityId: photo.cityId,
+        fileId: photo.fileId || photo.url
+      }).limit(1).get();
+
+      if (existRes.data.length > 0) {
+        await db.collection('photos').doc(existRes.data[0]._id).update({
+          data: {
+            type: photo.type || 'travel',
+            url: photo.url,
+            updateTime: now
+          }
+        });
+      } else {
+        // 新增照片
+        await db.collection('photos').add({
+          data: {
+            _openid: openid,
+            cityId: photo.cityId,
+            provinceId: photo.provinceId,
+            type: photo.type || 'travel',
+            fileId: photo.fileId || photo.url,
+            url: photo.url,
+            thumbnail: photo.thumbnail || '',
+            description: photo.description || '',
+            createTime: now,
+            updateTime: now
+          }
+        });
+      }
     }
   }
   

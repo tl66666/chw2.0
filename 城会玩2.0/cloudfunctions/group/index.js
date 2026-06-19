@@ -47,6 +47,7 @@ async function getMyGroup(openid) {
         userName: p.nickName || '成员',
         userAvatar: p.avatarUrl || '/images/avatar.jpg',
         cityName: p.cityName || '',
+        type: p.type || 'travel',
         createTime: p.createTime
       };
     });
@@ -61,7 +62,7 @@ async function getMyGroup(openid) {
       stats: {
         totalMembers: members.length,
         totalCities: members.reduce((sum, item) => sum + (item.cityCount || 0), 0),
-        totalProvinces: groupInfo.totalProvinces || 0,
+        totalProvinces: members.reduce((sum, item) => sum + (item.provinceCount || 0), 0),
         totalPhotos: members.reduce((sum, item) => sum + (item.photoCount || 0), 0)
       },
       sharedPhotos: sharedPhotos
@@ -107,6 +108,7 @@ async function createGroup(data, openid) {
         isCreator: true,
         role: '创建者',
         cityCount: data.cityCount || 0,
+        provinceCount: data.provinceCount || 0,
         photoCount: data.photoCount || 0,
         joinedAt: db.serverDate()
       }
@@ -134,6 +136,7 @@ async function createGroup(data, openid) {
         isCreator: true,
         role: '创建者',
         cityCount: data.cityCount || 0,
+        provinceCount: data.provinceCount || 0,
         photoCount: data.photoCount || 0
       }],
       stats: {
@@ -206,6 +209,7 @@ async function joinGroup(data, openid) {
         isCreator: false,
         role: '成员',
         cityCount: data.cityCount || 0,
+        provinceCount: data.provinceCount || 0,
         photoCount: data.photoCount || 0,
         joinedAt: db.serverDate()
       }
@@ -237,13 +241,14 @@ async function joinGroup(data, openid) {
           isCreator: m.isCreator || false,
           role: m.role || '成员',
           cityCount: m.cityCount || 0,
+          provinceCount: m.provinceCount || 0,
           photoCount: m.photoCount || 0
         };
       }),
       stats: {
         totalMembers: members.length,
         totalCities: members.reduce(function(sum, item) { return sum + (item.cityCount || 0); }, 0),
-        totalProvinces: group.totalProvinces || 0,
+        totalProvinces: members.reduce(function(sum, item) { return sum + (item.provinceCount || 0); }, 0),
         totalPhotos: members.reduce(function(sum, item) { return sum + (item.photoCount || 0); }, 0)
       },
       sharedPhotos: group.sharedPhotos || []
@@ -291,7 +296,7 @@ exports.main = async (event) => {
 
 // 共享照片到群组
 async function shareGroupPhoto(data, openid) {
-  const { groupId, fileId, url, cityName } = data;
+  const { groupId, fileId, url, cityId, cityName, type } = data;
   if (!groupId) {
     return { success: false, error: '缺少群组ID' };
   }
@@ -309,12 +314,20 @@ async function shareGroupPhoto(data, openid) {
         avatarUrl: member.avatarUrl || '',
         fileId: fileId || '',
         url: url || fileId || '',
+        cityId: cityId || '',
         cityName: cityName || '',
+        type: type || 'travel',
         createTime: db.serverDate()
       }
     });
 
-    return { success: true, photoId: res._id, message: '照片已共享到群组' };
+    return {
+      success: true,
+      photoId: res._id,
+      fileId: fileId || '',
+      url: url || fileId || '',
+      message: '照片已共享到群组'
+    };
   } catch (err) {
     return { success: false, error: err.message };
   }
@@ -338,6 +351,7 @@ async function getSharedPhotos(data, openid) {
         userName: p.nickName || '成员',
         userAvatar: p.avatarUrl || '/images/avatar.jpg',
         cityName: p.cityName || '',
+        type: p.type || 'travel',
         createTime: p.createTime
       };
     });
@@ -349,12 +363,13 @@ async function getSharedPhotos(data, openid) {
 
 // 同步成员统计数据
 async function syncMemberStats(data, openid) {
-  const { groupId, cityCount, photoCount } = data;
+  const { groupId, cityCount, provinceCount, photoCount } = data;
   if (!groupId) return { success: false, error: '缺少群组ID' };
   try {
     await db.collection('group_members').where({ openid, groupId }).update({
       data: {
         cityCount: cityCount || 0,
+        provinceCount: provinceCount || 0,
         photoCount: photoCount || 0,
         syncTime: db.serverDate()
       }

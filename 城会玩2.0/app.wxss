@@ -5,13 +5,13 @@ page {
   --bg-card: #FFFFFF;
   --bg-glass: rgba(255, 255, 255, 0.8);
   
-  --pink-primary: #F4A6B5;
-  --pink-dark: #E890A0;
-  --pink-light: #FBC8D3;
-  --pink-glow: rgba(244, 166, 181, 0.3);
+  --pink-primary: #D66F58;
+  --pink-dark: #B9574D;
+  --pink-light: #FFF0EA;
+  --pink-glow: rgba(214, 111, 88, 0.22);
   
-  --blue-soft: #A8D8EA;
-  --blue-light: #D4EEF7;
+  --blue-soft: #78B6A6;
+  --blue-light: #E8F3EF;
   
   --yellow-soft: #FCE38A;
   --yellow-light: #FEF5C8;
@@ -30,7 +30,7 @@ page {
   --shadow-sm: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
   --shadow-md: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 16rpx 48rpx rgba(0, 0, 0, 0.1);
-  --shadow-pink: 0 4rpx 16rpx rgba(244, 166, 181, 0.3);
+  --shadow-pink: 0 4rpx 16rpx rgba(214, 111, 88, 0.22);
   
   --radius-sm: 12rpx;
   --radius-md: 20rpx;
@@ -47,7 +47,7 @@ page {
 /* 基础容器 */
 .container {
   min-height: 100vh;
-  background: linear-gradient(180deg, #F8F5F2 0%, #FFF9F5 50%, #F5F0FF 100%);
+  background: linear-gradient(180deg, #FFF8F1 0%, #FFFDF8 58%, #E8F3EF 100%);
   padding: 32rpx;
   box-sizing: border-box;
 }
@@ -117,7 +117,7 @@ page {
   font-size: 48rpx;
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .title-lg {

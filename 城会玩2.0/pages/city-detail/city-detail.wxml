@@ -125,4 +125,5 @@
       </view>
     </view>
   </view>
+  <privacy-popup id="privacyPopup" bindagree="onPrivacyAgree" bindreject="onPrivacyReject"></privacy-popup>
 </view>

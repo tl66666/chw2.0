@@ -62,14 +62,11 @@ App({
       }
       
       // 获取用户信息
-      this.getUserProfile(function(success) {
-        if (success && self.globalData.useCloud) {
-          // 延迟同步，避免启动时超时
-          setTimeout(function() {
-            self.syncFromCloud();
-          }, 2000);
-        }
-      });
+      if (self.globalData.useCloud) {
+        setTimeout(function() {
+          self.syncFromCloud();
+        }, 2000);
+      }
     }
   },
 
@@ -77,7 +74,7 @@ App({
     try { require('./utils/audio-manager.js'); } catch(e) {}
   },
 
-  // 微信登录（带用户授权）
+  // 微信登录：只获取 openid，不强制索取头像昵称授权
   login: function(callback) {
     var self = this;
     
@@ -87,74 +84,60 @@ App({
     wx.login({
       success: function(res) {
         if (res.code) {
-          // 第二步：获取用户信息（需要用户点击按钮授权）
-          self.getUserProfile(function(userSuccess, userInfo) {
-            if (userSuccess && userInfo) {
-              // 第三步：调用云函数完成登录
-              wx.cloud.callFunction({
-                name: 'login',
-                data: {
-                  code: res.code,
-                  userInfo: userInfo
-                },
-                timeout: 10000
-              }).then(function(res) {
-                wx.hideLoading();
-                var result = res.result;
-                
-                if (result && result.success) {
-                  self.globalData.openid = result.openid;
-                  self.globalData.isLogin = true;
-                  // 合并云端数据和本地用户信息，优先保留本地 avatarUrl 和 nickName
-                  self.globalData.userInfo = userInfo;
-                  if (result.userInfo && result.userInfo.avatarUrl) {
-                    self.globalData.userInfo.avatarUrl = result.userInfo.avatarUrl;
-                  }
-                  if (result.userInfo && result.userInfo.nickName && result.userInfo.nickName !== '旅行者') {
-                    self.globalData.userInfo.nickName = result.userInfo.nickName;
-                  }
-                  
-                  wx.setStorageSync('openid', result.openid);
-                  wx.setStorageSync('userInfo', JSON.stringify(self.globalData.userInfo));
-                  
-                  // 同步云端数据
-                  self.syncFromCloud();
-                  
-                  wx.showToast({
-                    title: '登录成功',
-                    icon: 'success'
-                  });
-                  
-                  if (callback) callback(true);
-                } else {
-                  wx.showToast({
-                    title: '登录失败',
-                    icon: 'none'
-                  });
-                  if (callback) callback(false);
-                }
-              }).catch(function(err) {
-                wx.hideLoading();
-                console.error('登录调用失败:', err);
-                // 云函数失败，切换到本地模式
-                self.globalData.useCloud = false;
-                self.globalData.isLogin = true;
-                self.globalData.userInfo = userInfo;
-                wx.setStorageSync('userInfo', JSON.stringify(userInfo));
-                wx.showToast({
-                  title: '本地登录成功',
-                  icon: 'success'
-                });
-                if (callback) callback(true);
-              });
-            } else {
-              wx.hideLoading();
+          var localUserInfo = self.globalData.userInfo || {};
+          if (!localUserInfo.nickName || localUserInfo.nickName === '游客') {
+            localUserInfo.nickName = '微信用户';
+          }
+          if (!localUserInfo.avatarUrl) {
+            localUserInfo.avatarUrl = '/images/avatar.jpg';
+          }
+
+          wx.cloud.callFunction({
+            name: 'login',
+            data: {
+              code: res.code,
+              userInfo: localUserInfo
+            },
+            timeout: 10000
+          }).then(function(res) {
+            wx.hideLoading();
+            var result = res.result;
+
+            if (result && result.success) {
+              self.globalData.openid = result.openid;
+              self.globalData.isLogin = true;
+              self.globalData.useCloud = true;
+              self.globalData.userInfo = {
+                nickName: (result.userInfo && result.userInfo.nickName) || localUserInfo.nickName || '微信用户',
+                avatarUrl: (result.userInfo && result.userInfo.avatarUrl) || localUserInfo.avatarUrl || '/images/avatar.jpg'
+              };
+
+              wx.setStorageSync('openid', result.openid);
+              wx.setStorageSync('userInfo', JSON.stringify(self.globalData.userInfo));
+
+              self.syncFromCloud();
+
               wx.showToast({
-                title: '需要授权才能登录',
+                title: '登录成功',
+                icon: 'success'
+              });
+
+              if (callback) callback(true);
+            } else {
+              wx.showToast({
+                title: '登录失败，请检查云函数',
                 icon: 'none'
               });
               if (callback) callback(false);
             }
+          }).catch(function(err) {
+            wx.hideLoading();
+            console.error('登录调用失败:', err);
+            wx.showToast({
+              title: '登录失败，请部署 login 云函数',
+              icon: 'none'
+            });
+            if (callback) callback(false);
           });
         } else {
           wx.hideLoading();
@@ -174,28 +157,6 @@ App({
         if (callback) callback(false);
       }
     });
-  },
-
-  // 获取用户信息（新版接口）
-  getUserProfile: function(callback) {
-    var self = this;
-    
-    // 先检查本地是否有用户信息
-    var storedUserInfo = wx.getStorageSync('userInfo');
-    if (storedUserInfo) {
-      try {
-        var userInfo = JSON.parse(storedUserInfo);
-        self.globalData.userInfo = userInfo;
-        if (callback) callback(true, userInfo);
-        return;
-      } catch (e) {
-        console.log('解析本地用户信息失败');
-      }
-    }
-    
-    // 使用 getUserProfile 获取用户信息（需要用户点击按钮触发）
-    // 这个函数应该由页面上的按钮调用
-    if (callback) callback(false, null);
   },
 
   // 从云端同步数据
@@ -317,6 +278,48 @@ App({
         data: {
           action: 'syncNotes',
           data: notes
+        },
+        timeout: 8000
+      }).catch(function() { /* 静默失败 */ });
+    }
+
+    var photos = [];
+    var travelKeys = Object.keys(this.globalData.cityTravelPhotos || {});
+    for (var p = 0; p < travelKeys.length; p++) {
+      var travelCityId = travelKeys[p];
+      var travelPhotos = this.globalData.cityTravelPhotos[travelCityId] || [];
+      for (var tp = 0; tp < travelPhotos.length; tp++) {
+        photos.push({
+          cityId: travelCityId,
+          provinceId: this.getProvinceIdByCityId(travelCityId),
+          type: 'travel',
+          fileId: travelPhotos[tp],
+          url: travelPhotos[tp]
+        });
+      }
+    }
+
+    var foodKeys = Object.keys(this.globalData.cityFoodPhotos || {});
+    for (var f = 0; f < foodKeys.length; f++) {
+      var foodCityId = foodKeys[f];
+      var foodPhotos = this.globalData.cityFoodPhotos[foodCityId] || [];
+      for (var fp = 0; fp < foodPhotos.length; fp++) {
+        photos.push({
+          cityId: foodCityId,
+          provinceId: this.getProvinceIdByCityId(foodCityId),
+          type: 'food',
+          fileId: foodPhotos[fp],
+          url: foodPhotos[fp]
+        });
+      }
+    }
+
+    if (photos.length > 0) {
+      wx.cloud.callFunction({
+        name: 'syncData',
+        data: {
+          action: 'syncPhotos',
+          data: photos
         },
         timeout: 8000
       }).catch(function() { /* 静默失败 */ });

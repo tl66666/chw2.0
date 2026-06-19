@@ -3,6 +3,7 @@ var citiesData = require('../../utils/cities.js');
 var provincesData = require('../../utils/provinces.js');
 var cities = citiesData.cities;
 var provinces = provincesData.provinces;
+var privacy = require('../../utils/privacy.js');
 
 Page({
   data: {
@@ -46,6 +47,13 @@ Page({
   },
 
   choosePhotos: function() {
+    var self = this;
+    privacy.ensure(this, function() {
+      self.choosePhotosAfterPrivacy();
+    });
+  },
+
+  choosePhotosAfterPrivacy: function() {
     var remainingCount = 9 - this.data.selectedPhotos.length;
     var self = this;
     
@@ -62,6 +70,7 @@ Page({
       }
     });
   },
+
 
   removePhoto: function(e) {
     var index = e.currentTarget.dataset.index;
@@ -97,6 +106,13 @@ Page({
   },
 
   submit: function() {
+    var self = this;
+    privacy.ensure(this, function() {
+      self.submitAfterPrivacy();
+    });
+  },
+
+  submitAfterPrivacy: function() {
     if (!this.data.canSubmit) return;
 
     var selectedCity = this.data.selectedCity;
@@ -154,5 +170,13 @@ Page({
 
   cancel: function() {
     wx.navigateBack();
+  },
+
+  onPrivacyAgree: function() {
+    privacy.handleAgree(this);
+  },
+
+  onPrivacyReject: function() {
+    privacy.handleReject(this);
   }
 });

@@ -1,0 +1,19 @@
+<view class="privacy-mask" wx:if="{{visible}}" catchtouchmove="preventMove">
+  <view class="privacy-card">
+    <view class="privacy-title">隐私保护提示</view>
+    <view class="privacy-content">
+      使用云同步、上传照片、头像或保存备注前，需要你先阅读并同意
+      <text class="privacy-link" bindtap="openContract">《{{contractName}}》</text>。
+      你可以拒绝，拒绝后本次相关功能将不会继续。
+    </view>
+    <view class="privacy-actions">
+      <button class="privacy-btn secondary" bindtap="reject">暂不同意</button>
+      <button
+        class="privacy-btn primary"
+        id="agree-btn"
+        open-type="agreePrivacyAuthorization"
+        bindagreeprivacyauthorization="agree"
+      >同意并继续</button>
+    </view>
+  </view>
+</view>

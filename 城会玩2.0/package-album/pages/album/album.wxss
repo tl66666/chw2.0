@@ -16,7 +16,7 @@
   color: var(--text-primary);
   display: block;
   margin-bottom: 8rpx;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .album-stats {

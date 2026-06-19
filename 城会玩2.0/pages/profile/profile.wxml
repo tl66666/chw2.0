@@ -1,10 +1,8 @@
 <view class="container">
-  <!-- 顶部粉色渐变背景 -->
   <view class="header-bg">
     <view class="header-wave"></view>
   </view>
 
-  <!-- 用户信息卡片 -->
   <view class="user-card">
     <view class="user-avatar-section">
       <view class="avatar-wrapper" bindtap="changeAvatar">
@@ -26,7 +24,6 @@
       </view>
     </view>
 
-    <!-- 经验值进度条 -->
     <view class="exp-section">
       <view class="exp-header">
         <text class="exp-label">探索经验</text>
@@ -40,9 +37,25 @@
     </view>
   </view>
 
-  <!-- 统计卡片 -->
+  <view class="login-panel" wx:if="{{!isWechatUser}}">
+    <view class="login-stamp">云同步</view>
+    <view class="login-copy">
+      <text class="login-title">登录后备份你的城市图鉴</text>
+      <text class="login-desc">仅用于生成账号标识，方便云端备份、加入群组和共享照片，不会强制获取头像昵称。</text>
+    </view>
+    <view class="login-actions">
+      <view class="login-btn primary" bindtap="loginWithWechat">微信登录</view>
+      <view class="login-btn ghost" bindtap="goLaunch">返回介绍页</view>
+    </view>
+  </view>
+
   <view class="stats-section">
-    <view class="stats-title">城市图鉴</view>
+    <view class="section-title-row">
+      <view>
+        <text class="stats-title">城市图鉴</text>
+        <text class="section-subtitle">你的旅行进度一眼看清</text>
+      </view>
+    </view>
     <view class="stats-grid">
       <view class="stat-card stat-card-cities">
         <view class="stat-icon-wrap">
@@ -70,16 +83,15 @@
           <text class="stat-icon-text">%</text>
         </view>
         <text class="stat-value">{{completionRate}}%</text>
-        <text class="stat-label">探索进度</text>
+        <text class="stat-label">完成度</text>
       </view>
     </view>
   </view>
 
-  <!-- 照片分类统计 -->
   <view class="photo-stats" wx:if="{{photoCount > 0}}">
     <view class="photo-stat-item">
       <view class="photo-stat-icon-wrap photo-stat-travel">
-        <text class="photo-stat-icon-text">旅</text>
+        <text class="photo-stat-icon-text">行</text>
       </view>
       <text class="photo-stat-value">{{travelPhotoCount}}</text>
       <text class="photo-stat-label">旅行照片</text>
@@ -87,71 +99,86 @@
     <view class="photo-stat-divider"></view>
     <view class="photo-stat-item">
       <view class="photo-stat-icon-wrap photo-stat-food">
-        <text class="photo-stat-icon-text">食</text>
+        <text class="photo-stat-icon-text">味</text>
       </view>
       <text class="photo-stat-value">{{foodPhotoCount}}</text>
       <text class="photo-stat-label">美食照片</text>
     </view>
   </view>
 
-  <!-- 功能菜单 -->
   <view class="menu-section">
-    <view class="menu-title">功能</view>
+    <view class="section-title-row">
+      <view>
+        <text class="menu-title">旅行工具</text>
+        <text class="section-subtitle">记录、整理、分享你的足迹</text>
+      </view>
+    </view>
     <view class="menu-grid">
       <view class="menu-grid-item" bindtap="goToUpload">
         <view class="menu-grid-icon menu-icon-upload">
-          <text class="menu-grid-icon-text">+</text>
+          <text class="menu-grid-icon-text">记</text>
         </view>
-        <text class="menu-grid-name">记录足迹</text>
-        <text class="menu-grid-desc">添加新记录</text>
+        <view class="menu-grid-copy">
+          <text class="menu-grid-name">记录足迹</text>
+          <text class="menu-grid-desc">添加城市、照片和笔记</text>
+        </view>
       </view>
 
       <view class="menu-grid-item" bindtap="goToAlbum">
         <view class="menu-grid-icon menu-icon-album">
-          <text class="menu-grid-icon-text">图</text>
+          <text class="menu-grid-icon-text">册</text>
         </view>
-        <text class="menu-grid-name">我的相册</text>
-        <text class="menu-grid-desc">查看旅行照片</text>
+        <view class="menu-grid-copy">
+          <text class="menu-grid-name">我的相册</text>
+          <text class="menu-grid-desc">查看旅行照片墙</text>
+        </view>
       </view>
 
       <view class="menu-grid-item" bindtap="goToGroup">
         <view class="menu-grid-icon menu-icon-group">
-          <image class="menu-grid-img" src="/images/launch/icon-friends.jpg" mode="aspectFit"/>
+          <text class="menu-grid-icon-text">友</text>
         </view>
-        <text class="menu-grid-name">我的群组</text>
-        <text class="menu-grid-desc">和好友一起</text>
+        <view class="menu-grid-copy">
+          <text class="menu-grid-name">我的群组</text>
+          <text class="menu-grid-desc">和好友一起打卡</text>
+        </view>
       </view>
 
       <view class="menu-grid-item" bindtap="goToAchievements">
         <view class="menu-grid-icon menu-icon-achievement">
-          <text class="menu-grid-icon-text">奖</text>
+          <text class="menu-grid-icon-text">章</text>
         </view>
-        <text class="menu-grid-name">成就系统</text>
-        <text class="menu-grid-desc">解锁奖励</text>
+        <view class="menu-grid-copy">
+          <text class="menu-grid-name">成就系统</text>
+          <text class="menu-grid-desc">解锁旅行徽章</text>
+        </view>
       </view>
 
       <view class="menu-grid-item" bindtap="shareApp">
         <view class="menu-grid-icon menu-icon-share">
           <text class="menu-grid-icon-text">享</text>
         </view>
-        <text class="menu-grid-name">分享好友</text>
-        <text class="menu-grid-desc">邀请一起记录</text>
+        <view class="menu-grid-copy">
+          <text class="menu-grid-name">分享好友</text>
+          <text class="menu-grid-desc">邀请朋友一起记录</text>
+        </view>
       </view>
 
       <view class="menu-grid-item" bindtap="goToSettings">
         <view class="menu-grid-icon menu-icon-settings">
           <text class="menu-grid-icon-text">设</text>
         </view>
-        <text class="menu-grid-name">设置</text>
-        <text class="menu-grid-desc">应用设置</text>
+        <view class="menu-grid-copy">
+          <text class="menu-grid-name">设置</text>
+          <text class="menu-grid-desc">管理偏好与数据</text>
+        </view>
       </view>
     </view>
   </view>
 
-  <!-- 最近活动 -->
   <view class="activity-section" wx:if="{{recentActivities.length > 0}}">
     <view class="activity-header">
-      <text class="activity-title">最近活动</text>
+      <text class="activity-title">最近动态</text>
       <text class="activity-more" bindtap="goToAlbum">查看全部</text>
     </view>
     <view class="activity-list">
@@ -167,21 +194,20 @@
     </view>
   </view>
 
-  <!-- 清除数据 -->
   <view class="danger-zone">
     <view class="danger-item" bindtap="clearData">
       <view class="danger-icon-wrap">
-        <text class="danger-icon-text">×</text>
+        <text class="danger-icon-text">清</text>
       </view>
-      <text class="danger-text">清除所有数据</text>
+      <text class="danger-text">清除所有本地旅行数据</text>
       <text class="danger-arrow">›</text>
     </view>
   </view>
 
-  <!-- 底部装饰 -->
   <view class="bottom-decoration">
     <view class="bottom-line"></view>
     <text class="bottom-text">用脚步丈量世界</text>
     <view class="bottom-line"></view>
   </view>
+  <privacy-popup id="privacyPopup" bindagree="onPrivacyAgree" bindreject="onPrivacyReject"></privacy-popup>
 </view>

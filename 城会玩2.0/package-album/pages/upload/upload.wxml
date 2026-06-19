@@ -78,4 +78,5 @@
   <view class="bottom-decoration">
     <text class="decoration-line"></text>
   </view>
+  <privacy-popup id="privacyPopup" bindagree="onPrivacyAgree" bindreject="onPrivacyReject"></privacy-popup>
 </view>

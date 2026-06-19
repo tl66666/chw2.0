@@ -3,6 +3,7 @@ var citiesData = require('../../utils/cities.js');
 var provincesData = require('../../utils/provinces.js');
 var cities = citiesData.cities;
 var provinces = provincesData.provinces;
+var privacy = require('../../utils/privacy.js');
 
 // 等级配置
 var LEVEL_CONFIG = [
@@ -20,13 +21,14 @@ var LEVEL_CONFIG = [
 var ACTIVITY_ICON_TEXT = {
   city: '城',
   photo: '照',
-  food: '食',
+  food: '味',
   note: '记'
 };
 
 Page({
   data: {
     userInfo: {},
+    isWechatUser: false,
     visitedCount: 0,
     visitedProvinces: 0,
     travelPhotoCount: 0,
@@ -77,7 +79,30 @@ Page({
       nickName: userInfo.nickName || '旅行者',
       avatarUrl: userInfo.avatarUrl || '/images/avatar.jpg'
     };
-    this.setData({ userInfo: displayUserInfo });
+    this.setData({
+      userInfo: displayUserInfo,
+      isWechatUser: !!(app.globalData.isLogin && app.globalData.openid && displayUserInfo.nickName !== '游客')
+    });
+  },
+
+  loginWithWechat: function() {
+    var self = this;
+    privacy.ensure(this, function() {
+      app.globalData.useCloud = true;
+      app.login(function(success) {
+        if (success) {
+          self.loadUserInfo();
+          self.loadStats();
+          self.loadRecentActivities();
+        }
+      });
+    });
+  },
+
+  goLaunch: function() {
+    wx.navigateTo({
+      url: '/pages/launch/launch?from=profile'
+    });
   },
 
   // 头像加载失败处理
@@ -359,6 +384,13 @@ Page({
   // 更换头像
   changeAvatar: function() {
     var self = this;
+    privacy.ensure(this, function() {
+      self.changeAvatarAfterPrivacy();
+    });
+  },
+
+  changeAvatarAfterPrivacy: function() {
+    var self = this;
 
     wx.showActionSheet({
       itemList: ['从相册选择', '拍照'],
@@ -384,6 +416,56 @@ Page({
   // 保存头像
   saveAvatar: function(filePath) {
     var self = this;
+
+    if (app.globalData.useCloud && wx.cloud) {
+      wx.showLoading({ title: '校验头像中...' });
+      var extMatch = filePath.match(/\.[^.]+$/);
+      wx.cloud.uploadFile({
+        cloudPath: 'avatars/' + (app.globalData.openid || 'guest') + '_' + Date.now() + (extMatch ? extMatch[0] : '.jpg'),
+        filePath: filePath
+      }).then(function(uploadRes) {
+        return wx.cloud.callFunction({
+          name: 'contentSecurity',
+          data: {
+            action: 'checkImage',
+            fileID: uploadRes.fileID
+          },
+          timeout: 15000
+        }).then(function(checkRes) {
+          if (checkRes.result && checkRes.result.pass === false) {
+            wx.cloud.deleteFile({ fileList: [uploadRes.fileID] }).catch(function() {});
+            wx.hideLoading();
+            wx.showToast({
+              title: '头像未通过安全校验',
+              icon: 'none'
+            });
+            return;
+          }
+
+          wx.hideLoading();
+          if (!app.globalData.userInfo) {
+            app.globalData.userInfo = {};
+          }
+          app.globalData.userInfo.avatarUrl = uploadRes.fileID;
+          wx.setStorageSync('userInfo', JSON.stringify(app.globalData.userInfo));
+          self.setData({
+            userInfo: app.globalData.userInfo,
+            isWechatUser: !!(app.globalData.isLogin && app.globalData.openid)
+          });
+          wx.showToast({
+            title: '头像更新成功',
+            icon: 'success'
+          });
+        });
+      }).catch(function() {
+        wx.hideLoading();
+        wx.showToast({
+          title: '头像上传失败',
+          icon: 'none'
+        });
+      });
+      return;
+    }
 
     // 将图片保存到本地文件系统
     var fs = wx.getFileSystemManager();
@@ -474,5 +556,13 @@ Page({
       title: '我是' + levelTitle + '，已点亮 ' + visitedCount + ' 座城市，足迹遍布 ' + visitedProvinces + ' 个省份！',
       path: '/pages/index/index'
     };
+  },
+
+  onPrivacyAgree: function() {
+    privacy.handleAgree(this);
+  },
+
+  onPrivacyReject: function() {
+    privacy.handleReject(this);
   }
 });

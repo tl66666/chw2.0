@@ -6,6 +6,7 @@ var provinces = provincesData.provinces;
 var cloudImage = require('../../utils/cloudImage.js');
 var audioManager = require('../../utils/audio-manager.js').getAudioManager();
 var achievementsModule = require('../../utils/achievements.js');
+var privacy = require('../../utils/privacy.js');
 
 // 城市介绍数据
 var cityIntros = {
@@ -302,6 +303,7 @@ Page({
       visitedCities.push(cityId);
       app.globalData.visitedCities = visitedCities;
       app.saveData();
+      app.syncToCloud();
       this.checkVisited();
       
       audioManager.play('checkin_success');
@@ -326,6 +328,7 @@ Page({
       visitedCities.splice(index, 1);
       app.globalData.visitedCities = visitedCities;
       app.saveData();
+      app.syncToCloud();
       this.checkVisited();
       wx.showToast({ title: '已取消', icon: 'success' });
     }
@@ -416,6 +419,13 @@ Page({
   },
 
   addPhoto: function() {
+    var self = this;
+    privacy.ensure(this, function() {
+      self.addPhotoAfterPrivacy();
+    });
+  },
+
+  addPhotoAfterPrivacy: function() {
     var cityId = this.data.cityId;
     var provinceId = this.data.provinceId;
     var activeTab = this.data.activeTab;
@@ -464,6 +474,7 @@ Page({
       visitedCities.push(cityId);
       app.globalData.visitedCities = visitedCities;
       app.saveData();
+      app.syncToCloud();
       this.checkVisited();
       
       // 检查该省份是否是第一次点亮
@@ -505,39 +516,138 @@ Page({
   // 实际上传照片的方法
   doUploadPhoto: function(cityId, activeTab) {
     var self = this;
-    
+
     wx.chooseImage({
       count: 9,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
       success: function(res) {
-        var tempFiles = res.tempFilePaths;
-        
-        if (activeTab === 'travel') {
-          // 保存旅游照片
-          var cityTravelPhotos = app.globalData.cityTravelPhotos || {};
-          var existingPhotos = cityTravelPhotos[cityId] || [];
-          cityTravelPhotos[cityId] = existingPhotos.concat(tempFiles);
-          app.globalData.cityTravelPhotos = cityTravelPhotos;
-        } else {
-          // 保存美食照片
-          var cityFoodPhotos = app.globalData.cityFoodPhotos || {};
-          var existingPhotos = cityFoodPhotos[cityId] || [];
-          cityFoodPhotos[cityId] = existingPhotos.concat(tempFiles);
-          app.globalData.cityFoodPhotos = cityFoodPhotos;
+        var tempFiles = res.tempFilePaths || [];
+        if (tempFiles.length === 0) return;
+
+        if (app.globalData.useCloud && wx.cloud) {
+          wx.showLoading({ title: '安全校验中...' });
+          self.uploadAndCheckPhotos(tempFiles, 0, [], function(pass, safePhotos) {
+            if (!pass || safePhotos.length === 0) {
+              wx.hideLoading();
+              wx.showToast({ title: '图片未通过安全校验', icon: 'none' });
+              return;
+            }
+            self.saveCityPhotos(cityId, activeTab, safePhotos, true);
+          });
+          return;
         }
-        
-        app.saveData();
-        
-        // 更新UI
-        self.loadPhotos();
-        
-        wx.showToast({
-          title: '添加成功',
-          icon: 'success'
-        });
+
+        self.saveCityPhotos(cityId, activeTab, tempFiles, false);
       }
     });
+  },
+
+  uploadAndCheckPhotos: function(files, index, safePhotos, callback) {
+    var self = this;
+    if (index >= files.length) {
+      callback(true, safePhotos);
+      return;
+    }
+
+    var filePath = files[index];
+    var extMatch = filePath.match(/\.[^.]+$/);
+    var cloudPath = 'city-checkins/' + this.data.cityId + '/' + Date.now() + '_' + index + (extMatch ? extMatch[0] : '.jpg');
+
+    wx.cloud.uploadFile({
+      cloudPath: cloudPath,
+      filePath: filePath
+    }).then(function(uploadRes) {
+      return wx.cloud.callFunction({
+        name: 'contentSecurity',
+        data: {
+          action: 'checkImage',
+          fileID: uploadRes.fileID
+        },
+        timeout: 15000
+      }).then(function(checkRes) {
+        if (checkRes.result && checkRes.result.pass === false) {
+          wx.cloud.deleteFile({ fileList: [uploadRes.fileID] }).catch(function() {});
+          callback(false, safePhotos);
+          return;
+        }
+
+        safePhotos.push(uploadRes.fileID);
+        self.uploadAndCheckPhotos(files, index + 1, safePhotos, callback);
+      });
+    }).catch(function() {
+      callback(false, safePhotos);
+    });
+  },
+
+  saveCityPhotos: function(cityId, activeTab, photos, shouldHideLoading) {
+    var self = this;
+
+    if (activeTab === 'travel') {
+      var cityTravelPhotos = app.globalData.cityTravelPhotos || {};
+      var existingTravelPhotos = cityTravelPhotos[cityId] || [];
+      cityTravelPhotos[cityId] = existingTravelPhotos.concat(photos);
+      app.globalData.cityTravelPhotos = cityTravelPhotos;
+    } else {
+      var cityFoodPhotos = app.globalData.cityFoodPhotos || {};
+      var existingFoodPhotos = cityFoodPhotos[cityId] || [];
+      cityFoodPhotos[cityId] = existingFoodPhotos.concat(photos);
+      app.globalData.cityFoodPhotos = cityFoodPhotos;
+    }
+
+    app.saveData();
+    app.syncToCloud();
+
+    this.sharePhotosToCurrentGroup(cityId, activeTab, photos, function() {
+      if (shouldHideLoading) wx.hideLoading();
+      self.loadPhotos();
+      wx.showToast({ title: '添加成功', icon: 'success' });
+    });
+  },
+
+  sharePhotosToCurrentGroup: function(cityId, activeTab, photos, done) {
+    var localGroup = wx.getStorageSync('myGroup');
+    if (!localGroup || !app.globalData.useCloud || !wx.cloud) {
+      done();
+      return;
+    }
+
+    var groupData = null;
+    try {
+      groupData = typeof localGroup === 'string' ? JSON.parse(localGroup) : localGroup;
+    } catch (e) {}
+
+    if (!groupData || !groupData.groupInfo || !groupData.groupInfo.id) {
+      done();
+      return;
+    }
+
+    var cityName = this.data.cityName || '';
+    var index = 0;
+    function next() {
+      if (index >= photos.length) {
+        done();
+        return;
+      }
+
+      var fileID = photos[index++];
+      wx.cloud.callFunction({
+        name: 'group',
+        data: {
+          action: 'sharePhoto',
+          data: {
+            groupId: groupData.groupInfo.id,
+            fileId: fileID,
+            url: fileID,
+            cityId: cityId,
+            cityName: cityName,
+            type: activeTab
+          }
+        },
+        timeout: 10000
+      }).then(next).catch(next);
+    }
+    next();
   },
 
   // 页面显示时检查是否有待上传的照片（从抽卡页面返回后）
@@ -597,6 +707,7 @@ Page({
           }
           
           app.saveData();
+          app.syncToCloud();
           self.loadPhotos();
           
           wx.showToast({
@@ -615,14 +726,58 @@ Page({
   },
 
   saveNote: function() {
+    var self = this;
+    privacy.ensure(this, function() {
+      self.saveNoteAfterPrivacy();
+    });
+  },
+
+  saveNoteAfterPrivacy: function() {
     var cityId = this.data.cityId;
-    var note = this.data.note;
-    
+    var note = this.data.note || '';
+    var self = this;
+
+    if (app.globalData.useCloud && wx.cloud && note.trim()) {
+      wx.showLoading({ title: '安全校验中...' });
+      wx.cloud.callFunction({
+        name: 'contentSecurity',
+        data: {
+          action: 'checkText',
+          content: note
+        },
+        timeout: 15000
+      }).then(function(res) {
+        wx.hideLoading();
+        if (res.result && res.result.pass === false) {
+          wx.showToast({ title: '内容未通过安全校验', icon: 'none' });
+          return;
+        }
+        self.commitNote(cityId, note);
+      }).catch(function() {
+        wx.hideLoading();
+        wx.showToast({ title: '安全校验失败', icon: 'none' });
+      });
+      return;
+    }
+
+    this.commitNote(cityId, note);
+  },
+
+  onPrivacyAgree: function() {
+    privacy.handleAgree(this);
+  },
+
+  onPrivacyReject: function() {
+    privacy.handleReject(this);
+  },
+
+  commitNote: function(cityId, note) {
     var cityNotes = app.globalData.cityNotes || {};
     cityNotes[cityId] = note;
     app.globalData.cityNotes = cityNotes;
     app.saveData();
-    
+    app.syncToCloud();
+
     wx.showToast({
       title: '保存成功',
       icon: 'success'
@@ -668,6 +823,7 @@ Page({
           app.globalData.cityNotes = cityNotes;
           
           app.saveData();
+          app.syncToCloud();
           
           self.loadPhotos();
           self.checkVisited();

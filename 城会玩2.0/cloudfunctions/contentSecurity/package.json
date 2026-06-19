@@ -1,0 +1,9 @@
+{
+  "name": "contentSecurity",
+  "version": "1.0.0",
+  "description": "Content security checks for user text and uploaded images.",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

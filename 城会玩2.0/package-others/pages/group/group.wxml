@@ -64,9 +64,6 @@
       <view class="section-header">
         <text class="section-title">共享照片</text>
         <view class="section-actions">
-          <view class="section-action-btn" bindtap="uploadSharePhoto">
-            <text class="action-btn-text">+ 上传</text>
-          </view>
           <view class="section-more" bindtap="showPhotoWall" wx:if="{{sharedPhotos.length > 0}}">
             <text>查看全部</text>
             <view class="arrow-right"></view>
@@ -82,7 +79,7 @@
         </view>
       </view>
       <view class="no-photos-hint" wx:else>
-        <text class="hint-text">还没有共享照片，点击上传分享你的旅行瞬间</text>
+        <text class="hint-text">还没有共享照片。到地图里点亮城市并上传照片后，会自动同步到群组照片墙。</text>
       </view>
     </view>
 

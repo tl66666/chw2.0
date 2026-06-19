@@ -55,8 +55,8 @@ Page({
         success: function(res) {
           if (res.confirm) {
             // 使用 reLaunch 跳转到登录页（launch页面不是tab页，但需要重新加载）
-            wx.reLaunch({
-              url: '/pages/launch/launch'
+            wx.switchTab({
+              url: '/pages/profile/profile'
             });
           }
         }
@@ -79,8 +79,8 @@ Page({
             wx.removeStorageSync('userInfo');
             
             // 使用 reLaunch 跳转到登录页
-            wx.reLaunch({
-              url: '/pages/launch/launch'
+            wx.switchTab({
+              url: '/pages/profile/profile'
             });
           }
         }
@@ -181,7 +181,7 @@ Page({
         confirmText: '去登录',
         success: function(res) {
           if (res.confirm) {
-            wx.navigateTo({ url: '/pages/launch/launch' });
+            wx.switchTab({ url: '/pages/profile/profile' });
           }
         }
       });
@@ -389,7 +389,7 @@ Page({
         confirmText: '去登录',
         success: function(res) {
           if (res.confirm) {
-            wx.navigateTo({ url: '/pages/launch/launch' });
+            wx.switchTab({ url: '/pages/profile/profile' });
           }
         }
       });
@@ -662,8 +662,7 @@ Page({
     if (groupInfo && inviteCode) {
       return {
         title: '邀请你加入「' + groupInfo.name + '」旅行群组',
-        path: '/pages/group/group?inviteCode=' + inviteCode,
-        imageUrl: '/images/share-group.png'
+        path: '/package-others/pages/group/group?inviteCode=' + inviteCode
       };
     }
     

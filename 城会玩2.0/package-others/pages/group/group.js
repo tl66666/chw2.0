@@ -30,8 +30,14 @@ Page({
   // 阻止事件冒泡（空函数）
   preventClose: function() {},
 
-  onLoad: function() {
+  onLoad: function(options) {
     this.checkLoginStatus();
+    if (options && options.inviteCode) {
+      this.setData({
+        showJoinModal: true,
+        joinCode: (options.inviteCode || '').toUpperCase()
+      });
+    }
     this.loadGroupInfo();
   },
 
@@ -98,8 +104,8 @@ Page({
         success: function(res) {
           if (res.confirm) {
             // 使用 reLaunch 跳转到登录页（launch页面不是tab页，但需要重新加载）
-            wx.reLaunch({
-              url: '/pages/launch/launch'
+            wx.switchTab({
+              url: '/pages/profile/profile'
             });
           }
         }
@@ -122,8 +128,8 @@ Page({
             wx.removeStorageSync('userInfo');
             
             // 使用 reLaunch 跳转到登录页
-            wx.reLaunch({
-              url: '/pages/launch/launch'
+            wx.switchTab({
+              url: '/pages/profile/profile'
             });
           }
         }
@@ -161,7 +167,6 @@ Page({
           sharedPhotos: groupData.sharedPhotos || [],
           loading: false
         });
-        return;
       } catch (e) {
         console.log('解析本地群组数据失败');
       }
@@ -226,7 +231,7 @@ Page({
         confirmText: '去登录',
         success: function(res) {
           if (res.confirm) {
-            wx.navigateTo({ url: '/pages/launch/launch' });
+            wx.switchTab({ url: '/pages/profile/profile' });
           }
         }
       });
@@ -455,7 +460,7 @@ Page({
         confirmText: '去登录',
         success: function(res) {
           if (res.confirm) {
-            wx.navigateTo({ url: '/pages/launch/launch' });
+            wx.switchTab({ url: '/pages/profile/profile' });
           }
         }
       });
@@ -720,6 +725,7 @@ Page({
         data: {
           groupId: groupInfo.id,
           cityCount: userStats.visitedCount,
+          provinceCount: userStats.visitedProvinces,
           photoCount: userStats.photoCount
         }
       },
@@ -728,97 +734,6 @@ Page({
   },
 
   // 上传照片到群组共享
-  uploadSharePhoto: function() {
-    var self = this;
-    var groupInfo = self.data.groupInfo;
-    if (!groupInfo || !groupInfo.id) {
-      wx.showToast({ title: '请先加入群组', icon: 'none' });
-      return;
-    }
-
-    wx.chooseImage({
-      count: 3,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: function(res) {
-        wx.showLoading({ title: '上传中...' });
-        var uploaded = 0;
-        var failed = 0;
-        var total = res.tempFilePaths.length;
-
-        // 本地模式：直接添加到 sharedPhotos
-        if (!app.globalData.useCloud) {
-          for (var i = 0; i < res.tempFilePaths.length; i++) {
-            self.data.sharedPhotos.unshift({
-              id: 'local_' + Date.now() + '_' + i,
-              url: res.tempFilePaths[i],
-              userId: app.globalData.openid || 'local',
-              userName: (app.globalData.userInfo && app.globalData.userInfo.nickName) || '我',
-              userAvatar: (app.globalData.userInfo && app.globalData.userInfo.avatarUrl) || '/images/avatar.jpg',
-              cityName: '',
-              createTime: new Date().toISOString()
-            });
-          }
-          self.setData({ sharedPhotos: self.data.sharedPhotos });
-          wx.hideLoading();
-          wx.showToast({ title: '共享成功', icon: 'success' });
-          self.syncLocalGroupData();
-          return;
-        }
-
-        // 云端模式：通过云函数上传
-        for (var i = 0; i < res.tempFilePaths.length; i++) {
-          (function(filePath, index) {
-            wx.cloud.callFunction({
-              name: 'group',
-              data: {
-                action: 'sharePhoto',
-                data: {
-                  groupId: groupInfo.id,
-                  url: filePath,
-                  cityName: ''
-                }
-              },
-              timeout: 10000
-            }).then(function(cfRes) {
-              uploaded++;
-              if (cfRes.result && cfRes.result.success) {
-                self.data.sharedPhotos.unshift({
-                  id: cfRes.result.photoId || ('temp_' + Date.now()),
-                  url: filePath,
-                  userId: app.globalData.openid || '',
-                  userName: (app.globalData.userInfo && app.globalData.userInfo.nickName) || '我',
-                  userAvatar: (app.globalData.userInfo && app.globalData.userInfo.avatarUrl) || '/images/avatar.jpg',
-                  cityName: '',
-                  createTime: new Date().toISOString()
-                });
-              } else {
-                failed++;
-              }
-              if (uploaded + failed >= total) {
-                wx.hideLoading();
-                self.setData({ sharedPhotos: self.data.sharedPhotos });
-                self.syncLocalGroupData();
-                if (failed > 0) {
-                  wx.showToast({ title: uploaded + '张成功,' + failed + '张失败', icon: 'none' });
-                } else {
-                  wx.showToast({ title: '共享成功', icon: 'success' });
-                }
-              }
-            }).catch(function() {
-              failed++;
-              if (uploaded + failed >= total) {
-                wx.hideLoading();
-                self.setData({ sharedPhotos: self.data.sharedPhotos });
-                self.syncLocalGroupData();
-                wx.showToast({ title: uploaded + '张成功,' + failed + '张失败', icon: 'none' });
-              }
-            });
-          })(res.tempFilePaths[i], i);
-        }
-      }
-    });
-  },
 
   // 同步本地群组数据到 storage
   syncLocalGroupData: function() {
@@ -867,8 +782,7 @@ Page({
     if (groupInfo && inviteCode) {
       return {
         title: '邀请你加入「' + groupInfo.name + '」旅行群组',
-        path: '/pages/group/group?inviteCode=' + inviteCode,
-        imageUrl: '/images/share-group.png'
+        path: '/package-others/pages/group/group?inviteCode=' + inviteCode
       };
     }
     
