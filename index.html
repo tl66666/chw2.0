@@ -82,6 +82,21 @@
         .hero-stat .l { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-top: 0.3rem; letter-spacing: 0.05em; }
         .hero-divider { width: 1px; background: rgba(255,255,255,0.15); align-self: stretch; }
         .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+        .hero-access {
+            display: flex; align-items: center; justify-content: center; gap: 1rem;
+            margin-top: 1.2rem; padding: 0.75rem 0.95rem 0.75rem 0.8rem;
+            border: 1px solid rgba(255,255,255,0.18); border-radius: 22px;
+            background: rgba(255,255,255,0.12); backdrop-filter: blur(18px);
+            box-shadow: 0 16px 44px rgba(0,0,0,0.16);
+        }
+        .hero-qr {
+            width: 86px; height: 86px; padding: 0.35rem; object-fit: contain;
+            background: rgba(255,255,255,0.94); border-radius: 18px;
+            box-shadow: 0 10px 26px rgba(0,0,0,0.18);
+        }
+        .hero-access-copy { text-align: left; min-width: 0; }
+        .hero-access-copy strong { display: block; color: white; font-size: 0.98rem; margin-bottom: 0.18rem; }
+        .hero-access-copy span { display: block; color: rgba(255,255,255,0.68); font-size: 0.8rem; line-height: 1.5; }
         .btn {
             padding: 0.8rem 2rem; border-radius: 50px; font-size: 0.92rem; font-weight: 600;
             text-decoration: none; transition: all 0.3s ease;
@@ -340,6 +355,19 @@
         .step h4 { font-size: 1rem; margin-bottom: 0.4rem; }
         .step p { color: var(--text-light); font-size: 0.85rem; }
         .step code { background: var(--bg); padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.82rem; color: var(--pink-dark); }
+        .scan-cta {
+            margin-top: 2.5rem; display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: center;
+            padding: 2rem; border-radius: 26px;
+            background: linear-gradient(135deg, rgba(255,245,247,0.96), rgba(240,244,255,0.96));
+            border: 1px solid rgba(102,126,234,0.12); box-shadow: var(--shadow-sm);
+        }
+        .scan-cta h3 { font-size: clamp(1.35rem, 3vw, 2rem); margin-bottom: 0.55rem; letter-spacing: -0.01em; }
+        .scan-cta p { color: var(--text-light); max-width: 620px; }
+        .scan-cta-code {
+            width: 150px; height: 150px; padding: 0.6rem; border-radius: 24px;
+            background: white; object-fit: contain; box-shadow: 0 18px 40px rgba(102,126,234,0.16);
+        }
+        .scan-cta-note { margin-top: 0.9rem; color: var(--pink-dark); font-size: 0.9rem; font-weight: 600; }
 
         footer { background: linear-gradient(135deg, #FFF5F7 0%, #F0F4FF 100%); color: var(--text); text-align: center; padding: 2.5rem 2rem; border-top: 1px solid rgba(0,0,0,0.04); }
         footer .brand { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text); }
@@ -370,11 +398,19 @@
             .tech-grid { grid-template-columns: repeat(2, 1fr); }
             .hl-grid { grid-template-columns: 1fr; }
             .steps { grid-template-columns: 1fr; }
+            .scan-cta { grid-template-columns: 1fr; text-align: center; justify-items: center; }
         }
         @media (max-width: 500px) {
             section { padding: 3rem 1rem; }
+            .hero-container { padding: 2.2rem 1.2rem; }
+            .hero-access { width: 100%; max-width: 320px; gap: 0.8rem; }
+            .hero-qr { width: 72px; height: 72px; border-radius: 15px; }
+            .hero-access-copy strong { font-size: 0.9rem; }
+            .hero-access-copy span { font-size: 0.74rem; }
             .badges-grid { grid-template-columns: repeat(2, 1fr); }
             .tech-grid { grid-template-columns: 1fr; }
+            .scan-cta { padding: 1.5rem; }
+            .scan-cta-code { width: 132px; height: 132px; }
         }
     </style>
 </head>
@@ -404,6 +440,13 @@
                 GitHub 仓库
             </a>
             <a href="#features" class="btn btn-outline">探索功能</a>
+        </div>
+        <div class="hero-access" aria-label="微信扫码体验城会玩2.0小程序">
+            <img class="hero-qr" src="site-assets/qrcode.jpg" alt="城会玩2.0 小程序码">
+            <div class="hero-access-copy">
+                <strong>微信扫码体验</strong>
+                <span>打开小程序，点亮你的城市足迹</span>
+            </div>
         </div>
     </div>
     <div class="scroll-indicator">
@@ -672,6 +715,14 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
             浏览源码目录
         </a>
+    </div>
+    <div class="scan-cta reveal">
+        <div>
+            <h3>现在就用微信打开城会玩2.0</h3>
+            <p>无需安装，扫码进入小程序。打卡城市、上传旅行照片、创建群组和好友一起探索。</p>
+            <div class="scan-cta-note">微信扫一扫，开始点亮你的城市地图</div>
+        </div>
+        <img class="scan-cta-code" src="site-assets/qrcode.jpg" alt="城会玩2.0 小程序码">
     </div>
 </section>
 
