@@ -83,7 +83,21 @@ Page({
       confirmColor: '#F44336',
       success: function(res) {
         if (res.confirm) {
-          wx.clearStorageSync();
+          // 清除旅行数据，但保留登录信息和设置
+          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'myGroup'];
+          for (var i = 0; i < removeKeys.length; i++) {
+            try { wx.removeStorageSync(removeKeys[i]); } catch (e) {}
+          }
+          // 清除 globalData
+          if (app.globalData) {
+            app.globalData.visitedCities = [];
+            app.globalData.visitedProvinces = [];
+            app.globalData.visitDates = {};
+            app.globalData.cityPhotos = {};
+            app.globalData.cityTravelPhotos = {};
+            app.globalData.cityFoodPhotos = {};
+            app.globalData.cityNotes = {};
+          }
           self.setData({ cacheSize: '0 KB' });
           wx.showToast({ title: '缓存已清除', icon: 'success' });
         }

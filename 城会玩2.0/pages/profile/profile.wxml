@@ -21,6 +21,7 @@
           </view>
           <text class="level-text">{{levelInfo.title}}</text>
         </view>
+        <view class="profile-edit-pill" bindtap="openEditProfile">编辑资料</view>
       </view>
     </view>
 
@@ -173,6 +174,16 @@
           <text class="menu-grid-desc">管理偏好与数据</text>
         </view>
       </view>
+
+      <view class="menu-grid-item" bindtap="openEditProfile">
+        <view class="menu-grid-icon menu-icon-profile">
+          <text class="menu-grid-icon-text">名</text>
+        </view>
+        <view class="menu-grid-copy">
+          <text class="menu-grid-name">编辑名片</text>
+          <text class="menu-grid-desc">换头像、改昵称</text>
+        </view>
+      </view>
     </view>
   </view>
 
@@ -208,6 +219,31 @@
     <view class="bottom-line"></view>
     <text class="bottom-text">用脚步丈量世界</text>
     <view class="bottom-line"></view>
+  </view>
+
+  <view class="edit-profile-modal" wx:if="{{showEditProfile}}">
+    <view class="edit-profile-mask" bindtap="closeEditProfile"></view>
+    <view class="edit-profile-card">
+      <view class="edit-profile-top">
+        <view>
+          <text class="edit-profile-kicker">TRAVEL ID</text>
+          <text class="edit-profile-title">编辑旅行名片</text>
+        </view>
+        <view class="edit-profile-close" bindtap="closeEditProfile">×</view>
+      </view>
+      <view class="edit-avatar-box" bindtap="chooseEditAvatar">
+        <image class="edit-avatar-img" src="{{editAvatarUrl || '/images/avatar.jpg'}}" mode="aspectFill"/>
+        <view class="edit-avatar-badge">换头像</view>
+      </view>
+      <view class="edit-field">
+        <text class="edit-label">昵称</text>
+        <input class="edit-input" value="{{editNickName}}" maxlength="12" placeholder="写一个好记的旅行昵称" bindinput="onNickNameInput"/>
+      </view>
+      <view class="edit-profile-actions">
+        <view class="edit-action ghost" bindtap="closeEditProfile">取消</view>
+        <view class="edit-action primary" bindtap="saveProfile">保存</view>
+      </view>
+    </view>
   </view>
   <privacy-popup id="privacyPopup" bindagree="onPrivacyAgree" bindreject="onPrivacyReject"></privacy-popup>
 </view>

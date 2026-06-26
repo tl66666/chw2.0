@@ -1038,3 +1038,87 @@
   color: #FFFFFF;
   display: inline-block;
 }
+
+/* Travel stamp style achievement toast */
+.achievement-popup-bg {
+  background: rgba(38, 31, 27, 0.38);
+  backdrop-filter: blur(8rpx);
+}
+
+.achievement-popup-content {
+  width: 640rpx;
+  max-width: 86vw;
+  padding: 34rpx 34rpx 32rpx;
+  border-radius: 28rpx;
+  text-align: left;
+  background:
+    radial-gradient(circle at 86% 18%, rgba(120,182,166,0.22), transparent 30%),
+    linear-gradient(135deg, #FFFDF8 0%, #FFF0EA 100%);
+  border: 2rpx solid rgba(214,111,88,0.12);
+  box-shadow: 0 24rpx 70rpx rgba(80, 52, 40, 0.24);
+}
+
+.achievement-popup-content::before {
+  content: 'NEW STAMP';
+  position: absolute;
+  top: 22rpx;
+  right: 24rpx;
+  color: rgba(214,111,88,0.34);
+  font-size: 22rpx;
+  font-weight: 900;
+  letter-spacing: 2rpx;
+}
+
+.achievement-popup-icon {
+  width: 96rpx;
+  height: 96rpx;
+  margin: 0 0 18rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg, #D66F58, #78B6A6);
+  box-shadow: 0 12rpx 28rpx rgba(214,111,88,0.26);
+  animation: stampPop 1.8s ease-in-out infinite;
+}
+
+.achievement-popup-icon text {
+  font-size: 48rpx;
+}
+
+@keyframes stampPop {
+  0%, 100% { transform: rotate(-5deg) scale(1); }
+  50% { transform: rotate(3deg) scale(1.04); }
+}
+
+.achievement-popup-title {
+  margin-bottom: 8rpx;
+  color: #8A786E;
+  font-size: 24rpx;
+  font-weight: 800;
+  letter-spacing: 1rpx;
+}
+
+.achievement-popup-name {
+  color: #3F3732;
+  font-size: 38rpx;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.achievement-popup-reward {
+  margin: 22rpx 0 0;
+  padding: 10rpx 20rpx;
+  background: #FFFFFF;
+  box-shadow: 0 8rpx 20rpx rgba(58,42,34,0.06);
+}
+
+.achievement-popup-reward text {
+  color: #D66F58;
+}
+
+.achievement-popup-btn {
+  position: absolute;
+  right: 30rpx;
+  bottom: 30rpx;
+  padding: 16rpx 28rpx;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #D66F58, #B9574D);
+}

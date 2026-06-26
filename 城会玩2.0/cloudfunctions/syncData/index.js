@@ -34,6 +34,8 @@ exports.main = async (event, context) => {
         return await createGroup(openid, data);
       case 'leaveGroup':
         return await leaveGroup(openid, data);
+      case 'clearAllData':
+        return await clearAllData(openid);
       default:
         return { success: false, error: '未知操作' };
     }
@@ -42,6 +44,28 @@ exports.main = async (event, context) => {
     return { success: false, error: error.message };
   }
 };
+
+// 清除用户所有云端数据
+async function clearAllData(openid) {
+  try {
+    // 删除城市记录
+    try {
+      await db.collection('cityRecords').where({ openid }).remove();
+    } catch (e) { console.warn('clearAllData: cityRecords:', e.message); }
+    // 删除照片
+    try {
+      await db.collection('photos').where({ openid }).remove();
+    } catch (e) { console.warn('clearAllData: photos:', e.message); }
+    // 删除笔记
+    try {
+      await db.collection('notes').where({ openid }).remove();
+    } catch (e) { console.warn('clearAllData: notes:', e.message); }
+    return { success: true };
+  } catch (err) {
+    console.error('clearAllData failed:', err);
+    return { success: false, error: err.message };
+  }
+}
 
 // 同步城市打卡记录
 async function syncCityRecords(openid, records) {

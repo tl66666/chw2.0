@@ -135,14 +135,15 @@
     <view class="achievement-popup-bg" bindtap="closeAchievementPopup"></view>
     <view class="achievement-popup-content">
       <view class="achievement-popup-icon">
-        <text>🏆</text>
+        <image class="achievement-popup-badge-img" src="{{newAchievement.badge}}" mode="aspectFit"/>
       </view>
-      <text class="achievement-popup-title">成就解锁</text>
+      <text class="achievement-popup-title">新徽章已盖章</text>
       <text class="achievement-popup-name">{{newAchievement.title}}</text>
+      <text class="achievement-popup-desc">{{newAchievement.desc}}</text>
       <view class="achievement-popup-reward">
         <text>+{{newAchievement.reward}} 积分</text>
       </view>
-      <view class="achievement-popup-btn" bindtap="closeAchievementPopup">太棒了</view>
+      <view class="achievement-popup-btn" bindtap="closeAchievementPopup">收进成就墙</view>
     </view>
   </view>
 </view>

@@ -310,6 +310,47 @@ var achievements = [
     condition: function(stats) { return stats.cardCount >= 20; },
     reward: 1000
   }
+  ,
+  {
+    id: 'squad_starter',
+    title: '旅行小队成立',
+    desc: '创建或加入一个旅行群组',
+    icon: '队',
+    badge: '/images/ui/badge-newbie.jpg',
+    category: 'social',
+    condition: function(stats) { return stats.groupMemberCount >= 1; },
+    reward: 200
+  },
+  {
+    id: 'shared_album',
+    title: '共同足迹墙',
+    desc: '群组累计共享10张城市照片',
+    icon: '图',
+    badge: '/images/ui/badge-advanced.jpg',
+    category: 'social',
+    condition: function(stats) { return stats.groupPhotoCount >= 10; },
+    reward: 500
+  },
+  {
+    id: 'team_city_map',
+    title: '小队城市地图',
+    desc: '群组共同点亮20座城市',
+    icon: '城',
+    badge: '/images/ui/badge-expert.jpg',
+    category: 'social',
+    condition: function(stats) { return stats.groupCityCount >= 20; },
+    reward: 900
+  },
+  {
+    id: 'province_halfway',
+    title: '半张中国地图',
+    desc: '点亮17个省份',
+    icon: '省',
+    badge: '/images/ui/badge-expert.jpg',
+    category: 'explore',
+    condition: function(stats) { return stats.visitedProvinces >= 17; },
+    reward: 1200
+  }
 ];
 
 // 获取成就状态

@@ -82,7 +82,15 @@
             <view class="card-frame-corner bl"></view>
             <view class="card-frame-corner br"></view>
           </view>
-          <image class="character-img" src="{{cardImage}}" mode="aspectFill"/>
+          <view class="unlock-poster-fallback rarity-{{rarity}}">
+            <view class="unlock-poster-mark">{{provinceShort}}</view>
+            <view class="unlock-poster-route">
+              <view></view>
+              <view></view>
+              <view></view>
+            </view>
+          </view>
+          <image wx:if="{{cardImage}}" class="character-img" src="{{cardImage}}" mode="aspectFill" binderror="onCardImageError"/>
           <view class="card-overlay"></view>
           <view class="rarity-badge {{showRarityBadge ? 'show' : ''}}" style="background:{{rarityColor}}">{{rarity}}</view>
           <view class="character-name {{showRarityBadge ? 'show' : ''}}">{{character.name}}</view>
@@ -99,7 +107,10 @@
       <view class="showcase-card rarity-{{rarity}}">
         <view class="showcase-glow rarity-{{rarity}}"></view>
         <view class="showcase-img-wrapper">
-          <image class="showcase-img" src="{{cardImage}}" mode="aspectFit" lazy-load/>
+          <view class="showcase-fallback rarity-{{rarity}}">
+            <view class="showcase-fallback-mark">{{provinceShort}}</view>
+          </view>
+          <image wx:if="{{cardImage}}" class="showcase-img" src="{{cardImage}}" mode="aspectFit" lazy-load binderror="onCardImageError"/>
         </view>
         <view class="showcase-overlay"></view>
         <view class="showcase-rarity-badge {{showRarityBadge ? 'show' : ''}}" style="background:{{rarityColor}}">{{rarity}}</view>
@@ -183,14 +194,15 @@
     <view class="achievement-popup-bg" bindtap="closeAchievementPopup"></view>
     <view class="achievement-popup-content">
       <view class="achievement-popup-icon">
-        <text>🏆</text>
+        <image class="achievement-popup-badge-img" src="{{newAchievement.badge}}" mode="aspectFit"/>
       </view>
-      <text class="achievement-popup-title">成就解锁</text>
+      <text class="achievement-popup-title">新徽章已盖章</text>
       <text class="achievement-popup-name">{{newAchievement.title}}</text>
+      <text class="achievement-popup-desc">{{newAchievement.desc || '这段旅程已经收进你的城市手账'}}</text>
       <view class="achievement-popup-reward">
         <text>+{{newAchievement.reward}} 积分</text>
       </view>
-      <view class="achievement-popup-btn" bindtap="closeAchievementPopup">太棒了</view>
+      <view class="achievement-popup-btn" bindtap="closeAchievementPopup">收进手账</view>
     </view>
   </view>
 </view>

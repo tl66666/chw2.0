@@ -1,112 +1,44 @@
 /**
- * 音效管理器
- * 代码生成WAV写入临时文件再播放，小程序兼容方案
+ * App audio manager.
+ *
+ * Uses packaged static wav files. Missing/unsupported files are disabled per
+ * key, so audio never blocks normal mini-program flows.
  */
+var SOUND_MAP = {
+  button_tap: '/audio/button_tap.wav',
+  page_navigate: '/audio/page_navigate.wav',
+  checkin_success: '/audio/checkin_success.wav',
+  card_flip_start: '/audio/card_flip_start.wav',
+  card_flip_reveal: '/audio/card_flip_reveal.wav',
+  rarity_r: '/audio/rarity_r.wav',
+  rarity_sr: '/audio/rarity_sr.wav',
+  rarity_ssr: '/audio/rarity_ssr.wav',
+  rarity_ur: '/audio/rarity_ur.wav',
+  achievement_unlock: '/audio/achievement_unlock.wav',
+  photo_upload: '/audio/photo_upload.wav'
+};
+
 var AudioEngine = {
   _pool: {},
+  _failed: {},
   _enabled: true,
   _muted: false,
-  _ready: false,
-  _fs: null,
-  _tmpDir: '',
 
-  _init: function() {
-    if (this._ready) return;
-    try { this._fs = wx.getFileSystemManager(); } catch(e) {}
-    try { this._tmpDir = wx.env.USER_DATA_PATH + '/audio/'; } catch(e) {
-      this._tmpDir = '';
-    }
-    if (this._tmpDir) {
-      try {
-        this._fs.accessSync(this._tmpDir);
-      } catch(e) {
-        try { this._fs.mkdirSync(this._tmpDir, true); } catch(e2) {}
-      }
-    }
-    this._ready = true;
-  },
+  _get: function(key) {
+    if (this._failed[key]) return null;
+    var src = SOUND_MAP[key];
+    if (!src || !wx.createInnerAudioContext) return null;
 
-  // 生成极短WAV(ArrayBuffer)
-  _genWav: function(freq, duration, type, vol) {
-    var sr = 8000;
-    var samples = Math.ceil(sr * duration);
-    var dataLen = samples;
-    var buf = new ArrayBuffer(44 + dataLen);
-    var view = new DataView(buf);
-    var dv = new Uint8Array(buf);
-    vol = (vol || 0.4);
-
-    this._wstr(dv, 0, 'RIFF');
-    view.setUint32(4, 36 + dataLen, true);
-    this._wstr(dv, 8, 'WAVE');
-    this._wstr(dv, 12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, 1, true);
-    view.setUint32(24, sr, true);
-    view.setUint32(28, sr, true);
-    view.setUint16(32, 1, true);
-    view.setUint16(34, 8, true);
-    this._wstr(dv, 36, 'data');
-    view.setUint32(40, dataLen, true);
-
-    for (var i = 0; i < samples; i++) {
-      var t = i / sr, val = 0;
-      if (type === 'sine') val = Math.sin(2 * Math.PI * freq * t);
-      else if (type === 'square') val = Math.sin(2 * Math.PI * freq * t) > 0 ? 1 : -1;
-      else if (type === 'saw') val = 2 * ((freq * t) % 1) - 1;
-      else if (type === 'sweep') { var f2 = freq + t * freq * 3; val = Math.sin(2 * Math.PI * f2 * t); }
-      else if (type === 'noise') val = Math.random() * 2 - 1;
-      var env = Math.exp(-t * (2 / duration));
-      dv[44 + i] = Math.floor(((val * env * vol) + 1) * 127.5);
-    }
-    return buf;
-  },
-
-  _wstr: function(buf, off, s) { for (var i = 0; i < s.length; i++) buf[off + i] = s.charCodeAt(i); },
-
-  _buildMap: function() {
-    if (this._buildDone) return;
-    this._init();
-    var self = this;
-    var g = function(f, d, t, v) { return self._genWav(f, d, t, v); };
-
-    this._soundMap = {
-      'button_tap':        g(1600, 0.05, 'sine', 0.3),
-      'page_navigate':     g(600, 0.08, 'sweep', 0.25),
-      'checkin_success':   g(800, 0.15, 'sine', 0.3),
-      'card_flip_start':   g(300, 0.1, 'saw', 0.12),
-      'card_flip_reveal':  g(500, 0.2, 'sweep', 0.22),
-      'rarity_r':          g(440, 0.12, 'sine', 0.25),
-      'rarity_sr':         g(550, 0.15, 'sine', 0.25),
-      'rarity_ssr':        g(700, 0.18, 'sine', 0.28),
-      'rarity_ur':         g(880, 0.25, 'sine', 0.3),
-      'achievement_unlock':g(1000, 0.3, 'sine', 0.3),
-      'photo_upload':      g(700, 0.08, 'sweep', 0.2)
-    };
-    this._buildDone = true;
-  },
-
-  _getFile: function(key) {
-    var self = this;
     if (!this._pool[key]) {
-      if (!this._buildDone) this._buildMap();
-      var buf = this._soundMap[key];
-      if (!buf) return null;
-      var fpath = this._tmpDir + 'sfx_' + key + '.wav';
-      if (this._fs) {
-        try {
-          this._fs.writeFileSync(fpath, buf, 'binary');
-        } catch(e) {
-          return null;
-        }
-      }
       var audio = wx.createInnerAudioContext();
-      audio.src = fpath;
-      audio.volume = 0.55;
-      audio.obeyMuteSwitch = false;
-      audio.onError(function(err) {
-        // 静默处理
+      audio.src = src;
+      audio.volume = key === 'achievement_unlock' ? 0.7 : 0.48;
+      audio.obeyMuteSwitch = true;
+      var self = this;
+      audio.onError(function() {
+        self._failed[key] = true;
+        try { audio.destroy(); } catch (e) {}
+        delete self._pool[key];
       });
       this._pool[key] = audio;
     }
@@ -114,25 +46,36 @@ var AudioEngine = {
   },
 
   play: function(key) {
-    if (!this._enabled || this._muted) return;
+    if (!this._enabled || this._muted) return false;
     try {
-      var audio = this._getFile(key);
-      if (audio) {
-        audio.stop();
-        audio.seek(0);
-        audio.play();
-      }
-    } catch(e) {}
+      var audio = this._get(key);
+      if (!audio) return false;
+      audio.stop();
+      audio.seek(0);
+      audio.play();
+      return true;
+    } catch (e) {
+      this._failed[key] = true;
+      return false;
+    }
   },
 
   preload: function(keys) {
-    var self = this;
-    keys.forEach(function(k) { self._getFile(k); });
+    keys = keys || Object.keys(SOUND_MAP);
+    for (var i = 0; i < keys.length; i++) this._get(keys[i]);
   },
 
-  setEnabled: function(e) { this._enabled = e; },
-  setMuted: function(m) { this._muted = m; },
-  getAudioManager: function() { return this; }
+  setEnabled: function(enabled) {
+    this._enabled = !!enabled;
+  },
+
+  setMuted: function(muted) {
+    this._muted = !!muted;
+  },
+
+  getAudioManager: function() {
+    return this;
+  }
 };
 
 module.exports = AudioEngine;

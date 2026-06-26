@@ -326,6 +326,12 @@ Page({
       photoCount += cityFoodPhotos[foodKeys[n]].length;
     }
 
+    var groupData = {};
+    try {
+      var storedGroup = wx.getStorageSync('myGroup');
+      groupData = typeof storedGroup === 'string' ? JSON.parse(storedGroup || '{}') : (storedGroup || {});
+    } catch (e) {}
+
     return {
       visitedCount: visitedCities.length,
       visitedProvinces: provinceIds.length,
@@ -341,7 +347,10 @@ Page({
       noteCount: app.globalData.noteCount || 0,
       weekStreak: app.globalData.weekStreak || 0,
       monthStreak: app.globalData.monthStreak || 0,
-      hasAllRarity: app.globalData.hasAllRarity || false
+      hasAllRarity: app.globalData.hasAllRarity || false,
+      groupMemberCount: (groupData.members || []).length,
+      groupCityCount: (groupData.groupCities || []).length,
+      groupPhotoCount: (groupData.sharedPhotos || []).length
     };
   },
 

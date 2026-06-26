@@ -106,7 +106,7 @@
           data-provinceid="{{item.id}}"
         >
           <view class="recent-image-wrapper">
-            <image class="recent-image" src="{{item.photoUrl}}" mode="aspectFill" wx:if="{{item.photoUrl}}"/>
+            <image class="recent-image" src="{{item.photoUrl}}" mode="aspectFill" wx:if="{{item.photoUrl}}" binderror="onRecentImageError" data-index="{{index}}"/>
             <view class="recent-placeholder" wx:else>
               <text class="placeholder-text">{{item.name}}</text>
             </view>

@@ -74,6 +74,29 @@ App({
     try { require('./utils/audio-manager.js'); } catch(e) {}
   },
 
+  refreshGroupCache: function(callback) {
+    if (!this.globalData.isLogin || !wx.cloud) {
+      if (callback) callback(false);
+      return;
+    }
+
+    wx.cloud.callFunction({
+      name: 'group',
+      data: { action: 'getMyGroup' },
+      timeout: 10000
+    }).then(function(res) {
+      var result = res.result || {};
+      if (result.success && result.groupInfo) {
+        wx.setStorageSync('myGroup', JSON.stringify(result));
+        if (callback) callback(true, result);
+      } else {
+        if (callback) callback(false, result);
+      }
+    }).catch(function() {
+      if (callback) callback(false);
+    });
+  },
+
   // 微信登录：只获取 openid，不强制索取头像昵称授权
   login: function(callback) {
     var self = this;

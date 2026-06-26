@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>城会玩2.0 - 城市探索 · 角色卡收集 · 群组共享 · 微信小程序</title>
-    <meta name="description" content="城会玩2.0 是一款围绕城市探索、角色卡收集、成就激励、群组共享设计的微信小程序。支持34个省级行政区、391个城市的足迹点亮，30+成就徽章和角色卡收集。">
+    <title>城会玩2.0 - 城市探索 · 角色卡收集 · 共享旅行地图 · 微信小程序</title>
+    <meta name="description" content="城会玩2.0 是一款围绕城市探索、城市照片手账、角色卡收集、成就激励和群组共享设计的微信小程序。支持34个省级行政区、391个城市足迹点亮，并可把好友的打卡城市和照片同步到同一张旅行地图。">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
@@ -169,6 +169,26 @@
         .apf-1 { top: 5%; right: 10%; animation-delay: 0s; }
         .apf-2 { bottom: 15%; left: 5%; animation-delay: 2.5s; }
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+        .journey-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem;
+        }
+        .journey-card {
+            position: relative; overflow: hidden; min-height: 270px;
+            border-radius: 22px; background: var(--white); box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.04); transition: all 0.35s ease;
+        }
+        .journey-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
+        .journey-card img { width: 100%; height: 150px; object-fit: cover; display: block; }
+        .journey-card-body { padding: 1.25rem; }
+        .journey-card .kicker {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            padding: 0.25rem 0.65rem; margin-bottom: 0.75rem;
+            border-radius: 999px; background: rgba(244,166,181,0.12);
+            color: var(--pink-dark); font-size: 0.75rem; font-weight: 700;
+        }
+        .journey-card h3 { font-size: 1.05rem; margin-bottom: 0.45rem; }
+        .journey-card p { color: var(--text-light); font-size: 0.86rem; line-height: 1.65; }
 
         section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
         .section-header { text-align: center; margin-bottom: 3.5rem; }
@@ -388,6 +408,7 @@
             .spotlight.reverse { grid-template-columns: 1fr; }
             .spotlight.reverse .spotlight-image { order: 1; }
             .city-gallery { grid-template-columns: 1fr; }
+            .journey-grid { grid-template-columns: 1fr 1fr; }
             .cards-showcase { grid-template-columns: 1fr; }
             .ccard-wrapper { max-width: 240px; }
             .flow-steps { grid-template-columns: 1fr; gap: 1.5rem; }
@@ -408,6 +429,7 @@
             .hero-access-copy strong { font-size: 0.9rem; }
             .hero-access-copy span { font-size: 0.74rem; }
             .badges-grid { grid-template-columns: repeat(2, 1fr); }
+            .journey-grid { grid-template-columns: 1fr; }
             .tech-grid { grid-template-columns: 1fr; }
             .scan-cta { padding: 1.5rem; }
             .scan-cta-code { width: 132px; height: 132px; }
@@ -426,7 +448,7 @@
     <div class="hero-container">
         <div class="hero-badge"><span class="dot"></span> 微信小程序</div>
         <h1>城会玩<span class="hl">2.0</span></h1>
-        <p class="hero-desc">点亮地图足迹，收集稀有角色卡，解锁成就徽章，和朋友一起组队探索中国每一座城市</p>
+        <p class="hero-desc">点亮城市足迹，保存旅行照片，收集地域角色卡，和朋友共享同一张会成长的旅行地图</p>
         <div class="hero-stats">
             <div class="hero-stat"><div class="n">34</div><div class="l">省级行政区</div></div>
             <div class="hero-divider"></div>
@@ -445,7 +467,7 @@
             <img class="hero-qr" src="site-assets/qrcode.jpg" alt="城会玩2.0 小程序码">
             <div class="hero-access-copy">
                 <strong>微信扫码体验</strong>
-                <span>打开小程序，点亮你的城市足迹</span>
+                <span>打开小程序，开始记录你的城市足迹</span>
             </div>
         </div>
     </div>
@@ -460,11 +482,11 @@
     <div class="app-preview-container reveal">
         <div class="app-preview-text">
             <h2>一站式<span>城市探索</span>体验</h2>
-            <p>城会玩2.0将地图打卡、角色卡收集、成就系统和群组社交融为一体，让每一次旅行都充满惊喜与动力。</p>
+            <p>城会玩2.0将地图打卡、城市照片、角色卡、成就系统和群组共享融为一体，让每一次旅行都有记录、有奖励，也能和重要的人一起沉淀回忆。</p>
             <div class="app-preview-features">
                 <div class="app-preview-feature">
                     <div class="icon map">🗺️</div>
-                    <div><h4>地图点亮</h4><p>34省391城，足迹可视化</p></div>
+                    <div><h4>地图点亮</h4><p>34省391城，足迹清晰可见</p></div>
                 </div>
                 <div class="app-preview-feature">
                     <div class="icon card">🃏</div>
@@ -476,7 +498,7 @@
                 </div>
                 <div class="app-preview-feature">
                     <div class="icon group">👥</div>
-                    <div><h4>群组共享</h4><p>邀请码组队，共享旅行记忆</p></div>
+                    <div><h4>共享视角</h4><p>群组成员的城市和照片同步展示</p></div>
                 </div>
             </div>
         </div>
@@ -494,21 +516,79 @@
     </div>
 </div>
 
+<!-- ====== EXPERIENCE PATH ====== -->
+<section>
+    <div class="section-header reveal">
+        <h2>完整体验路径</h2>
+        <p>从点亮一座城市，到和好友共享同一份旅行记忆，核心路径完整闭环。</p>
+    </div>
+    <div class="journey-grid">
+        <div class="journey-card reveal">
+            <img src="site-assets/icon-map.jpg" alt="地图点亮">
+            <div class="journey-card-body">
+                <div class="kicker">01 地图入口</div>
+                <h3>打开中国地图，点亮去过的城市</h3>
+                <p>省份标签、地图标记、城市进度同时更新，用户能马上看到自己探索过的地方。</p>
+            </div>
+        </div>
+        <div class="journey-card reveal">
+            <img src="site-assets/city-shanghai.jpg" alt="城市详情">
+            <div class="journey-card-body">
+                <div class="kicker">02 城市详情</div>
+                <h3>把照片和笔记绑定到具体城市</h3>
+                <p>旅行照片、美食记录和文字笔记都沉淀在城市详情页，回看时不会丢失地点上下文。</p>
+            </div>
+        </div>
+        <div class="journey-card reveal">
+            <img src="site-assets/card-zhejiang.jpg" alt="角色卡收集">
+            <div class="journey-card-body">
+                <div class="kicker">03 收集反馈</div>
+                <h3>点亮省份后解锁地域角色卡</h3>
+                <p>抽卡动画、稀有度、卡片详情和成就提示一起出现，让打卡从记录变成期待。</p>
+            </div>
+        </div>
+        <div class="journey-card reveal">
+            <img src="site-assets/empty-travel.jpg" alt="旅行相册">
+            <div class="journey-card-body">
+                <div class="kicker">04 相册沉淀</div>
+                <h3>按旅行、美食、城市整理回忆</h3>
+                <p>相册页按类型筛选，也能按城市查看，适合旅行结束后快速翻回每一段路。</p>
+            </div>
+        </div>
+        <div class="journey-card reveal">
+            <img src="site-assets/badge-king.jpg" alt="成就徽章">
+            <div class="journey-card-body">
+                <div class="kicker">05 成就成长</div>
+                <h3>用徽章记录探索阶段</h3>
+                <p>探索、收集、照片和特殊时间都能触发成就，让用户知道下一步还能去哪里。</p>
+            </div>
+        </div>
+        <div class="journey-card reveal">
+            <img src="site-assets/icon-friends.jpg" alt="群组共享">
+            <div class="journey-card-body">
+                <div class="kicker">06 群组共享</div>
+                <h3>好友加入后共享同一张地图</h3>
+                <p>成员点亮的城市和上传到城市里的照片会在地图、城市详情、相册和动态中同步出现。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- ====== STATS ====== -->
 <section>
     <div class="stats-card reveal">
         <div><div class="stat-value">34</div><div class="stat-label">省级行政区</div></div>
         <div><div class="stat-value">391</div><div class="stat-label">覆盖城市</div></div>
         <div><div class="stat-value">30+</div><div class="stat-label">成就徽章</div></div>
-        <div><div class="stat-value">SSR</div><div class="stat-label">稀有角色卡</div></div>
+        <div><div class="stat-value">同步</div><div class="stat-label">群组共享视角</div></div>
     </div>
 </section>
 
 <!-- ====== 四大特色 ====== -->
 <section id="features">
     <div class="section-header reveal">
-        <h2>✨ 四大核心特色</h2>
-        <p>地图点亮、抽卡收集、成就激励、群组共享——完整的旅行探索体验</p>
+        <h2>四大核心特色</h2>
+        <p>地图点亮、城市相册、角色卡收集、群组共享，组成完整的旅行探索体验。</p>
     </div>
 
     <div class="spotlight reveal">
@@ -523,7 +603,7 @@
     <div class="spotlight reveal">
         <div class="spotlight-text">
             <h3><span>🃏 抽卡收集系统</span></h3>
-            <p>每个省份首次点亮时触发精美抽卡动画！角色卡分为 N/R/SR/SSR/UR 五个稀有度等级，每张卡拥有地域主题设计和个性描述。卡组图鉴展示收集进度，谁能集齐全部稀有度？</p>
+            <p>每个省份首次点亮时触发抽卡动画。角色卡分为 N/R/SR/SSR/UR 五个稀有度等级，每张卡拥有地域主题设计和个性描述。卡组图鉴展示收集进度，让探索过程更有期待感。</p>
             <div class="spotlight-tags"><span class="stag">抽卡动画</span><span class="stag">五级稀有度</span><span class="stag">地域主题</span><span class="stag">卡组图鉴</span></div>
         </div>
         <div class="spotlight-image"><img src="site-assets/icon-friends.jpg" alt="角色卡抽卡"></div>
@@ -541,8 +621,8 @@
     <div class="spotlight reveal">
         <div class="spotlight-text">
             <h3><span>👥 群组共享</span></h3>
-            <p>创建旅行小队，生成6位邀请码分享给好友。成员可上传共享照片、查看彼此打卡进度，排行榜按点亮城市数自动排序。云端实时同步，让旅行不再孤单。</p>
-            <div class="spotlight-tags"><span class="stag">邀请码机制</span><span class="stag">共享照片流</span><span class="stag">成员排行</span><span class="stag">云同步</span></div>
+            <p>创建旅行小队，生成6位邀请码分享给好友。加入群组后，成员点亮的城市会合并到同一张地图，上传到城市里的照片会同步出现在城市详情、旅行相册和最近动态中。</p>
+            <div class="spotlight-tags"><span class="stag">邀请码机制</span><span class="stag">共享地图</span><span class="stag">城市照片同步</span><span class="stag">成员排行</span></div>
         </div>
         <div class="spotlight-image"><img src="site-assets/icon-camera.jpg" alt="群组共享"></div>
     </div>
@@ -624,8 +704,8 @@
 <section>
     <div class="group-showcase reveal">
         <div class="section-header">
-            <h2>👥 群组共享——旅行不孤单</h2>
-            <p>创建群组 → 分享邀请码 → 好友加入 → 共享打卡和照片</p>
+            <h2>👥 群组共享——同一张旅行地图</h2>
+            <p>创建群组 → 分享邀请码 → 好友加入 → 城市、照片、动态同步展示</p>
         </div>
         <div class="flow-steps">
             <div class="flow-step">
@@ -642,15 +722,15 @@
             </div>
             <div class="flow-step">
                 <div class="flow-icon">🎉</div>
-                <h4>共享打卡 & 照片</h4>
-                <p>成员数据自动同步，上传照片全员可见，排行榜实时更新</p>
+                <h4>共享城市 & 照片</h4>
+                <p>成员点亮城市自动合并，城市详情里的照片全员可见</p>
             </div>
         </div>
         <div class="gf-grid">
             <div class="gf-item"><div class="gfi gficode">🏷️</div><div class="gf-text"><h5>6位邀请码</h5><p>安全简洁，云端验证防重复加入</p></div></div>
-            <div class="gf-item"><div class="gfi gfiphoto">📸</div><div class="gf-text"><h5>共享照片流</h5><p>时间线展示，成员全员可见</p></div></div>
+            <div class="gf-item"><div class="gfi gfiphoto">📸</div><div class="gf-text"><h5>城市照片同步</h5><p>照片归属对应城市，城市详情和相册都能看到</p></div></div>
             <div class="gf-item"><div class="gfi gfirank">🏅</div><div class="gf-text"><h5>成员排行榜</h5><p>按点亮城市数自动排序</p></div></div>
-            <div class="gf-item"><div class="gfi gfisync">☁️</div><div class="gf-text"><h5>云端实时同步</h5><p>云数据库存储，数据不丢失</p></div></div>
+            <div class="gf-item"><div class="gfi gfisync">☁️</div><div class="gf-text"><h5>共享视角</h5><p>地图、相册、动态使用同一套合并数据</p></div></div>
         </div>
     </div>
 </section>
@@ -682,7 +762,7 @@
         <div class="tech-item reveal"><div class="tech-dot" style="background:#F3E5F5;">🗄️</div><span class="label">云数据库 MongoDB</span></div>
         <div class="tech-item reveal"><div class="tech-dot" style="background:#FFEBEE;">🖼️</div><span class="label">云存储 COS</span></div>
         <div class="tech-item reveal"><div class="tech-dot" style="background:#E0F7FA;">📦</div><span class="label">分包加载优化</span></div>
-        <div class="tech-item reveal"><div class="tech-dot" style="background:#FFF3E0;">🎵</div><span class="label">代码生成 WAV 音效</span></div>
+        <div class="tech-item reveal"><div class="tech-dot" style="background:#FFF3E0;">🎵</div><span class="label">本地短音效反馈</span></div>
         <div class="tech-item reveal"><div class="tech-dot" style="background:#E8EAF6;">💾</div><span class="label">本地缓存 Storage</span></div>
     </div>
 </section>
@@ -695,9 +775,9 @@
             <div class="hl-card"><div class="hl-icon">📦</div><div class="hl-text"><h4>分包体积优化</h4><p>主包 26MB → 1.4MB，PNG→JPG 节省 88%</p></div></div>
             <div class="hl-card"><div class="hl-icon">🗺️</div><div class="hl-text"><h4>391城市真实地标</h4><p>覆盖全国每个角落，地标数据丰富准确</p></div></div>
             <div class="hl-card"><div class="hl-icon">🃏</div><div class="hl-text"><h4>抽卡 + 成就双循环</h4><p>游戏化设计让旅行打卡更有动力</p></div></div>
-            <div class="hl-card"><div class="hl-icon">👥</div><div class="hl-text"><h4>群组共享体系</h4><p>邀请码 + 共享照片 + 成员排行</p></div></div>
+            <div class="hl-card"><div class="hl-icon">👥</div><div class="hl-text"><h4>群组共享体系</h4><p>邀请码 + 共享地图 + 城市照片同步</p></div></div>
             <div class="hl-card"><div class="hl-icon">☁️</div><div class="hl-text"><h4>全栈云开发</h4><p>5个云函数 + 云数据库，无需独立后端</p></div></div>
-            <div class="hl-card"><div class="hl-icon">🎵</div><div class="hl-text"><h4>代码生成音频</h4><p>8bit PCM WAV 纯代码合成，零外部依赖</p></div></div>
+            <div class="hl-card"><div class="hl-icon">🎵</div><div class="hl-text"><h4>稳定音效反馈</h4><p>按钮、打卡、抽卡和成就使用本地短音效，播放失败自动降级</p></div></div>
         </div>
     </div>
 </section>

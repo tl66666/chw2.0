@@ -380,6 +380,24 @@ page {
   display: block;
 }
 
+.photo-status {
+  position: absolute;
+  left: 8rpx;
+  bottom: 8rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 999rpx;
+  color: #FFFFFF;
+  font-size: 18rpx;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(6rpx);
+  z-index: 8;
+}
+
+.photo-status.private {
+  background: rgba(212, 165, 116, 0.92);
+}
+
 /* 添加照片按钮（醒目样式） */
 .add-photo-btn {
   background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
@@ -593,4 +611,244 @@ page {
   font-size: 22rpx;
   color: #FFFFFF;
   font-weight: 500;
+}
+
+.group-footprint-card {
+  margin-bottom: 12rpx;
+  padding: 20rpx;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFF7EF 55%, #F6EFE8 100%);
+  border: 1rpx solid rgba(212, 165, 116, 0.22);
+  box-shadow: var(--shadow-sm);
+}
+
+.group-footprint-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.group-footprint-kicker {
+  display: block;
+  margin-bottom: 4rpx;
+  font-size: 20rpx;
+  color: var(--gold-dark);
+  font-weight: 700;
+  letter-spacing: 1rpx;
+}
+
+.group-footprint-title {
+  display: block;
+  font-size: 30rpx;
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+.group-footprint-pill {
+  flex-shrink: 0;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  background: rgba(212, 165, 116, 0.14);
+  color: var(--gold-dark);
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.group-footprint-empty,
+.group-footprint-note {
+  padding: 18rpx;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--text-muted);
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.group-visitors {
+  display: flex;
+  gap: 12rpx;
+  overflow-x: auto;
+  padding-bottom: 10rpx;
+}
+
+.group-visitor {
+  min-width: 104rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.group-visitor-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: #F1ECE7;
+  border: 4rpx solid #FFFFFF;
+  box-shadow: 0 6rpx 18rpx rgba(184, 147, 95, 0.18);
+}
+
+.group-visitor-name {
+  max-width: 104rpx;
+  font-size: 20rpx;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.group-photo-strip {
+  display: flex;
+  gap: 10rpx;
+  overflow-x: auto;
+  padding-top: 6rpx;
+}
+
+.group-photo-item {
+  position: relative;
+  flex: 0 0 156rpx;
+  height: 156rpx;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #F1ECE7;
+  box-shadow: var(--shadow-sm);
+}
+
+.group-photo-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.group-photo-meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 18rpx 10rpx 8rpx;
+  color: #FFFFFF;
+  font-size: 20rpx;
+  font-weight: 700;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.58));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photo-status.group {
+  background: rgba(120, 182, 166, 0.92);
+  color: #FFFFFF;
+}
+
+.achievement-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.achievement-popup.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.achievement-popup-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(34, 26, 22, 0.46);
+  backdrop-filter: blur(10rpx);
+}
+
+.achievement-popup-content {
+  position: relative;
+  z-index: 1;
+  width: 640rpx;
+  max-width: 86vw;
+  box-sizing: border-box;
+  padding: 38rpx 34rpx 34rpx;
+  border-radius: 32rpx;
+  background:
+    radial-gradient(circle at 88% 18%, rgba(120, 182, 166, 0.24), transparent 28%),
+    linear-gradient(135deg, #FFFDF8 0%, #FFF1E8 100%);
+  border: 2rpx solid rgba(214, 111, 88, 0.14);
+  box-shadow: 0 28rpx 80rpx rgba(58, 42, 34, 0.28);
+  transform: scale(0.9) translateY(20rpx);
+  transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.2, 1.2);
+}
+
+.achievement-popup.show .achievement-popup-content {
+  transform: scale(1) translateY(0);
+}
+
+.achievement-popup-badge-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20rpx;
+}
+
+.achievement-popup-badge {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 36rpx;
+  background: #FFFFFF;
+  box-shadow: 0 14rpx 32rpx rgba(214, 111, 88, 0.22);
+}
+
+.achievement-popup-kicker {
+  display: block;
+  color: #C9915F;
+  font-size: 24rpx;
+  font-weight: 900;
+  letter-spacing: 1rpx;
+}
+
+.achievement-popup-name {
+  display: block;
+  margin-top: 8rpx;
+  color: #3F3732;
+  font-size: 42rpx;
+  font-weight: 900;
+  line-height: 1.18;
+}
+
+.achievement-popup-desc {
+  display: block;
+  margin-top: 12rpx;
+  color: #8A786E;
+  font-size: 25rpx;
+  line-height: 1.45;
+}
+
+.achievement-popup-reward {
+  display: inline-flex;
+  margin-top: 22rpx;
+  padding: 10rpx 22rpx;
+  border-radius: 999rpx;
+  color: #D66F58;
+  font-size: 25rpx;
+  font-weight: 900;
+  background: #FFFFFF;
+}
+
+.achievement-popup-btn {
+  height: 72rpx;
+  margin-top: 26rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-size: 28rpx;
+  font-weight: 900;
+  background: linear-gradient(135deg, #D66F58, #B9574D);
+  box-shadow: 0 12rpx 26rpx rgba(214, 111, 88, 0.24);
 }

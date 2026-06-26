@@ -1,6 +1,9 @@
 var app = getApp();
 var citiesData = require('../../../utils/cities.js');
+var provincesData = require('../../../utils/provinces.js');
 var cities = citiesData.cities;
+var provinces = provincesData.provinces;
+var groupView = require('../../../utils/group-view.js');
 
 Page({
   data: {
@@ -20,11 +23,17 @@ Page({
   },
 
   onShow: function() {
+    var self = this;
     this.loadData();
+    if (app.refreshGroupCache) {
+      app.refreshGroupCache(function(updated) {
+        if (updated) self.loadData();
+      });
+    }
   },
 
   loadData: function() {
-    var visitedCities = app.globalData.visitedCities || [];
+    var visitedCities = groupView.mergeCityIds(app.globalData.visitedCities || []);
     var cityTravelPhotos = app.globalData.cityTravelPhotos || {};
     var cityFoodPhotos = app.globalData.cityFoodPhotos || {};
     var cityPhotos = app.globalData.cityPhotos || {};
@@ -34,16 +43,15 @@ Page({
     var foodPhotoCount = 0;
     var cityList = [];
     var allPhotos = [];
+    var visitedProvinceIds = [];
 
     for (var i = 0; i < visitedCities.length; i++) {
       var cityId = visitedCities[i];
-      var cityName = cityId;
-      for (var j = 0; j < cities.length; j++) {
-        if (cities[j].id === cityId) {
-          cityName = cities[j].name;
-          break;
-        }
+      var provinceId = this.getProvinceIdByCityId(cityId);
+      if (provinceId && visitedProvinceIds.indexOf(provinceId) === -1) {
+        visitedProvinceIds.push(provinceId);
       }
+      var cityName = this.getProvinceNameByCityId(cityId);
 
       // 获取旅游照片
       var travelPhotos = cityTravelPhotos[cityId] || [];
@@ -72,8 +80,11 @@ Page({
 
       // 添加旅游照片
       for (var k = 0; k < travelPhotos.length; k++) {
+        var travelPhoto = travelPhotos[k];
         allPhotos.push({
-          url: travelPhotos[k],
+          url: typeof travelPhoto === 'string' ? travelPhoto : (travelPhoto.url || travelPhoto.fileId || ''),
+          displayUrl: typeof travelPhoto === 'string' ? '' : (travelPhoto.displayUrl || travelPhoto.localPath || ''),
+          status: typeof travelPhoto === 'string' ? 'verified' : (travelPhoto.status || 'verified'),
           cityId: cityId,
           cityName: cityName,
           type: 'travel',
@@ -85,8 +96,11 @@ Page({
 
       // 添加美食照片
       for (var m = 0; m < foodPhotos.length; m++) {
+        var foodPhoto = foodPhotos[m];
         allPhotos.push({
-          url: foodPhotos[m],
+          url: typeof foodPhoto === 'string' ? foodPhoto : (foodPhoto.url || foodPhoto.fileId || ''),
+          displayUrl: typeof foodPhoto === 'string' ? '' : (foodPhoto.displayUrl || foodPhoto.localPath || ''),
+          status: typeof foodPhoto === 'string' ? 'verified' : (foodPhoto.status || 'verified'),
           cityId: cityId,
           cityName: cityName,
           type: 'food',
@@ -97,17 +111,89 @@ Page({
       }
     }
 
+    var groupPhotos = groupView.getAllPhotos();
+    for (var gp = 0; gp < groupPhotos.length; gp++) {
+      var groupPhoto = groupPhotos[gp];
+      if (!groupPhoto.cityId) continue;
+      var existingCity = false;
+      for (var ci = 0; ci < cityList.length; ci++) {
+        if (cityList[ci].id === groupPhoto.cityId) {
+          cityList[ci].photoCount++;
+          existingCity = true;
+          break;
+        }
+      }
+      if (!existingCity) {
+        cityList.push({
+          id: groupPhoto.cityId,
+          name: this.getProvinceNameByCityId(groupPhoto.cityId),
+          photoCount: 1
+        });
+      }
+      if (groupPhoto.type === 'food') foodPhotoCount++;
+      else travelPhotoCount++;
+      allPhotos.push(groupPhoto);
+      var groupProvinceId = this.getProvinceIdByCityId(groupPhoto.cityId);
+      if (groupProvinceId && visitedProvinceIds.indexOf(groupProvinceId) === -1) {
+        visitedProvinceIds.push(groupProvinceId);
+      }
+    }
+
     this.setData({
       totalPhotos: travelPhotoCount + foodPhotoCount,
       travelPhotoCount: travelPhotoCount,
       foodPhotoCount: foodPhotoCount,
-      visitedCount: visitedCities.length,
+      visitedCount: visitedProvinceIds.length,
       visitedCities: cityList,
       selectedCity: '',
       activeTab: 'all',
       allPhotos: allPhotos,
       displayPhotos: allPhotos
     });
+    this.resolveAlbumPhotoDisplayUrls(allPhotos);
+  },
+
+  getProvinceNameByCityId: function(cityId) {
+    var provinceId = this.getProvinceIdByCityId(cityId);
+    if (!provinceId) return cityId;
+    for (var j = 0; j < provinces.length; j++) {
+      if (provinces[j].id === provinceId) return provinces[j].name;
+    }
+    return cityId;
+  },
+
+  getProvinceIdByCityId: function(cityId) {
+    for (var i = 0; i < cities.length; i++) {
+      if (cities[i].id === cityId) {
+        return cities[i].provinceId;
+      }
+    }
+    return '';
+  },
+
+  resolveAlbumPhotoDisplayUrls: function(photos) {
+    if (!wx.cloud || !photos || photos.length === 0) return;
+    var fileList = [];
+    photos.forEach(function(item) {
+      if (item.url && item.url.indexOf('cloud://') === 0 && fileList.indexOf(item.url) === -1) {
+        fileList.push(item.url);
+      }
+    });
+    if (fileList.length === 0) return;
+
+    var self = this;
+    wx.cloud.getTempFileURL({ fileList: fileList }).then(function(res) {
+      var map = {};
+      (res.fileList || []).forEach(function(item) {
+        if (item.fileID && item.tempFileURL) map[item.fileID] = item.tempFileURL;
+      });
+      var allPhotos = (self.data.allPhotos || []).map(function(item) {
+        if (item.url && map[item.url]) item.displayUrl = map[item.url];
+        return item;
+      });
+      self.setData({ allPhotos: allPhotos });
+      self.filterPhotos();
+    }).catch(function() {});
   },
 
   formatDate: function(date) {
@@ -159,7 +245,7 @@ Page({
     var url = e.currentTarget.dataset.url;
     var urls = [];
     for (var i = 0; i < this.data.displayPhotos.length; i++) {
-      urls.push(this.data.displayPhotos[i].url);
+      urls.push(this.data.displayPhotos[i].displayUrl || this.data.displayPhotos[i].url);
     }
 
     wx.previewImage({

@@ -9,6 +9,8 @@ Page({
     cards: [],
     collectedCount: 0,
     totalCount: 34,
+    progressPercent: 0,
+    visibleCount: 34,
     selectedRarity: 'all',
     ownedOnly: false
   },
@@ -21,7 +23,6 @@ Page({
     this.loadCards();
   },
 
-  // 从visitedCities派生visitedProvinces
   deriveVisitedProvinces: function() {
     var visitedCities = app.globalData.visitedCities || [];
     var storedProvinces = app.globalData.visitedProvinces || [];
@@ -32,7 +33,7 @@ Page({
     try {
       var cached = wx.getStorageSync('visitedProvinces');
       if (cached) {
-        var cachedList = JSON.parse(cached);
+        var cachedList = typeof cached === 'string' ? JSON.parse(cached) : cached;
         if (Array.isArray(cachedList)) {
           for (var c = 0; c < cachedList.length; c++) {
             if (visitedProvinces.indexOf(cachedList[c]) === -1) {
@@ -61,11 +62,26 @@ Page({
     app.globalData.visitedProvinces = visitedProvinces;
     try {
       wx.setStorageSync('visitedProvinces', JSON.stringify(visitedProvinces));
-    } catch (e) {
-      console.error('save visitedProvinces failed:', e);
+    } catch (e2) {
+      console.error('save visitedProvinces failed:', e2);
     }
 
     return visitedProvinces;
+  },
+
+  getProvinceShort: function(province) {
+    if (!province || !province.name) return '城';
+    return province.name.replace('特别行政区', '').replace('自治区', '').replace('省', '').replace('市', '').slice(0, 2);
+  },
+
+  countVisibleCards: function(cards, rarity, ownedOnly) {
+    var count = 0;
+    for (var i = 0; i < cards.length; i++) {
+      if ((rarity === 'all' || cards[i].rarity === rarity) && (!ownedOnly || cards[i].isCollected)) {
+        count++;
+      }
+    }
+    return count;
   },
 
   loadCards: function() {
@@ -81,14 +97,13 @@ Page({
       var isCollected = visitedProvinces.indexOf(province.id) !== -1;
       var cloudPath = 'cloud://cloud1-d9gshoz5s40d02b42.636c-cloud1-d9gshoz5s40d02b42-1442414269/cards/' + province.id + '.png';
 
-      if (isCollected) {
-        collectedCount++;
-      }
-
+      if (isCollected) collectedCount++;
       cloudPaths.push(cloudPath);
+
       cards.push({
         provinceId: province.id,
         provinceName: province.name,
+        provinceShort: this.getProvinceShort(province),
         name: character.name,
         title: character.title,
         rarity: character.rarity,
@@ -99,20 +114,21 @@ Page({
         rarityColor: rarityColor,
         isCollected: isCollected,
         cloudPath: cloudPath,
-        imagePath: '/images/ui/loading-bg.jpg'
+        imagePath: ''
       });
     }
 
     this.setData({
       cards: cards,
-      collectedCount: collectedCount
+      collectedCount: collectedCount,
+      progressPercent: Math.round((collectedCount / provinces.length) * 100),
+      visibleCount: this.countVisibleCards(cards, this.data.selectedRarity, this.data.ownedOnly)
     });
 
-    this.loadCloudImages(cards, cloudPaths);
+    this.loadCloudImages(cloudPaths);
   },
 
-  // 批量获取云存储图片临时链接
-  loadCloudImages: function(cards, cloudPaths) {
+  loadCloudImages: function(cloudPaths) {
     var self = this;
     cloudImage.resolveMany(cloudPaths, function(urlMap) {
       var newCards = self.data.cards.slice();
@@ -122,35 +138,36 @@ Page({
           newCards[i].imagePath = resolvedUrl;
         }
       }
-      self.setData({
-        cards: newCards
-      });
+      self.setData({ cards: newCards });
     });
-  },
-
-  getCitiesInProvince: function(provinceId) {
-    var citiesData = require('../../../utils/cities.js');
-    var cities = citiesData.cities;
-    var result = [];
-    for (var i = 0; i < cities.length; i++) {
-      if (cities[i].provinceId === provinceId) {
-        result.push(cities[i]);
-      }
-    }
-    return result;
   },
 
   filterByRarity: function(e) {
     var rarity = e.currentTarget.dataset.rarity;
     this.setData({
-      selectedRarity: rarity
+      selectedRarity: rarity,
+      visibleCount: this.countVisibleCards(this.data.cards, rarity, this.data.ownedOnly)
     });
   },
 
   toggleOwnedOnly: function() {
+    var ownedOnly = !this.data.ownedOnly;
     this.setData({
-      ownedOnly: !this.data.ownedOnly
+      ownedOnly: ownedOnly,
+      visibleCount: this.countVisibleCards(this.data.cards, this.data.selectedRarity, ownedOnly)
     });
+  },
+
+  onCardImageError: function(e) {
+    var provinceId = e.currentTarget.dataset.id;
+    var cards = this.data.cards.slice();
+    for (var i = 0; i < cards.length; i++) {
+      if (cards[i].provinceId === provinceId) {
+        cards[i].imagePath = '';
+        break;
+      }
+    }
+    this.setData({ cards: cards });
   },
 
   goToCardDetail: function(e) {

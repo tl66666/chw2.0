@@ -4,6 +4,7 @@ var provincesData = require('../../utils/provinces.js');
 var cities = citiesData.cities;
 var provinces = provincesData.provinces;
 var privacy = require('../../utils/privacy.js');
+var groupView = require('../../utils/group-view.js');
 
 // 等级配置
 var LEVEL_CONFIG = [
@@ -43,7 +44,10 @@ Page({
       progress: 0,
       needCities: 3
     },
-    recentActivities: []
+    recentActivities: [],
+    showEditProfile: false,
+    editNickName: '',
+    editAvatarUrl: ''
   },
 
   onLoad: function() {
@@ -53,9 +57,18 @@ Page({
   },
 
   onShow: function() {
+    var self = this;
     this.loadUserInfo();
     this.loadStats();
     this.loadRecentActivities();
+    if (app.refreshGroupCache) {
+      app.refreshGroupCache(function(updated) {
+        if (updated) {
+          self.loadStats();
+          self.loadRecentActivities();
+        }
+      });
+    }
   },
 
   loadUserInfo: function() {
@@ -112,8 +125,119 @@ Page({
     });
   },
 
+  openEditProfile: function() {
+    this.setData({
+      showEditProfile: true,
+      editNickName: this.data.userInfo.nickName || '旅行者',
+      editAvatarUrl: this.data.userInfo.avatarUrl || '/images/avatar.jpg'
+    });
+  },
+
+  closeEditProfile: function() {
+    this.setData({
+      showEditProfile: false
+    });
+  },
+
+  onNickNameInput: function(e) {
+    this.setData({
+      editNickName: e.detail.value
+    });
+  },
+
+  chooseEditAvatar: function() {
+    var self = this;
+    privacy.ensure(this, function() {
+      wx.chooseMedia({
+        count: 1,
+        mediaType: ['image'],
+        sourceType: ['album', 'camera'],
+        success: function(res) {
+          if (res.tempFiles && res.tempFiles[0]) {
+            self.setData({
+              editAvatarUrl: res.tempFiles[0].tempFilePath
+            });
+          }
+        }
+      });
+    });
+  },
+
+  saveProfile: function() {
+    var self = this;
+    var name = (this.data.editNickName || '').trim();
+    if (!name) {
+      wx.showToast({
+        title: '先取个旅行昵称吧',
+        icon: 'none'
+      });
+      return;
+    }
+    if (name.length > 12) {
+      wx.showToast({
+        title: '昵称最多 12 个字',
+        icon: 'none'
+      });
+      return;
+    }
+
+    this.persistProfileAvatar(this.data.editAvatarUrl || '/images/avatar.jpg', function(avatarUrl) {
+      if (!app.globalData.userInfo) {
+        app.globalData.userInfo = {};
+      }
+      app.globalData.userInfo.nickName = name;
+      app.globalData.userInfo.avatarUrl = avatarUrl || '/images/avatar.jpg';
+      wx.setStorageSync('userInfo', JSON.stringify(app.globalData.userInfo));
+
+      self.setData({
+        userInfo: {
+          nickName: app.globalData.userInfo.nickName,
+          avatarUrl: app.globalData.userInfo.avatarUrl
+        },
+        showEditProfile: false
+      });
+
+      wx.showToast({
+        title: '资料已更新',
+        icon: 'success'
+      });
+    });
+  },
+
+  persistProfileAvatar: function(filePath, done) {
+    if (!filePath || filePath.indexOf('/images/') === 0 || filePath.indexOf('cloud://') === 0 || filePath.indexOf('http') === 0) {
+      done(filePath);
+      return;
+    }
+    var userDataPath = '';
+    try {
+      userDataPath = wx.env.USER_DATA_PATH;
+    } catch (e) {}
+    if (!userDataPath || filePath.indexOf(userDataPath) === 0) {
+      done(filePath);
+      return;
+    }
+
+    var extMatch = filePath.match(/\.[a-zA-Z0-9]+$/);
+    var destPath = userDataPath + '/profile_avatar_' + Date.now() + (extMatch ? extMatch[0] : '.jpg');
+    try {
+      wx.getFileSystemManager().copyFile({
+        srcPath: filePath,
+        destPath: destPath,
+        success: function() {
+          done(destPath);
+        },
+        fail: function() {
+          done(filePath);
+        }
+      });
+    } catch (e2) {
+      done(filePath);
+    }
+  },
+
   loadStats: function() {
-    var visitedCities = app.globalData.visitedCities || [];
+    var visitedCities = groupView.mergeCityIds(app.globalData.visitedCities || []);
     var cityTravelPhotos = app.globalData.cityTravelPhotos || {};
     var cityFoodPhotos = app.globalData.cityFoodPhotos || {};
     var cityPhotos = app.globalData.cityPhotos || {};
@@ -151,6 +275,11 @@ Page({
     var foodKeys = Object.keys(cityFoodPhotos);
     for (var n = 0; n < foodKeys.length; n++) {
       foodPhotoCount += cityFoodPhotos[foodKeys[n]].length;
+    }
+    var groupPhotos = groupView.getAllPhotos();
+    for (var gp = 0; gp < groupPhotos.length; gp++) {
+      if (groupPhotos[gp].type === 'food') foodPhotoCount++;
+      else travelPhotoCount++;
     }
 
     // 计算完成率
@@ -203,8 +332,9 @@ Page({
 
   // 加载最近活动
   loadRecentActivities: function() {
+    try {
     var activities = [];
-    var visitedCities = app.globalData.visitedCities || [];
+    var visitedCities = groupView.mergeCityIds(app.globalData.visitedCities || []);
     var cityTravelPhotos = app.globalData.cityTravelPhotos || {};
     var cityFoodPhotos = app.globalData.cityFoodPhotos || {};
     var cityNotes = app.globalData.cityNotes || {};
@@ -213,14 +343,18 @@ Page({
     // 收集所有活动数据
     var allActivities = [];
 
-    // 城市访问记录
+    // 城市访问记录 —— 按省份去重，每个省份只显示一条
+    var seenProvinces = {};
     for (var i = 0; i < visitedCities.length; i++) {
       var cityId = visitedCities[i];
-      var cityName = this.getCityNameById(cityId);
+      var provinceId = this.getProvinceIdByCityId(cityId);
+      if (!provinceId || seenProvinces[provinceId]) continue;
+      seenProvinces[provinceId] = true;
+      var provinceName = this.getProvinceNameById(provinceId);
       allActivities.push({
         type: 'city',
         iconText: ACTIVITY_ICON_TEXT.city,
-        text: '点亮了城市：' + cityName,
+        text: '点亮了 ' + provinceName,
         time: '已探索',
         sortKey: i
       });
@@ -230,13 +364,13 @@ Page({
     var travelKeys = Object.keys(cityTravelPhotos);
     for (var j = 0; j < travelKeys.length; j++) {
       var cityId = travelKeys[j];
-      var cityName = this.getCityNameById(cityId);
+      var placeName = this.getPlaceNameById(cityId);
       var photos = cityTravelPhotos[cityId];
       for (var p = 0; p < photos.length; p++) {
         allActivities.push({
           type: 'photo',
           iconText: ACTIVITY_ICON_TEXT.photo,
-          text: '在 ' + cityName + ' 上传了旅行照片',
+          text: '在 ' + placeName + ' 上传了旅行照片',
           time: '旅行记录',
           sortKey: 1000 + j * 100 + p
         });
@@ -247,13 +381,13 @@ Page({
     var foodKeys = Object.keys(cityFoodPhotos);
     for (var k = 0; k < foodKeys.length; k++) {
       var cityId = foodKeys[k];
-      var cityName = this.getCityNameById(cityId);
+      var placeName = this.getPlaceNameById(cityId);
       var photos = cityFoodPhotos[cityId];
       for (var q = 0; q < photos.length; q++) {
         allActivities.push({
           type: 'food',
           iconText: ACTIVITY_ICON_TEXT.food,
-          text: '在 ' + cityName + ' 记录了美食',
+          text: '在 ' + placeName + ' 记录了美食',
           time: '美食记录',
           sortKey: 2000 + k * 100 + q
         });
@@ -264,7 +398,7 @@ Page({
     var noteKeys = Object.keys(cityNotes);
     for (var n = 0; n < noteKeys.length; n++) {
       var cityId = noteKeys[n];
-      var cityName = this.getCityNameById(cityId);
+      var placeName = this.getPlaceNameById(cityId);
       if (cityNotes[cityId] && cityNotes[cityId].trim()) {
         allActivities.push({
           type: 'note',
@@ -280,7 +414,7 @@ Page({
     var oldKeys = Object.keys(cityPhotos);
     for (var o = 0; o < oldKeys.length; o++) {
       var cityId = oldKeys[o];
-      var cityName = this.getCityNameById(cityId);
+      var cityName = this.getPlaceNameById(cityId);
       var photos = cityPhotos[cityId];
       for (var r = 0; r < photos.length; r++) {
         allActivities.push({
@@ -293,6 +427,20 @@ Page({
       }
     }
 
+    var groupActivities = groupView.getGroupData().activities || [];
+    for (var ga = 0; ga < groupActivities.length; ga++) {
+      var act = groupActivities[ga];
+      var isPhoto = act.type === 'photo';
+      var placeName = this.getPlaceNameById(act.cityId || act.cityName) || act.cityName || '城市';
+      allActivities.push({
+        type: isPhoto ? 'photo' : 'city',
+        iconText: isPhoto ? ACTIVITY_ICON_TEXT.photo : ACTIVITY_ICON_TEXT.city,
+        text: '小队成员 ' + (act.userName || '群友') + (isPhoto ? ' 在 ' : ' 点亮了 ') + placeName + (isPhoto ? ' 上传了照片' : ''),
+        time: act.displayTime || '小队动态',
+        sortKey: 6000 + ga
+      });
+    }
+
     // 取最近5条，倒序排列（最新的在前面）
     allActivities.sort(function(a, b) {
       return b.sortKey - a.sortKey;
@@ -303,6 +451,10 @@ Page({
     this.setData({
       recentActivities: activities
     });
+    } catch (err) {
+      console.error('[profile] loadRecentActivities error:', err);
+      this.setData({ recentActivities: [] });
+    }
   },
 
   // 根据城市ID获取城市名称
@@ -315,6 +467,52 @@ Page({
     return '未知城市';
   },
 
+  // 根据城市ID获取省份ID
+  getProvinceIdByCityId: function(cityId) {
+    for (var i = 0; i < cities.length; i++) {
+      if (cities[i].id === cityId) return cities[i].provinceId;
+    }
+    return '';
+  },
+
+  // 根据省份ID获取省份名称
+  getProvinceNameById: function(provinceId) {
+    if (!provinceId) return '未知省份';
+    for (var j = 0; j < provinces.length; j++) {
+      if (provinces[j].id === provinceId) return provinces[j].name;
+    }
+    return '未知省份';
+  },
+
+  // 根据城市ID获取省份名称（兼容城市名称字符串）
+  getPlaceNameById: function(cityId) {
+    if (!cityId) return '未知地区';
+    // 先尝试作为城市ID查找
+    var provinceId = '';
+    for (var i = 0; i < cities.length; i++) {
+      if (cities[i].id === cityId) {
+        provinceId = cities[i].provinceId;
+        break;
+      }
+    }
+    if (provinceId) {
+      for (var j = 0; j < provinces.length; j++) {
+        if (provinces[j].id === provinceId) return provinces[j].name;
+      }
+    }
+    // 如果找不到，尝试作为城市名称查找对应省份
+    for (var k = 0; k < cities.length; k++) {
+      if (cities[k].name === cityId) {
+        var pid = cities[k].provinceId;
+        for (var m = 0; m < provinces.length; m++) {
+          if (provinces[m].id === pid) return provinces[m].name;
+        }
+      }
+    }
+    // 都找不到，返回原始值
+    return cityId;
+  },
+
   goToUpload: function() {
     wx.navigateTo({
       url: '/package-album/pages/upload/upload'
@@ -323,7 +521,17 @@ Page({
 
   goToAlbum: function() {
     wx.switchTab({
-      url: '/package-album/pages/album/album'
+      url: '/pages/album/album',
+      fail: function(err) {
+        console.error('[profile] switchTab to album failed:', err);
+        wx.navigateTo({
+          url: '/pages/album/album',
+          fail: function(err2) {
+            console.error('[profile] navigateTo album also failed:', err2);
+            wx.showToast({ title: '打开相册失败，请重试', icon: 'none' });
+          }
+        });
+      }
     });
   },
 
@@ -356,17 +564,38 @@ Page({
     var self = this;
     wx.showModal({
       title: '清除数据',
-      content: '确定要清除所有旅行记录吗？此操作不可恢复。',
+      content: '确定要清除所有旅行记录吗？此操作不可恢复，云端数据也会一并清除。',
       confirmColor: '#F87171',
       success: function(res) {
         if (res.confirm) {
-          // 清除数据
+          // 清除所有旅行相关数据
           app.globalData.visitedCities = [];
+          app.globalData.visitedProvinces = [];
+          app.globalData.visitDates = {};
           app.globalData.cityPhotos = {};
           app.globalData.cityTravelPhotos = {};
           app.globalData.cityFoodPhotos = {};
           app.globalData.cityNotes = {};
           app.saveData();
+
+          // 同步清除本地存储中的旅行数据
+          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes'];
+          for (var i = 0; i < removeKeys.length; i++) {
+            try { wx.removeStorageSync(removeKeys[i]); } catch (e) {}
+          }
+
+          // 清除云端数据（防止syncFromCloud把数据同步回来）
+          if (wx.cloud && app.globalData.isLogin) {
+            wx.cloud.callFunction({
+              name: 'syncData',
+              data: { action: 'clearAllData' },
+              timeout: 8000
+            }).then(function(res) {
+              console.log('[clearData] 云端数据已清除', res.result);
+            }).catch(function(err) {
+              console.warn('[clearData] 云端清除失败，仅清除本地:', err);
+            });
+          }
 
           // 更新UI
           self.loadStats();

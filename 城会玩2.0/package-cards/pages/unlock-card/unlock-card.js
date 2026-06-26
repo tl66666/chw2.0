@@ -9,6 +9,7 @@ Page({
   data: {
     provinceId: '',
     provinceName: '',
+    provinceShort: '城',
     fromMap: false,
     cardImage: '',
     character: null,
@@ -46,6 +47,7 @@ Page({
         self.setData({
           provinceId: provinceId,
           provinceName: province.name,
+          provinceShort: self.getProvinceShort(province),
           fromMap: fromMap,
           cardImage: imageUrl,
           character: character,
@@ -66,6 +68,98 @@ Page({
         self.startUnlockSequence();
       });
     }
+  },
+
+  startUnlockSequence: function() {
+    var self = this;
+    var character = this.data.character;
+    var rarity = character.rarity;
+
+    this.setData({
+      phase: 1,
+      unlockText: '正在翻开 ' + this.data.provinceName + ' 的旅行卡...'
+    });
+
+    audioManager.play('card_flip_start');
+
+    setTimeout(function() {
+      if (self.data.phase !== 1) return;
+      self.setData({ unlockText: '正在收集城市记忆...' });
+    }, 900);
+
+    setTimeout(function() {
+      if (self.data.phase !== 1) return;
+      self.setData({
+        phase: 2,
+        showGlow: true,
+        unlockText: '即将揭晓...'
+      });
+    }, 1800);
+
+    setTimeout(function() {
+      if (self.data.phase !== 2) return;
+      self.setData({
+        phase: 3,
+        showParticles: (rarity === 'SSR' || rarity === 'UR'),
+        unlockText: ''
+      });
+
+      audioManager.play('card_flip_reveal');
+
+      setTimeout(function() {
+        self.setData({ cardFlipped: true });
+      }, 180);
+
+      setTimeout(function() {
+        self.setData({ showRarityBadge: true });
+      }, 900);
+    }, 2800);
+
+    setTimeout(function() {
+      if (self.data.phase !== 3) return;
+
+      var rarityText = '';
+      switch (rarity) {
+        case 'R': rarityText = '普通'; break;
+        case 'SR': rarityText = '稀有'; break;
+        case 'SSR': rarityText = '超稀有'; break;
+        case 'UR': rarityText = '传说'; break;
+      }
+
+      self.setData({
+        phase: 4,
+        showAttrs: true,
+        unlockText: '获得 ' + rarityText + ' 角色卡！'
+      });
+
+      switch (rarity) {
+        case 'R': audioManager.play('rarity_r'); break;
+        case 'SR': audioManager.play('rarity_sr'); break;
+        case 'SSR': audioManager.play('rarity_ssr'); break;
+        case 'UR': audioManager.play('rarity_ur'); break;
+      }
+
+      setTimeout(function() { self.setData({ showSkill: true }); }, 450);
+      setTimeout(function() { self.setData({ showDesc: true }); }, 900);
+      setTimeout(function() { self.setData({ showQuote: true }); }, 1300);
+
+      self.saveUnlockRecord();
+
+      setTimeout(function() {
+        self.setData({ phase: 5 });
+      }, 550);
+
+      self.checkNewAchievements();
+    }, 3800);
+  },
+
+  getProvinceShort: function(province) {
+    if (!province || !province.name) return '城';
+    return province.name.replace('特别行政区', '').replace('自治区', '').replace('省', '').replace('市', '').slice(0, 2);
+  },
+
+  onCardImageError: function() {
+    this.setData({ cardImage: '' });
   },
 
   // 获取云存储图片 - 下载到本地临时文件
@@ -226,7 +320,7 @@ Page({
     audioManager.play('achievement_unlock');
     self.setData({
       showAchievementPopup: true,
-      newAchievement: { title: newList[0].title, desc: newList[0].desc, reward: newList[0].reward }
+      newAchievement: newList[0]
     });
 
     // 3秒后关闭，如果还有更多成就继续弹出
@@ -234,7 +328,7 @@ Page({
     var showNext = function() {
       if (idx < newList.length) {
         self.setData({
-          newAchievement: { title: newList[idx].title, desc: newList[idx].desc, reward: newList[idx].reward }
+          newAchievement: newList[idx]
         });
         idx++;
         setTimeout(showNext, 2500);
@@ -261,6 +355,12 @@ Page({
       photoCount += cityFoodPhotos[k].length;
     });
 
+    var groupData = {};
+    try {
+      var storedGroup = wx.getStorageSync('myGroup');
+      groupData = typeof storedGroup === 'string' ? JSON.parse(storedGroup || '{}') : (storedGroup || {});
+    } catch (e) {}
+
     return {
       visitedCount: visitedCities.length,
       visitedProvinces: (app.globalData.visitedProvinces || []).length,
@@ -276,7 +376,10 @@ Page({
       noteCount: app.globalData.noteCount || 0,
       weekStreak: app.globalData.weekStreak || 0,
       monthStreak: app.globalData.monthStreak || 0,
-      hasAllRarity: app.globalData.hasAllRarity || false
+      hasAllRarity: app.globalData.hasAllRarity || false,
+      groupMemberCount: (groupData.members || []).length,
+      groupCityCount: (groupData.groupCities || []).length,
+      groupPhotoCount: (groupData.sharedPhotos || []).length
     };
   },
 
@@ -315,6 +418,111 @@ Page({
   onShareAppMessage: function() {
     return {
       title: '我解锁了 ' + this.data.provinceName + ' 的角色卡！',
+      path: '/pages/index/index'
+    };
+  },
+
+  getProvinceShort: function(province) {
+    if (!province || !province.name) return '城';
+    return province.name
+      .replace('特别行政区', '')
+      .replace('自治区', '')
+      .replace('省', '')
+      .replace('市', '')
+      .slice(0, 2);
+  },
+
+  onShareAppMessage: function() {
+    return {
+      title: '我解锁了 ' + this.data.provinceName + ' 的旅行角色卡！',
+      path: '/pages/index/index'
+    };
+  },
+
+  getProvinceShort: function(province) {
+    if (!province || !province.name) return '城';
+    return province.name
+      .replace('特别行政区', '')
+      .replace('自治区', '')
+      .replace('省', '')
+      .replace('市', '')
+      .slice(0, 2);
+  },
+
+  startUnlockSequence: function() {
+    var self = this;
+    var character = this.data.character;
+    var rarity = character.rarity;
+
+    this.setData({
+      phase: 1,
+      unlockText: '正在翻开 ' + this.data.provinceName + ' 的旅行卡...'
+    });
+    audioManager.play('card_flip_start');
+
+    setTimeout(function() {
+      if (self.data.phase !== 1) return;
+      self.setData({ unlockText: '正在收集城市记忆...' });
+    }, 900);
+
+    setTimeout(function() {
+      if (self.data.phase !== 1) return;
+      self.setData({
+        phase: 2,
+        showGlow: true,
+        unlockText: '即将揭晓...'
+      });
+    }, 1800);
+
+    setTimeout(function() {
+      if (self.data.phase !== 2) return;
+      self.setData({
+        phase: 3,
+        showParticles: (rarity === 'SSR' || rarity === 'UR'),
+        unlockText: ''
+      });
+      audioManager.play('card_flip_reveal');
+      setTimeout(function() { self.setData({ cardFlipped: true }); }, 180);
+      setTimeout(function() { self.setData({ showRarityBadge: true }); }, 900);
+    }, 2800);
+
+    setTimeout(function() {
+      if (self.data.phase !== 3) return;
+
+      var rarityText = '';
+      switch (rarity) {
+        case 'R': rarityText = '普通'; break;
+        case 'SR': rarityText = '稀有'; break;
+        case 'SSR': rarityText = '超稀有'; break;
+        case 'UR': rarityText = '传说'; break;
+      }
+
+      self.setData({
+        phase: 4,
+        showAttrs: true,
+        unlockText: '获得 ' + rarityText + ' 角色卡！'
+      });
+
+      switch (rarity) {
+        case 'R': audioManager.play('rarity_r'); break;
+        case 'SR': audioManager.play('rarity_sr'); break;
+        case 'SSR': audioManager.play('rarity_ssr'); break;
+        case 'UR': audioManager.play('rarity_ur'); break;
+      }
+
+      setTimeout(function() { self.setData({ showSkill: true }); }, 450);
+      setTimeout(function() { self.setData({ showDesc: true }); }, 900);
+      setTimeout(function() { self.setData({ showQuote: true }); }, 1300);
+
+      self.saveUnlockRecord();
+      setTimeout(function() { self.setData({ phase: 5 }); }, 550);
+      self.checkNewAchievements();
+    }, 3800);
+  },
+
+  onShareAppMessage: function() {
+    return {
+      title: '我解锁了 ' + this.data.provinceName + ' 的旅行角色卡！',
       path: '/pages/index/index'
     };
   }

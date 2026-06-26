@@ -129,9 +129,10 @@ Page({
       if (!pass) {
         wx.hideLoading();
         wx.showToast({
-          title: '内容未通过安全校验',
+          title: self.data.securityErrorMessage || '安全校验失败',
           icon: 'none'
         });
+        self.setData({ securityErrorMessage: '' });
         return;
       }
 
@@ -159,12 +160,18 @@ Page({
       timeout: 10000
     }).then(function(res) {
       if (res.result && res.result.pass === false) {
+        self.setData({
+          securityErrorMessage: self.getSecurityMessage(res.result, '内容安全校验失败')
+        });
         callback(false, []);
         return;
       }
 
       self.uploadAndCheckPhotos(photos, 0, safePhotos, callback);
-    }).catch(function() {
+    }).catch(function(err) {
+      self.setData({
+        securityErrorMessage: self.getSecurityMessage(err, '安全校验服务暂时不可用')
+      });
       callback(false, []);
     });
   },
@@ -190,19 +197,61 @@ Page({
           action: 'checkImage',
           fileID: uploadRes.fileID
         },
-        timeout: 15000
+        timeout: 8000
       }).then(function(checkRes) {
         if (checkRes.result && checkRes.result.pass === false) {
           wx.cloud.deleteFile({ fileList: [uploadRes.fileID] }).catch(function() {});
+          self.setData({
+            securityErrorMessage: self.getSecurityMessage(checkRes.result, '图片安全校验失败')
+          });
           callback(false, safePhotos);
           return;
         }
-        safePhotos.push(uploadRes.fileID);
+        safePhotos.push(self.buildPhotoItem(uploadRes.fileID, 'verified', '', filePath));
+        self.uploadAndCheckPhotos(photos, index + 1, safePhotos, callback);
+      }).catch(function(err) {
+        safePhotos.push(self.buildPhotoItem(uploadRes.fileID, 'private', self.getSecurityMessage(err, '仅自己可见'), filePath));
+        self.setData({
+          securityErrorMessage: self.getSecurityMessage(err, '图片校验超时，请稍后重试')
+        });
         self.uploadAndCheckPhotos(photos, index + 1, safePhotos, callback);
       });
-    }).catch(function() {
+    }).catch(function(err) {
+      self.setData({
+        securityErrorMessage: self.getSecurityMessage(err, '图片上传或安全校验失败')
+      });
       callback(false, safePhotos);
     });
+  },
+
+  buildPhotoItem: function(fileID, status, message, localPath) {
+    return {
+      url: fileID,
+      fileId: fileID,
+      displayUrl: localPath || fileID,
+      localPath: localPath || '',
+      status: status || 'verified',
+      message: message || '',
+      createTime: Date.now()
+    };
+  },
+
+  getSecurityMessage: function(result, fallback) {
+    result = result || {};
+    if (result.blocked) {
+      return result.message || '内容未通过安全校验，请调整后再试';
+    }
+    if (result.retryable || result.checked === false) {
+      return result.message || '安全校验服务暂时不可用，请稍后重试';
+    }
+    var raw = String(result.errMsg || result.message || result.error || '');
+    if (raw.indexOf('-504003') !== -1 || raw.indexOf('FUNCTIONS_TIME_LIMIT') !== -1 || raw.indexOf('timed out') !== -1) {
+      return '图片校验超时，请重新部署 contentSecurity 云函数后重试';
+    }
+    if (raw.indexOf('cloud.callFunction') !== -1 || raw.length > 40) {
+      return fallback || '安全校验服务暂时不可用';
+    }
+    return raw || fallback || '安全校验失败';
   },
 
   saveFootprint: function(selectedCity, photos, note, visitDate) {
@@ -231,24 +280,43 @@ Page({
 
     app.saveData();
     app.syncToCloud();
-    this.sharePhotosToGroup(selectedCity, photos, function() {
-      wx.hideLoading();
-      wx.showToast({
-        title: '保存成功',
-        icon: 'success',
-        duration: 2000,
-        success: function() {
-          setTimeout(function() {
-            wx.navigateBack();
-          }, 1500);
-        }
-      });
+    this.syncCityToGroup(selectedCity);
+    this.sharePhotosToGroup(selectedCity, this.getVerifiedPhotoUrls(photos), function() {
+      var finish = function() {
+        wx.hideLoading();
+        wx.showToast({
+          title: '保存成功',
+          icon: 'success',
+          duration: 2000,
+          success: function() {
+            setTimeout(function() {
+              wx.navigateBack();
+            }, 1500);
+          }
+        });
+      };
+      if (app.refreshGroupCache) app.refreshGroupCache(finish);
+      else finish();
     });
+  },
+
+  getPhotoUrl: function(photo) {
+    if (!photo) return '';
+    return typeof photo === 'string' ? photo : (photo.displayUrl || photo.url || photo.fileId || '');
+  },
+
+  getVerifiedPhotoUrls: function(photos) {
+    var self = this;
+    return (photos || []).filter(function(item) {
+      return typeof item === 'string' || item.status === 'verified' || item.status === 'local';
+    }).map(function(item) {
+      return self.getPhotoUrl(item);
+    }).filter(Boolean);
   },
 
   sharePhotosToGroup: function(selectedCity, photos, done) {
     var localGroup = wx.getStorageSync('myGroup');
-    if (!localGroup || !app.globalData.useCloud) {
+    if (!localGroup || !wx.cloud) {
       done();
       return;
     }
@@ -279,7 +347,9 @@ Page({
             fileId: fileID,
             url: fileID,
             cityId: selectedCity.id,
-            cityName: selectedCity.name
+            cityName: selectedCity.name,
+            provinceId: selectedCity.provinceId || '',
+            type: 'travel'
           }
         },
         timeout: 10000
@@ -287,6 +357,38 @@ Page({
     }
 
     next();
+  },
+
+  syncCityToGroup: function(selectedCity) {
+    var localGroup = wx.getStorageSync('myGroup');
+    if (!selectedCity || !localGroup || !wx.cloud) return;
+
+    var groupData = null;
+    try {
+      groupData = typeof localGroup === 'string' ? JSON.parse(localGroup) : localGroup;
+    } catch (e) {}
+
+    if (!groupData || !groupData.groupInfo || !groupData.groupInfo.id) return;
+
+    var userInfo = app.globalData.userInfo || {};
+    wx.cloud.callFunction({
+      name: 'group',
+      data: {
+        action: 'syncCityRecord',
+        data: {
+          groupId: groupData.groupInfo.id,
+          cityId: selectedCity.id,
+          cityName: selectedCity.name || selectedCity.id,
+          provinceId: selectedCity.provinceId || '',
+          isVisited: true,
+          userInfo: {
+            nickName: userInfo.nickName || '微信用户',
+            avatarUrl: userInfo.avatarUrl || '/images/avatar.jpg'
+          }
+        }
+      },
+      timeout: 8000
+    }).catch(function() {});
   },
 
   cancel: function() {

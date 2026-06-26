@@ -4,6 +4,7 @@ var provincesData = require('../../utils/provinces.js');
 var cities = citiesData.cities;
 var provinces = provincesData.provinces;
 var audioManager = require('../../utils/audio-manager.js').getAudioManager();
+var groupView = require('../../utils/group-view.js');
 
 // 省份真实经纬度坐标
 var provinceCoords = {
@@ -118,11 +119,19 @@ Page({
   },
 
   onShow: function() {
+    var self = this;
     this.loadData();
+    if (app.refreshGroupCache) {
+      app.refreshGroupCache(function(updated) {
+        if (updated) self.loadData();
+      });
+    }
   },
 
   loadData: function() {
-    var visitedCities = app.globalData.visitedCities || [];
+    var localVisitedCities = app.globalData.visitedCities || [];
+    var visitedCities = groupView.mergeCityIds(localVisitedCities);
+    var groupData = groupView.getGroupData();
     var cityTravelPhotos = app.globalData.cityTravelPhotos || {};
     var cityFoodPhotos = app.globalData.cityFoodPhotos || {};
     var cityPhotos = app.globalData.cityPhotos || {};
@@ -151,6 +160,7 @@ Page({
     for (var o = 0; o < oldKeys.length; o++) {
       photoCount += cityPhotos[oldKeys[o]].length;
     }
+    photoCount += groupView.getAllPhotos().length;
 
     var completionRate = cities.length > 0 ? Math.round((visitedCities.length / cities.length) * 100) : 0;
 
@@ -173,6 +183,7 @@ Page({
         if (cityFoodPhotos[cid]) provincePhotoCount += cityFoodPhotos[cid].length;
         if (cityPhotos[cid]) provincePhotoCount += cityPhotos[cid].length;
       }
+      provincePhotoCount += groupView.countPhotosForCities(provinceCityIds);
 
       var isHot = false;
       for (var h = 0; h < hotCities.length; h++) {
@@ -254,6 +265,9 @@ Page({
         if (cityFoodPhotos[cid2]) allPhotos = allPhotos.concat(cityFoodPhotos[cid2]);
         if (cityPhotos[cid2]) allPhotos = allPhotos.concat(cityPhotos[cid2]);
       }
+      allPhotos = allPhotos.concat(groupView.getAllPhotos().filter(function(item) {
+        return provinceCityIds.indexOf(item.cityId) !== -1;
+      }));
 
       // 取该城市的打卡日期
       var visitDateStr = visitDates[cityId];
@@ -268,8 +282,8 @@ Page({
       recentCities.push({
         id: pid,                          // 省份ID，用于跳转省份详情
         name: pName,                     // 省份名，如"安徽"
-        provinceName: provinceLandmarks[pid] || '',   // 省份地标，如"黄山 / 宏村 / 九华山"
-        photoUrl: allPhotos.length > 0 ? allPhotos[allPhotos.length - 1] : '',
+        provinceName: (groupData.hasGroup ? '小队共同足迹 · ' : '') + (provinceLandmarks[pid] || ''),
+        photoUrl: allPhotos.length > 0 ? this.getPhotoUrl(allPhotos[allPhotos.length - 1]) : '',
         visitDate: displayDate
       });
     }
@@ -283,8 +297,39 @@ Page({
       mapMarkers: mapMarkers,
       recentCities: recentCities
     });
+    this.resolveRecentPhotoUrls(recentCities);
 
     console.log('mapMarkers loaded:', mapMarkers.length, 'visitedProvinces:', visitedProvinceIds.length);
+  },
+
+  getPhotoUrl: function(photo) {
+    if (!photo) return '';
+    if (typeof photo === 'string') return photo;
+    return photo.displayUrl || photo.localPath || photo.url || photo.fileId || '';
+  },
+
+  resolveRecentPhotoUrls: function(recentCities) {
+    if (!wx.cloud || !recentCities || recentCities.length === 0) return;
+    var fileList = [];
+    recentCities.forEach(function(item) {
+      if (item.photoUrl && item.photoUrl.indexOf('cloud://') === 0 && fileList.indexOf(item.photoUrl) === -1) {
+        fileList.push(item.photoUrl);
+      }
+    });
+    if (fileList.length === 0) return;
+
+    var self = this;
+    wx.cloud.getTempFileURL({ fileList: fileList }).then(function(res) {
+      var map = {};
+      (res.fileList || []).forEach(function(item) {
+        if (item.fileID && item.tempFileURL) map[item.fileID] = item.tempFileURL;
+      });
+      var nextCities = (self.data.recentCities || []).map(function(item) {
+        if (item.photoUrl && map[item.photoUrl]) item.photoUrl = map[item.photoUrl];
+        return item;
+      });
+      self.setData({ recentCities: nextCities });
+    }).catch(function() {});
   },
 
   formatDate: function(date) {

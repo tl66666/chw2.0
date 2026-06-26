@@ -54,6 +54,38 @@
   </view>
 
   <!-- 照片分类标签 -->
+  <view class="group-footprint-card" wx:if="{{hasGroup}}">
+    <view class="group-footprint-head">
+      <view>
+        <text class="group-footprint-kicker">群组城市档案</text>
+        <text class="group-footprint-title">{{cityName}} 的共同足迹</text>
+      </view>
+      <view class="group-footprint-pill">{{groupVisitors.length}}人到过</view>
+    </view>
+
+    <view class="group-footprint-empty" wx:if="{{!loadingGroupFootprint && groupVisitors.length === 0 && groupSharedPhotos.length === 0}}">
+      <text>群组里还没人留下这座城市的足迹。你点亮后，朋友打开同一座城市就能看见。</text>
+    </view>
+
+    <view class="group-visitors" wx:if="{{groupVisitors.length > 0}}">
+      <view class="group-visitor" wx:for="{{groupVisitors}}" wx:key="openid">
+        <image class="group-visitor-avatar" src="{{item.avatarUrl || '/images/avatar.jpg'}}" mode="aspectFill"/>
+        <text class="group-visitor-name">{{item.nickName}}</text>
+      </view>
+    </view>
+
+    <view class="group-photo-strip" wx:if="{{groupSharedPhotos.length > 0}}">
+      <view class="group-photo-item" wx:for="{{groupSharedPhotos}}" wx:key="id" bindtap="previewGroupPhoto" data-index="{{index}}">
+        <image class="group-photo-img" src="{{item.displayUrl || item.url || item.fileId}}" mode="aspectFill"/>
+        <view class="group-photo-meta">{{item.userName || item.nickName}}</view>
+      </view>
+    </view>
+
+    <view class="group-footprint-note" wx:if="{{groupSharedPhotos.length === 0 && groupVisitors.length > 0}}">
+      <text>这座城市已有群友点亮，公开照片会出现在这里。</text>
+    </view>
+  </view>
+
   <view class="photo-tabs">
     <view class="photo-tab {{activeTab === 'travel' ? 'active' : ''}}" bindtap="switchTab" data-tab="travel">
       <text class="tab-text">城市记录</text>
@@ -81,8 +113,10 @@
     </view>
     <view class="photos-grid">
       <view wx:for="{{travelPhotos}}" wx:key="index" class="photo-item" bindtap="previewPhoto" data-index="{{index}}">
-        <image class="photo-image" src="{{item}}" mode="aspectFill"/>
-        <view class="photo-delete" catchtap="deletePhoto" data-index="{{index}}">
+        <image class="photo-image" src="{{item.displayUrl || item.url || item}}" mode="aspectFill"/>
+        <view class="photo-status private" wx:if="{{item.status === 'private'}}">仅自己可见</view>
+        <view class="photo-status group" wx:if="{{item.status === 'group'}}">{{item.userName || '队友'}}共享</view>
+        <view class="photo-delete" wx:if="{{item.status !== 'group'}}" catchtap="deletePhoto" data-index="{{index}}">
           <text>×</text>
         </view>
       </view>
@@ -96,8 +130,10 @@
     </view>
     <view class="photos-grid">
       <view wx:for="{{foodPhotos}}" wx:key="index" class="photo-item" bindtap="previewPhoto" data-index="{{index}}">
-        <image class="photo-image" src="{{item}}" mode="aspectFill"/>
-        <view class="photo-delete" catchtap="deletePhoto" data-index="{{index}}">
+        <image class="photo-image" src="{{item.displayUrl || item.url || item}}" mode="aspectFill"/>
+        <view class="photo-status private" wx:if="{{item.status === 'private'}}">仅自己可见</view>
+        <view class="photo-status group" wx:if="{{item.status === 'group'}}">{{item.userName || '队友'}}共享</view>
+        <view class="photo-delete" wx:if="{{item.status !== 'group'}}" catchtap="deletePhoto" data-index="{{index}}">
           <text>×</text>
         </view>
       </view>
@@ -123,6 +159,19 @@
       <view class="note-save" bindtap="saveNote">
         <text>保存</text>
       </view>
+    </view>
+  </view>
+  <view class="achievement-popup {{showAchievementPopup ? 'show' : ''}}">
+    <view class="achievement-popup-bg" bindtap="closeAchievementPopup"></view>
+    <view class="achievement-popup-content">
+      <view class="achievement-popup-badge-wrap">
+        <image class="achievement-popup-badge" src="{{newAchievement.badge}}" mode="aspectFit"/>
+      </view>
+      <text class="achievement-popup-kicker">新成就解锁</text>
+      <text class="achievement-popup-name">{{newAchievement.title}}</text>
+      <text class="achievement-popup-desc">{{newAchievement.desc}}</text>
+      <view class="achievement-popup-reward">+{{newAchievement.reward}} 积分</view>
+      <view class="achievement-popup-btn" bindtap="closeAchievementPopup">收进成就墙</view>
     </view>
   </view>
   <privacy-popup id="privacyPopup" bindagree="onPrivacyAgree" bindreject="onPrivacyReject"></privacy-popup>

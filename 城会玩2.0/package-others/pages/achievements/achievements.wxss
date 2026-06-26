@@ -594,3 +594,52 @@
   color: #7DB9A8;
   font-weight: 500;
 }
+
+.achievement-popup-bg {
+  background: rgba(34, 26, 22, 0.46);
+  backdrop-filter: blur(10rpx);
+}
+
+.achievement-popup-content {
+  text-align: left;
+  background:
+    radial-gradient(circle at 88% 18%, rgba(120, 182, 166, 0.24), transparent 28%),
+    linear-gradient(135deg, #FFFDF8 0%, #FFF1E8 100%);
+}
+
+.achievement-popup-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0 20rpx;
+  border-radius: 32rpx;
+  background: transparent;
+  box-shadow: none;
+}
+
+.achievement-popup-badge-img {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 36rpx;
+  background: #FFFFFF;
+  box-shadow: 0 14rpx 32rpx rgba(214, 111, 88, 0.22);
+}
+
+.achievement-popup-title {
+  color: #C9915F;
+  font-size: 24rpx;
+}
+
+.achievement-popup-name {
+  color: #3F3732;
+  font-size: 40rpx;
+}
+
+.achievement-popup-desc {
+  display: block;
+  margin: 10rpx 0 18rpx;
+  color: #8A786E;
+  font-size: 25rpx;
+  line-height: 1.45;
+}
