@@ -174,23 +174,21 @@
             display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem;
         }
         .journey-card {
-            position: relative; overflow: hidden; min-height: 245px;
+            position: relative; overflow: hidden; min-height: 278px;
             border-radius: 22px; background: var(--white); box-shadow: var(--shadow-sm);
             border: 1px solid rgba(0,0,0,0.04); transition: all 0.35s ease;
         }
         .journey-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
         .journey-media {
-            height: 118px; margin: 0.9rem 0.9rem 0;
+            height: 142px; margin: 0.95rem 0.95rem 0;
             border-radius: 16px; overflow: hidden;
             background: linear-gradient(135deg, #FFF8F5, #F2F6FF);
             display: flex; align-items: center; justify-content: center;
         }
         .journey-media img {
-            width: 100%; height: 100%; object-fit: contain; display: block;
-            filter: drop-shadow(0 10px 18px rgba(80,55,70,0.12));
+            width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;
         }
-        .journey-media.cover img { object-fit: cover; }
-        .journey-card-body { padding: 1rem 1.15rem 1.2rem; }
+        .journey-card-body { padding: 1.08rem 1.2rem 1.25rem; }
         .journey-card .kicker {
             display: inline-flex; align-items: center; gap: 0.35rem;
             padding: 0.22rem 0.6rem; margin-bottom: 0.65rem;
@@ -357,6 +355,20 @@
             background: #fff; border-radius: 26px; padding: 2rem;
             box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.04);
         }
+        .stack-strip {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.9rem;
+            margin-bottom: 1.2rem;
+        }
+        .stack-card {
+            border-radius: 18px; padding: 1.15rem;
+            background: linear-gradient(135deg, rgba(255,245,247,0.95), rgba(248,250,255,0.95));
+            border: 1px solid rgba(0,0,0,0.045);
+        }
+        .stack-card strong { display: block; font-size: 0.95rem; color: var(--text); margin-bottom: 0.38rem; }
+        .stack-card span { display: block; color: var(--text-light); font-size: 0.78rem; line-height: 1.55; }
+        .tech-subtitle {
+            margin: 1.7rem 0 0.85rem; font-size: 1.05rem; font-weight: 800; color: var(--text);
+        }
         .tech-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.1rem; }
         .tech-item {
             background: linear-gradient(135deg, rgba(255,250,248,0.96), rgba(246,248,255,0.96));
@@ -434,6 +446,7 @@
             .group-showcase { padding: 2rem 1.5rem; }
             .gf-grid { grid-template-columns: 1fr; }
             .badges-grid { grid-template-columns: repeat(3, 1fr); }
+            .stack-strip { grid-template-columns: repeat(2, 1fr); }
             .tech-grid { grid-template-columns: repeat(2, 1fr); }
             .hl-grid { grid-template-columns: repeat(2, 1fr); }
             .steps { grid-template-columns: 1fr; }
@@ -448,6 +461,7 @@
             .hero-access-copy span { font-size: 0.74rem; }
             .badges-grid { grid-template-columns: repeat(2, 1fr); }
             .journey-grid { grid-template-columns: 1fr; }
+            .stack-strip { grid-template-columns: 1fr; }
             .tech-grid { grid-template-columns: 1fr; }
             .tech-panel { padding: 1.2rem; }
             .hl-grid { grid-template-columns: 1fr; }
@@ -774,8 +788,27 @@
 
 <!-- ====== TECH STACK ====== -->
 <section>
-    <div class="section-header reveal"><h2>能力架构</h2><p>围绕“记录、激励、共享、沉淀”四件事搭建小程序体验。</p></div>
+    <div class="section-header reveal"><h2>技术栈与能力架构</h2><p>使用微信小程序原生能力和云开发体系，支撑地图打卡、照片记录、群组共享和内容安全。</p></div>
     <div class="tech-panel reveal">
+        <div class="stack-strip">
+            <div class="stack-card">
+                <strong>微信小程序原生框架</strong>
+                <span>使用 WXML、WXSS、JavaScript 组织页面、组件、路由和交互，保证小程序端体验稳定。</span>
+            </div>
+            <div class="stack-card">
+                <strong>微信云开发 CloudBase</strong>
+                <span>承载登录、数据同步、群组管理和资源访问，减少额外服务器部署成本。</span>
+            </div>
+            <div class="stack-card">
+                <strong>云数据库与云存储</strong>
+                <span>保存用户足迹、城市照片、角色卡、成就、群组成员和动态记录。</span>
+            </div>
+            <div class="stack-card">
+                <strong>内容安全与本地缓存</strong>
+                <span>上传内容先做安全校验；个人数据本地缓存，未加入群组时也能顺畅记录。</span>
+            </div>
+        </div>
+        <div class="tech-subtitle">产品能力拆解</div>
         <div class="tech-grid">
             <div class="tech-item">
                 <div class="tech-dot" style="background:#E8F5E9;">图</div>
