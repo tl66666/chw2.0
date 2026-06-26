@@ -174,21 +174,31 @@
             display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem;
         }
         .journey-card {
-            position: relative; overflow: hidden; min-height: 270px;
+            position: relative; overflow: hidden; min-height: 245px;
             border-radius: 22px; background: var(--white); box-shadow: var(--shadow-sm);
             border: 1px solid rgba(0,0,0,0.04); transition: all 0.35s ease;
         }
         .journey-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
-        .journey-card img { width: 100%; height: 150px; object-fit: cover; display: block; }
-        .journey-card-body { padding: 1.25rem; }
+        .journey-media {
+            height: 118px; margin: 0.9rem 0.9rem 0;
+            border-radius: 16px; overflow: hidden;
+            background: linear-gradient(135deg, #FFF8F5, #F2F6FF);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .journey-media img {
+            width: 100%; height: 100%; object-fit: contain; display: block;
+            filter: drop-shadow(0 10px 18px rgba(80,55,70,0.12));
+        }
+        .journey-media.cover img { object-fit: cover; }
+        .journey-card-body { padding: 1rem 1.15rem 1.2rem; }
         .journey-card .kicker {
             display: inline-flex; align-items: center; gap: 0.35rem;
-            padding: 0.25rem 0.65rem; margin-bottom: 0.75rem;
+            padding: 0.22rem 0.6rem; margin-bottom: 0.65rem;
             border-radius: 999px; background: rgba(244,166,181,0.12);
-            color: var(--pink-dark); font-size: 0.75rem; font-weight: 700;
+            color: var(--pink-dark); font-size: 0.72rem; font-weight: 700;
         }
-        .journey-card h3 { font-size: 1.05rem; margin-bottom: 0.45rem; }
-        .journey-card p { color: var(--text-light); font-size: 0.86rem; line-height: 1.65; }
+        .journey-card h3 { font-size: 1rem; margin-bottom: 0.38rem; }
+        .journey-card p { color: var(--text-light); font-size: 0.82rem; line-height: 1.58; }
 
         section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
         .section-header { text-align: center; margin-bottom: 3.5rem; }
@@ -343,15 +353,23 @@
         .badge-item span { display: block; margin-top: 0.8rem; font-size: 0.85rem; font-weight: 500; color: var(--text-light); }
 
         /* Tech */
-        .tech-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-        .tech-item {
-            background: var(--white); border-radius: var(--radius-sm); padding: 1.3rem 1.2rem;
-            display: flex; align-items: center; gap: 0.8rem; box-shadow: var(--shadow-sm);
-            transition: all 0.3s ease; border: 1px solid rgba(0,0,0,0.03);
+        .tech-panel {
+            background: #fff; border-radius: 26px; padding: 2rem;
+            box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.04);
         }
-        .tech-item:hover { transform: translateX(5px); box-shadow: var(--shadow); }
-        .tech-dot { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
-        .tech-item .label { font-weight: 500; font-size: 0.9rem; }
+        .tech-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.1rem; }
+        .tech-item {
+            background: linear-gradient(135deg, rgba(255,250,248,0.96), rgba(246,248,255,0.96));
+            border-radius: 18px; padding: 1.45rem;
+            display: grid; grid-template-columns: auto 1fr; gap: 0.95rem; align-items: flex-start;
+            transition: all 0.3s ease; border: 1px solid rgba(0,0,0,0.045);
+        }
+        .tech-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-sm); }
+        .tech-dot { width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
+        .tech-item .label { display:block; font-weight: 700; font-size: 1rem; margin-bottom: 0.38rem; color: var(--text); }
+        .tech-item p { color: var(--text-light); font-size: 0.84rem; line-height: 1.65; }
+        .tech-tags { grid-column: 2; display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.1rem; }
+        .tech-tags span { padding: 0.26rem 0.62rem; border-radius: 999px; background: rgba(102,126,234,0.08); color: var(--purple); font-size: 0.72rem; font-weight: 600; }
 
         /* Highlights */
         .hl-wrap {
@@ -361,12 +379,12 @@
         }
         .hl-wrap .section-header h2 { color: var(--text); }
         .hl-wrap .section-header p { color: var(--text-light); }
-        .hl-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-top: 1rem; }
-        .hl-card { background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.04); border-radius: 16px; padding: 1.8rem; display: flex; gap: 1.2rem; align-items: flex-start; transition: all 0.3s ease; backdrop-filter: blur(8px); }
+        .hl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; margin-top: 1rem; }
+        .hl-card { background: rgba(255,255,255,0.76); border: 1px solid rgba(0,0,0,0.04); border-radius: 18px; padding: 1.55rem; display: flex; flex-direction: column; gap: 0.95rem; align-items: flex-start; transition: all 0.3s ease; backdrop-filter: blur(8px); }
         .hl-card:hover { background: rgba(255,255,255,0.95); transform: translateY(-3px); box-shadow: var(--shadow-sm); }
         .hl-icon { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(244,166,181,0.1)); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
         .hl-text h4 { font-size: 1.05rem; margin-bottom: 0.4rem; color: var(--text); }
-        .hl-text p { font-size: 0.87rem; color: var(--text-light); line-height: 1.6; }
+        .hl-text p { font-size: 0.84rem; color: var(--text-light); line-height: 1.65; }
 
         /* Get started */
         .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
@@ -417,7 +435,7 @@
             .gf-grid { grid-template-columns: 1fr; }
             .badges-grid { grid-template-columns: repeat(3, 1fr); }
             .tech-grid { grid-template-columns: repeat(2, 1fr); }
-            .hl-grid { grid-template-columns: 1fr; }
+            .hl-grid { grid-template-columns: repeat(2, 1fr); }
             .steps { grid-template-columns: 1fr; }
             .scan-cta { grid-template-columns: 1fr; text-align: center; justify-items: center; }
         }
@@ -431,6 +449,8 @@
             .badges-grid { grid-template-columns: repeat(2, 1fr); }
             .journey-grid { grid-template-columns: 1fr; }
             .tech-grid { grid-template-columns: 1fr; }
+            .tech-panel { padding: 1.2rem; }
+            .hl-grid { grid-template-columns: 1fr; }
             .scan-cta { padding: 1.5rem; }
             .scan-cta-code { width: 132px; height: 132px; }
         }
@@ -524,7 +544,7 @@
     </div>
     <div class="journey-grid">
         <div class="journey-card reveal">
-            <img src="site-assets/icon-map.jpg" alt="地图点亮">
+            <div class="journey-media"><img src="site-assets/icon-map.jpg" alt="地图点亮"></div>
             <div class="journey-card-body">
                 <div class="kicker">01 地图入口</div>
                 <h3>打开中国地图，点亮去过的城市</h3>
@@ -532,7 +552,7 @@
             </div>
         </div>
         <div class="journey-card reveal">
-            <img src="site-assets/city-shanghai.jpg" alt="城市详情">
+            <div class="journey-media cover"><img src="site-assets/city-shanghai.jpg" alt="城市详情"></div>
             <div class="journey-card-body">
                 <div class="kicker">02 城市详情</div>
                 <h3>把照片和笔记绑定到具体城市</h3>
@@ -540,7 +560,7 @@
             </div>
         </div>
         <div class="journey-card reveal">
-            <img src="site-assets/card-zhejiang.jpg" alt="角色卡收集">
+            <div class="journey-media"><img src="site-assets/card-zhejiang.jpg" alt="角色卡收集"></div>
             <div class="journey-card-body">
                 <div class="kicker">03 收集反馈</div>
                 <h3>点亮省份后解锁地域角色卡</h3>
@@ -548,7 +568,7 @@
             </div>
         </div>
         <div class="journey-card reveal">
-            <img src="site-assets/empty-travel.jpg" alt="旅行相册">
+            <div class="journey-media"><img src="site-assets/empty-travel.jpg" alt="旅行相册"></div>
             <div class="journey-card-body">
                 <div class="kicker">04 相册沉淀</div>
                 <h3>按旅行、美食、城市整理回忆</h3>
@@ -556,7 +576,7 @@
             </div>
         </div>
         <div class="journey-card reveal">
-            <img src="site-assets/badge-king.jpg" alt="成就徽章">
+            <div class="journey-media"><img src="site-assets/badge-king.jpg" alt="成就徽章"></div>
             <div class="journey-card-body">
                 <div class="kicker">05 成就成长</div>
                 <h3>用徽章记录探索阶段</h3>
@@ -564,7 +584,7 @@
             </div>
         </div>
         <div class="journey-card reveal">
-            <img src="site-assets/icon-friends.jpg" alt="群组共享">
+            <div class="journey-media"><img src="site-assets/icon-friends.jpg" alt="群组共享"></div>
             <div class="journey-card-body">
                 <div class="kicker">06 群组共享</div>
                 <h3>好友加入后共享同一张地图</h3>
@@ -754,30 +774,56 @@
 
 <!-- ====== TECH STACK ====== -->
 <section>
-    <div class="section-header reveal"><h2>🛠️ 技术栈</h2><p>原生微信小程序 + 微信云开发，完整前后端方案</p></div>
-    <div class="tech-grid">
-        <div class="tech-item reveal"><div class="tech-dot" style="background:#E8F5E9;">📱</div><span class="label">微信小程序原生框架</span></div>
-        <div class="tech-item reveal"><div class="tech-dot" style="background:#E3F2FD;">☁️</div><span class="label">微信云开发 CloudBase</span></div>
-        <div class="tech-item reveal"><div class="tech-dot" style="background:#FFF8E1;">⚡</div><span class="label">云函数 Node.js</span></div>
-        <div class="tech-item reveal"><div class="tech-dot" style="background:#F3E5F5;">🗄️</div><span class="label">云数据库 MongoDB</span></div>
-        <div class="tech-item reveal"><div class="tech-dot" style="background:#FFEBEE;">🖼️</div><span class="label">云存储 COS</span></div>
-        <div class="tech-item reveal"><div class="tech-dot" style="background:#E0F7FA;">📦</div><span class="label">分包加载优化</span></div>
-        <div class="tech-item reveal"><div class="tech-dot" style="background:#FFF3E0;">🎵</div><span class="label">本地短音效反馈</span></div>
-        <div class="tech-item reveal"><div class="tech-dot" style="background:#E8EAF6;">💾</div><span class="label">本地缓存 Storage</span></div>
+    <div class="section-header reveal"><h2>能力架构</h2><p>围绕“记录、激励、共享、沉淀”四件事搭建小程序体验。</p></div>
+    <div class="tech-panel reveal">
+        <div class="tech-grid">
+            <div class="tech-item">
+                <div class="tech-dot" style="background:#E8F5E9;">图</div>
+                <div>
+                    <span class="label">地图与城市数据层</span>
+                    <p>用省份、城市、地标和经纬度组织旅行足迹，首页地图、城市详情、相册筛选都围绕同一套城市数据展开。</p>
+                </div>
+                <div class="tech-tags"><span>34省级行政区</span><span>391城市</span><span>城市详情</span></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-dot" style="background:#FFF0F3;">记</div>
+                <div>
+                    <span class="label">照片与笔记记录层</span>
+                    <p>旅行照片、美食照片和文字笔记绑定到具体城市，用户回看相册时能看到地点、类型和记录时间。</p>
+                </div>
+                <div class="tech-tags"><span>城市相册</span><span>美食记录</span><span>旅行笔记</span></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-dot" style="background:#FFF8E1;">卡</div>
+                <div>
+                    <span class="label">角色卡与成就激励层</span>
+                    <p>点亮省份、上传照片、收集卡片都会得到反馈，把普通记录变成有目标、有惊喜的探索过程。</p>
+                </div>
+                <div class="tech-tags"><span>地域角色卡</span><span>成就墙</span><span>解锁反馈</span></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-dot" style="background:#E3F2FD;">队</div>
+                <div>
+                    <span class="label">群组共享同步层</span>
+                    <p>通过邀请码建立旅行小队，合并成员的点亮城市、城市照片和动态，形成同一张共享旅行地图。</p>
+                </div>
+                <div class="tech-tags"><span>邀请码</span><span>共享地图</span><span>成员排行</span></div>
+            </div>
+        </div>
     </div>
 </section>
 
 <!-- ====== HIGHLIGHTS ====== -->
 <section>
     <div class="hl-wrap reveal">
-        <div class="section-header"><h2>🎯 项目亮点</h2><p>技术实现与产品设计的深度融合</p></div>
+        <div class="section-header"><h2>项目亮点</h2><p>不是单一打卡工具，而是一套能持续使用的旅行记录系统。</p></div>
         <div class="hl-grid">
-            <div class="hl-card"><div class="hl-icon">📦</div><div class="hl-text"><h4>分包体积优化</h4><p>主包 26MB → 1.4MB，PNG→JPG 节省 88%</p></div></div>
-            <div class="hl-card"><div class="hl-icon">🗺️</div><div class="hl-text"><h4>391城市真实地标</h4><p>覆盖全国每个角落，地标数据丰富准确</p></div></div>
-            <div class="hl-card"><div class="hl-icon">🃏</div><div class="hl-text"><h4>抽卡 + 成就双循环</h4><p>游戏化设计让旅行打卡更有动力</p></div></div>
-            <div class="hl-card"><div class="hl-icon">👥</div><div class="hl-text"><h4>群组共享体系</h4><p>邀请码 + 共享地图 + 城市照片同步</p></div></div>
-            <div class="hl-card"><div class="hl-icon">☁️</div><div class="hl-text"><h4>全栈云开发</h4><p>5个云函数 + 云数据库，无需独立后端</p></div></div>
-            <div class="hl-card"><div class="hl-icon">🎵</div><div class="hl-text"><h4>稳定音效反馈</h4><p>按钮、打卡、抽卡和成就使用本地短音效，播放失败自动降级</p></div></div>
+            <div class="hl-card"><div class="hl-icon">🗺️</div><div class="hl-text"><h4>足迹可视化</h4><p>把“我去过哪里”变成一张可浏览、可点亮、可回看的中国地图，旅行进度一眼可见。</p></div></div>
+            <div class="hl-card"><div class="hl-icon">📸</div><div class="hl-text"><h4>城市级相册</h4><p>照片不是简单堆在相册里，而是回到对应城市，和地标、笔记、美食记录放在一起。</p></div></div>
+            <div class="hl-card"><div class="hl-icon">🃏</div><div class="hl-text"><h4>探索奖励感</h4><p>每次点亮省份都有角色卡和成就反馈，让用户愿意继续探索下一座城市。</p></div></div>
+            <div class="hl-card"><div class="hl-icon">👥</div><div class="hl-text"><h4>共享旅行视角</h4><p>加入群组后，成员的城市、照片、动态会合并展示，适合朋友、情侣和家人共同记录。</p></div></div>
+            <div class="hl-card"><div class="hl-icon">🧭</div><div class="hl-text"><h4>完整使用闭环</h4><p>从进入首页、点亮地图、上传照片、抽卡成就，到群组同步，核心路径自然连贯。</p></div></div>
+            <div class="hl-card"><div class="hl-icon">🛡️</div><div class="hl-text"><h4>内容安全意识</h4><p>上传内容接入安全校验，既保留用户记录自由，也照顾小程序上线后的合规要求。</p></div></div>
         </div>
     </div>
 </section>
