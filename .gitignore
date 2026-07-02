@@ -1,4 +1,4 @@
-﻿# dependencies
+# dependencies
 node_modules/
 miniprogram_npm/
 cloudfunctions/**/node_modules/
@@ -29,3 +29,8 @@ dist/
 build/
 temp/
 .tmp/
+
+# temp work folders
+替换/
+替换-上传/
+.uploads/
