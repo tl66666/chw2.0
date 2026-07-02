@@ -579,7 +579,7 @@ Page({
           app.saveData();
 
           // 同步清除本地存储中的旅行数据
-          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes'];
+          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'myGroup'];
           for (var i = 0; i < removeKeys.length; i++) {
             try { wx.removeStorageSync(removeKeys[i]); } catch (e) {}
           }

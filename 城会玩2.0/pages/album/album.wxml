@@ -60,9 +60,14 @@
     </scroll-view>
   </view>
 
+  <!-- 长按提示 -->
+  <view class="longpress-hint" wx:if="{{displayPhotos.length > 0}}">
+    <text>长按照片可删除</text>
+  </view>
+
   <!-- 照片网格 -->
   <view class="photos-grid" wx:if="{{displayPhotos.length > 0}}">
-    <view wx:for="{{displayPhotos}}" wx:key="index" class="photo-card" bindtap="previewPhoto" data-url="{{item.displayUrl || item.url}}" data-index="{{index}}">
+    <view wx:for="{{displayPhotos}}" wx:key="index" class="photo-card" bindtap="previewPhoto" bindlongpress="onPhotoLongPress" data-url="{{item.displayUrl || item.url}}" data-index="{{index}}" data-city-id="{{item.cityId}}" data-type="{{item.type}}" data-file-id="{{item.url}}">
       <image class="photo-image" src="{{item.displayUrl || item.url}}" mode="aspectFill" lazy-load/>
       <view class="photo-overlay">
         <view class="photo-info">

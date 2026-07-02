@@ -78,12 +78,12 @@ Page({
   clearCache: function() {
     var self = this;
     wx.showModal({
-      title: '清除缓存',
-      content: '确定要清除所有本地缓存数据吗？此操作不可恢复。',
+      title: '清除旅行数据',
+      content: '确定要清除所有旅行记录吗？本地和云端数据都会被删除，此操作不可恢复。',
       confirmColor: '#F44336',
       success: function(res) {
         if (res.confirm) {
-          // 清除旅行数据，但保留登录信息和设置
+          // 清除本地旅行数据，但保留登录信息和设置
           var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'myGroup'];
           for (var i = 0; i < removeKeys.length; i++) {
             try { wx.removeStorageSync(removeKeys[i]); } catch (e) {}
@@ -98,8 +98,20 @@ Page({
             app.globalData.cityFoodPhotos = {};
             app.globalData.cityNotes = {};
           }
+          // 清除云端数据
+          if (wx.cloud && app.globalData.isLogin) {
+            wx.cloud.callFunction({
+              name: 'syncData',
+              data: { action: 'clearAllData' },
+              timeout: 8000
+            }).then(function(res) {
+              console.log('[settings] 云端数据已清除', res.result);
+            }).catch(function(err) {
+              console.warn('[settings] 云端清除失败:', err);
+            });
+          }
           self.setData({ cacheSize: '0 KB' });
-          wx.showToast({ title: '缓存已清除', icon: 'success' });
+          wx.showToast({ title: '数据已清除', icon: 'success' });
         }
       }
     });

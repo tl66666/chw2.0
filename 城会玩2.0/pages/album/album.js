@@ -261,6 +261,91 @@ Page({
     });
   },
 
+  onPhotoLongPress: function(e) {
+    var self = this;
+    var index = e.currentTarget.dataset.index;
+    var cityId = e.currentTarget.dataset.cityId;
+    var photoType = e.currentTarget.dataset.type;
+    var fileId = e.currentTarget.dataset.fileId;
+
+    wx.showActionSheet({
+      itemList: ['删除这张照片'],
+      itemColor: '#F87171',
+      success: function(res) {
+        if (res.tapIndex === 0) {
+          wx.showModal({
+            title: '删除照片',
+            content: '确定要删除这张照片吗？云端记录也会一并删除。',
+            confirmColor: '#F87171',
+            success: function(modalRes) {
+              if (modalRes.confirm) {
+                self.doDeletePhoto(cityId, photoType, fileId, index);
+              }
+            }
+          });
+        }
+      }
+    });
+  },
+
+  doDeletePhoto: function(cityId, photoType, fileId, index) {
+    var self = this;
+
+    // 从 globalData 中删除
+    if (photoType === 'food') {
+      var cityFoodPhotos = app.globalData.cityFoodPhotos || {};
+      var foodPhotos = cityFoodPhotos[cityId] || [];
+      var foodIdx = foodPhotos.indexOf(fileId);
+      if (foodIdx > -1) {
+        foodPhotos.splice(foodIdx, 1);
+        if (foodPhotos.length === 0) {
+          delete cityFoodPhotos[cityId];
+        } else {
+          cityFoodPhotos[cityId] = foodPhotos;
+        }
+        app.globalData.cityFoodPhotos = cityFoodPhotos;
+      }
+    } else {
+      var cityTravelPhotos = app.globalData.cityTravelPhotos || {};
+      var travelPhotos = cityTravelPhotos[cityId] || [];
+      var travelIdx = travelPhotos.indexOf(fileId);
+      if (travelIdx > -1) {
+        travelPhotos.splice(travelIdx, 1);
+        if (travelPhotos.length === 0) {
+          delete cityTravelPhotos[cityId];
+        } else {
+          cityTravelPhotos[cityId] = travelPhotos;
+        }
+        app.globalData.cityTravelPhotos = cityTravelPhotos;
+      }
+    }
+
+    app.saveData();
+
+    // 删除云端照片记录
+    if (wx.cloud && app.globalData.isLogin && fileId) {
+      wx.cloud.callFunction({
+        name: 'syncData',
+        data: {
+          action: 'removePhoto',
+          data: {
+            cityId: cityId,
+            fileId: fileId
+          }
+        },
+        timeout: 8000
+      }).then(function(res) {
+        console.log('[album] 云端照片记录已删除', res.result);
+      }).catch(function(err) {
+        console.warn('[album] 云端删除失败:', err);
+      });
+    }
+
+    // 重新加载
+    this.loadData();
+    wx.showToast({ title: '已删除', icon: 'success' });
+  },
+
   goToUpload: function() {
     audioManager.play('photo_upload');
     wx.navigateTo({

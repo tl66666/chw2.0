@@ -115,16 +115,6 @@
       </view>
     </view>
     <view class="menu-grid">
-      <view class="menu-grid-item" bindtap="goToUpload">
-        <view class="menu-grid-icon menu-icon-upload">
-          <text class="menu-grid-icon-text">记</text>
-        </view>
-        <view class="menu-grid-copy">
-          <text class="menu-grid-name">记录足迹</text>
-          <text class="menu-grid-desc">添加城市、照片和笔记</text>
-        </view>
-      </view>
-
       <view class="menu-grid-item" bindtap="goToAlbum">
         <view class="menu-grid-icon menu-icon-album">
           <text class="menu-grid-icon-text">册</text>
@@ -210,7 +200,7 @@
       <view class="danger-icon-wrap">
         <text class="danger-icon-text">清</text>
       </view>
-      <text class="danger-text">清除所有本地旅行数据</text>
+      <text class="danger-text">清除所有旅行数据</text>
       <text class="danger-arrow">›</text>
     </view>
   </view>

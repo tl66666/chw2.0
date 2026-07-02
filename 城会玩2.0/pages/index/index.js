@@ -379,7 +379,7 @@ Page({
 
   goToAlbum: function() {
     audioManager.play('button_tap');
-    wx.navigateTo({ url: '/package-album/pages/album/album' });
+    wx.switchTab({ url: '/pages/album/album' });
   },
 
   goToCityDetail: function(e) {

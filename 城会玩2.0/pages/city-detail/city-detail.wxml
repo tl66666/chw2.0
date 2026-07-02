@@ -35,6 +35,13 @@
       </view>
       <text class="action-label">角色卡</text>
     </view>
+    <view class="action-divider"></view>
+    <view class="action-item action-danger" wx:if="{{isVisited}}" bindtap="removeCity">
+      <view class="action-icon">
+        <text class="icon-remove-text">删</text>
+      </view>
+      <text class="action-label">移除记录</text>
+    </view>
   </view>
 
   <!-- 城市简介 -->
@@ -152,6 +159,9 @@
   <view class="note-card">
     <view class="note-header">
       <text class="note-title">旅行笔记</text>
+      <view class="note-delete-btn" wx:if="{{note}}" bindtap="deleteNote">
+        <text>删除</text>
+      </view>
     </view>
     <textarea class="note-textarea" placeholder="记录你的旅行感受..." value="{{note}}" bindinput="onNoteInput" maxlength="200"/>
     <view class="note-footer">

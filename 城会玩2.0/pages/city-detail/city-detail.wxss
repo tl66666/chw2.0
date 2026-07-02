@@ -254,6 +254,20 @@ page {
   background: rgba(0, 0, 0, 0.06);
 }
 
+.action-danger .action-icon {
+  background: linear-gradient(135deg, #E74C3C, #F87171);
+}
+
+.action-danger .action-label {
+  color: #E74C3C;
+}
+
+.icon-remove-text {
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
 /* 信息卡片通用样式 */
 .info-card {
   background: var(--bg-card);
@@ -568,6 +582,9 @@ page {
 }
 
 .note-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 8rpx;
 }
 
@@ -575,6 +592,17 @@ page {
   font-size: 26rpx;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.note-delete-btn {
+  padding: 6rpx 20rpx;
+  background: rgba(231, 76, 60, 0.08);
+  border-radius: 20rpx;
+}
+
+.note-delete-btn text {
+  font-size: 22rpx;
+  color: #E74C3C;
 }
 
 .note-textarea {

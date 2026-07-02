@@ -36,6 +36,12 @@ exports.main = async (event, context) => {
         return await leaveGroup(openid, data);
       case 'clearAllData':
         return await clearAllData(openid);
+      case 'removeCityRecord':
+        return await removeCityRecord(openid, data);
+      case 'removePhoto':
+        return await removePhoto(openid, data);
+      case 'removeNote':
+        return await removeNote(openid, data);
       default:
         return { success: false, error: '未知操作' };
     }
@@ -63,6 +69,68 @@ async function clearAllData(openid) {
     return { success: true };
   } catch (err) {
     console.error('clearAllData failed:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+// 删除单个城市的云端记录（含照片和笔记）
+async function removeCityRecord(openid, data) {
+  const cityId = data && data.cityId;
+  if (!cityId) return { success: false, error: '缺少cityId' };
+  try {
+    // 删除城市打卡记录
+    try {
+      const res = await db.collection('cityRecords').where({ _openid: openid, cityId: cityId }).remove();
+    } catch (e) { console.warn('removeCityRecord: cityRecords:', e.message); }
+    // 删除该城市的照片记录
+    try {
+      await db.collection('photos').where({ _openid: openid, cityId: cityId }).remove();
+    } catch (e) { console.warn('removeCityRecord: photos:', e.message); }
+    // 删除该城市的笔记
+    try {
+      await db.collection('notes').where({ _openid: openid, cityId: cityId }).remove();
+    } catch (e) { console.warn('removeCityRecord: notes:', e.message); }
+    return { success: true };
+  } catch (err) {
+    console.error('removeCityRecord failed:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+// 删除单张照片的云端记录
+async function removePhoto(openid, data) {
+  const cityId = data && data.cityId;
+  const fileId = data && (data.fileId || data.url);
+  if (!cityId || !fileId) return { success: false, error: '缺少cityId或fileId' };
+  try {
+    try {
+      await db.collection('photos').where({
+        _openid: openid,
+        cityId: cityId,
+        fileId: fileId
+      }).remove();
+    } catch (e) { console.warn('removePhoto:', e.message); }
+    return { success: true };
+  } catch (err) {
+    console.error('removePhoto failed:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+// 删除单条笔记的云端记录
+async function removeNote(openid, data) {
+  const cityId = data && data.cityId;
+  if (!cityId) return { success: false, error: '缺少cityId' };
+  try {
+    try {
+      await db.collection('notes').where({
+        _openid: openid,
+        cityId: cityId
+      }).remove();
+    } catch (e) { console.warn('removeNote:', e.message); }
+    return { success: true };
+  } catch (err) {
+    console.error('removeNote failed:', err);
     return { success: false, error: err.message };
   }
 }

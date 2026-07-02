@@ -373,6 +373,7 @@ Page({
   toggleVisit: function() {
     var cityId = this.data.cityId;
     var provinceId = this.data.provinceId;
+    var self = this;
     var visitedCities = app.globalData.visitedCities || [];
     var index = visitedCities.indexOf(cityId);
     
@@ -388,6 +389,13 @@ Page({
       
       visitedCities.push(cityId);
       app.globalData.visitedCities = visitedCities;
+
+      // 更新省份列表
+      app.globalData.visitedProvinces = app.globalData.visitedProvinces || [];
+      if (provinceId && app.globalData.visitedProvinces.indexOf(provinceId) === -1) {
+        app.globalData.visitedProvinces.push(provinceId);
+      }
+
       app.saveData();
       app.syncToCloud();
       this.syncCityToCurrentGroup(cityId, provinceId, true);
@@ -413,14 +421,69 @@ Page({
         this.checkAndShowAchievements();
       }
     } else {
-      visitedCities.splice(index, 1);
-      app.globalData.visitedCities = visitedCities;
-      app.saveData();
-      app.syncToCloud();
-      this.syncCityToCurrentGroup(cityId, provinceId, false);
-      this.checkVisited();
-      wx.showToast({ title: '已取消', icon: 'success' });
+      // 取消打卡前确认
+      wx.showModal({
+        title: '取消打卡',
+        content: '确定要取消 ' + this.data.cityName + ' 的打卡记录吗？该城市的打卡状态将被移除。',
+        confirmColor: '#F87171',
+        confirmText: '取消打卡',
+        cancelText: '再想想',
+        success: function(res) {
+          if (!res.confirm) return;
+          self.doCancelVisit(cityId, provinceId, visitedCities, index);
+        }
+      });
     }
+  },
+
+  doCancelVisit: function(cityId, provinceId, visitedCities, index) {
+    var self = this;
+    visitedCities.splice(index, 1);
+    app.globalData.visitedCities = visitedCities;
+    
+    // 移除访问日期
+    var visitDates2 = app.globalData.visitDates || {};
+    delete visitDates2[cityId];
+    app.globalData.visitDates = visitDates2;
+    
+    // 重新计算省份
+    var citiesData = require('../../utils/cities.js');
+    var allCities = citiesData.cities || [];
+    var stillHasProv = false;
+    for (var ci = 0; ci < allCities.length; ci++) {
+      if (allCities[ci].provinceId === provinceId &&
+          visitedCities.indexOf(allCities[ci].id) > -1) {
+        stillHasProv = true;
+        break;
+      }
+    }
+    if (!stillHasProv) {
+      app.globalData.visitedProvinces = app.globalData.visitedProvinces || [];
+      var provIdx = app.globalData.visitedProvinces.indexOf(provinceId);
+      if (provIdx > -1) app.globalData.visitedProvinces.splice(provIdx, 1);
+    }
+    
+    app.saveData();
+    
+    // 删除云端记录（防止syncFromCloud恢复数据）
+    if (wx.cloud && app.globalData.isLogin) {
+      wx.cloud.callFunction({
+        name: 'syncData',
+        data: {
+          action: 'removeCityRecord',
+          data: { cityId: cityId }
+        },
+        timeout: 8000
+      }).then(function(res) {
+        console.log('[toggleVisit] 云端记录已删除', res.result);
+      }).catch(function(err) {
+        console.warn('[toggleVisit] 云端删除失败:', err);
+      });
+    }
+    
+    this.syncCityToCurrentGroup(cityId, provinceId, false);
+    this.checkVisited();
+    wx.showToast({ title: '已取消打卡', icon: 'success' });
   },
 
   checkFirstTimeInProvince: function(provinceId) {
@@ -1087,25 +1150,48 @@ Page({
     
     wx.showModal({
       title: '删除照片',
-      content: '确定要删除这张照片吗？',
+      content: '确定要删除这张照片吗？云端记录也会一并删除。',
       success: function(res) {
         if (res.confirm) {
+          var deletedFileId = '';
+          
           if (activeTab === 'travel') {
             var cityTravelPhotos = app.globalData.cityTravelPhotos || {};
             var photos = cityTravelPhotos[cityId] || [];
+            deletedFileId = photos[index];
             photos.splice(index, 1);
             cityTravelPhotos[cityId] = photos;
             app.globalData.cityTravelPhotos = cityTravelPhotos;
           } else {
             var cityFoodPhotos = app.globalData.cityFoodPhotos || {};
             var photos = cityFoodPhotos[cityId] || [];
+            deletedFileId = photos[index];
             photos.splice(index, 1);
             cityFoodPhotos[cityId] = photos;
             app.globalData.cityFoodPhotos = cityFoodPhotos;
           }
           
           app.saveData();
-          app.syncToCloud();
+          
+          // 删除云端照片记录（防止syncFromCloud恢复数据）
+          if (wx.cloud && app.globalData.isLogin && deletedFileId) {
+            wx.cloud.callFunction({
+              name: 'syncData',
+              data: {
+                action: 'removePhoto',
+                data: {
+                  cityId: cityId,
+                  fileId: deletedFileId
+                }
+              },
+              timeout: 8000
+            }).then(function(res) {
+              console.log('[deletePhoto] 云端照片记录已删除', res.result);
+            }).catch(function(err) {
+              console.warn('[deletePhoto] 云端删除失败:', err);
+            });
+          }
+          
           self.loadPhotos();
           
           wx.showToast({
@@ -1182,13 +1268,51 @@ Page({
     });
   },
 
+  deleteNote: function() {
+    var cityId = this.data.cityId;
+    var self = this;
+
+    wx.showModal({
+      title: '删除笔记',
+      content: '确定要删除这篇旅行笔记吗？',
+      confirmColor: '#F87171',
+      success: function(res) {
+        if (res.confirm) {
+          var cityNotes = app.globalData.cityNotes || {};
+          delete cityNotes[cityId];
+          app.globalData.cityNotes = cityNotes;
+          app.saveData();
+
+          // 删除云端笔记
+          if (wx.cloud && app.globalData.isLogin) {
+            wx.cloud.callFunction({
+              name: 'syncData',
+              data: {
+                action: 'removeNote',
+                data: { cityId: cityId }
+              },
+              timeout: 8000
+            }).then(function(res) {
+              console.log('[deleteNote] 云端笔记已删除', res.result);
+            }).catch(function(err) {
+              console.warn('[deleteNote] 云端删除失败:', err);
+            });
+          }
+
+          self.setData({ note: '' });
+          wx.showToast({ title: '笔记已删除', icon: 'success' });
+        }
+      }
+    });
+  },
+
   removeCity: function() {
     var cityId = this.data.cityId;
     var self = this;
     
     wx.showModal({
       title: '移除记录',
-      content: '确定要移除这座城市的所有记录吗？',
+      content: '确定要移除这座城市的所有记录吗？云端数据也会一并删除。',
       confirmColor: '#F87171',
       success: function(res) {
         if (res.confirm) {
@@ -1220,12 +1344,51 @@ Page({
           delete cityNotes[cityId];
           app.globalData.cityNotes = cityNotes;
           
+          // 移除访问日期
+          var cityVisitDates = app.globalData.visitDates || {};
+          delete cityVisitDates[cityId];
+          app.globalData.visitDates = cityVisitDates;
+          
+          // 重新计算省份
+          app.globalData.visitedProvinces = app.globalData.visitedProvinces || [];
+          var citiesData = require('../../utils/cities.js');
+          var allCities = citiesData.cities || [];
+          var stillHasProvince = false;
+          for (var ci = 0; ci < allCities.length; ci++) {
+            if (allCities[ci].provinceId === self.data.provinceId &&
+                visitedCities.indexOf(allCities[ci].id) > -1) {
+              stillHasProvince = true;
+              break;
+            }
+          }
+          if (!stillHasProvince) {
+            var provIdx = app.globalData.visitedProvinces.indexOf(self.data.provinceId);
+            if (provIdx > -1) app.globalData.visitedProvinces.splice(provIdx, 1);
+          }
+
           app.saveData();
-          app.syncToCloud();
+          
+          // 删除云端记录（防止syncFromCloud恢复数据）
+          if (wx.cloud && app.globalData.isLogin) {
+            wx.cloud.callFunction({
+              name: 'syncData',
+              data: {
+                action: 'removeCityRecord',
+                data: { cityId: cityId }
+              },
+              timeout: 8000
+            }).then(function(res) {
+              console.log('[removeCity] 云端记录已删除', res.result);
+            }).catch(function(err) {
+              console.warn('[removeCity] 云端删除失败:', err);
+            });
+          }
+          
           self.syncCityToCurrentGroup(cityId, self.data.provinceId, false);
           
           self.loadPhotos();
           self.checkVisited();
+          self.setData({ note: '' });
           
           wx.showToast({
             title: '已移除',

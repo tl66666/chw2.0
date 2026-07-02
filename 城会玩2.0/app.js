@@ -206,51 +206,65 @@ App({
     });
   },
 
-  // 合并云端数据
+  // 合并云端数据 —— 使用替换模式，以云端为准
   mergeCloudData: function(cloudData) {
-    // 合并城市记录
+    // 城市记录：用云端数据替换本地
+    var cloudVisitedCities = [];
     if (cloudData.cityRecords) {
       for (var i = 0; i < cloudData.cityRecords.length; i++) {
         var record = cloudData.cityRecords[i];
-        if (record.isVisited && this.globalData.visitedCities.indexOf(record.cityId) === -1) {
-          this.globalData.visitedCities.push(record.cityId);
+        if (record.isVisited && cloudVisitedCities.indexOf(record.cityId) === -1) {
+          cloudVisitedCities.push(record.cityId);
         }
       }
     }
-    
-    // 合并照片
+    this.globalData.visitedCities = cloudVisitedCities;
+
+    // 照片：用云端数据替换本地
+    var cloudTravelPhotos = {};
+    var cloudFoodPhotos = {};
     if (cloudData.photos) {
       for (var j = 0; j < cloudData.photos.length; j++) {
         var photo = cloudData.photos[j];
-        var targetObj = photo.type === 'food' ? this.globalData.cityFoodPhotos : this.globalData.cityTravelPhotos;
-        
+        var photoUrl = photo.url || photo.fileId;
+        if (!photoUrl) continue;
+        var targetObj = photo.type === 'food' ? cloudFoodPhotos : cloudTravelPhotos;
         if (!targetObj[photo.cityId]) {
           targetObj[photo.cityId] = [];
         }
-        
-        // 避免重复
-        var exists = false;
-        for (var k = 0; k < targetObj[photo.cityId].length; k++) {
-          if (targetObj[photo.cityId][k] === photo.url) {
-            exists = true;
-            break;
-          }
-        }
-        
-        if (!exists) {
-          targetObj[photo.cityId].push(photo.url);
-        }
+        targetObj[photo.cityId].push(photoUrl);
       }
     }
-    
-    // 合并笔记
+    this.globalData.cityTravelPhotos = cloudTravelPhotos;
+    this.globalData.cityFoodPhotos = cloudFoodPhotos;
+    this.globalData.cityPhotos = {};
+
+    // 笔记：用云端数据替换本地
+    var cloudNotes = {};
     if (cloudData.notes) {
       for (var m = 0; m < cloudData.notes.length; m++) {
         var note = cloudData.notes[m];
-        this.globalData.cityNotes[note.cityId] = note.content;
+        cloudNotes[note.cityId] = note.content;
       }
     }
-    
+    this.globalData.cityNotes = cloudNotes;
+
+    // 重新计算省份
+    var citiesData = require('./utils/cities.js');
+    var allCities = citiesData.cities || [];
+    var visitedProvinceIds = [];
+    for (var p = 0; p < cloudVisitedCities.length; p++) {
+      for (var q = 0; q < allCities.length; q++) {
+        if (allCities[q].id === cloudVisitedCities[p]) {
+          if (visitedProvinceIds.indexOf(allCities[q].provinceId) === -1) {
+            visitedProvinceIds.push(allCities[q].provinceId);
+          }
+          break;
+        }
+      }
+    }
+    this.globalData.visitedProvinces = visitedProvinceIds;
+
     this.saveData();
   },
 

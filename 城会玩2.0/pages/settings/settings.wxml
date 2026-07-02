@@ -62,7 +62,7 @@
     <view class="setting-item" bindtap="clearCache">
       <view class="item-left">
         <view class="icon-box icon-clear"></view>
-        <text class="setting-label">清除缓存</text>
+        <text class="setting-label">清除旅行数据</text>
       </view>
       <view class="item-right">
         <text class="setting-value">{{cacheSize}}</text>

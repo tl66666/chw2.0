@@ -214,6 +214,16 @@
   background: var(--pink-primary);
 }
 
+.longpress-hint {
+  text-align: center;
+  padding: 8rpx 0 16rpx;
+}
+
+.longpress-hint text {
+  font-size: 22rpx;
+  color: #999;
+}
+
 /* 照片网格 */
 .photos-grid {
   display: grid;
