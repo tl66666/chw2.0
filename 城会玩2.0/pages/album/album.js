@@ -346,10 +346,9 @@ Page({
     wx.showToast({ title: '已删除', icon: 'success' });
   },
 
-  goToUpload: function() {
-    audioManager.play('photo_upload');
-    wx.navigateTo({
-      url: '/package-album/pages/upload/upload'
+  goToMap: function() {
+    wx.switchTab({
+      url: '/pages/index/index'
     });
   }
 });
