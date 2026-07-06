@@ -412,6 +412,11 @@ async function leaveGroup(openid) {
     } catch (e) {
       console.warn('[group] leaveGroup: group_city_records remove skipped:', e.message);
     }
+    try {
+      await db.collection('group_photos').where({ openid }).remove();
+    } catch (e) {
+      console.warn('[group] leaveGroup: group_photos remove skipped:', e.message);
+    }
     return { success: true };
   } catch (err) {
     return { success: true, offline: true, error: err.message };

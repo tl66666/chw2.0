@@ -537,6 +537,7 @@ Page({
           app.globalData.visitedCities = [];
           app.globalData.visitedProvinces = [];
           app.globalData.visitDates = {};
+          app.globalData.cityDisplayNames = {};
           app.globalData.cityPhotos = {};
           app.globalData.cityTravelPhotos = {};
           app.globalData.cityFoodPhotos = {};
@@ -545,7 +546,7 @@ Page({
           app.saveData();
 
           // 同步清除本地存储中的旅行数据
-          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'cityAvoidTips', 'myGroup'];
+          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityDisplayNames', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'cityAvoidTips', 'myGroup'];
           for (var i = 0; i < removeKeys.length; i++) {
             try { wx.removeStorageSync(removeKeys[i]); } catch (e) {}
           }
@@ -561,6 +562,12 @@ Page({
             }).catch(function(err) {
               console.warn('[clearData] 云端清除失败，仅清除本地:', err);
             });
+            // 同时退出群组，清除群组云端数据
+            wx.cloud.callFunction({
+              name: 'group',
+              data: { action: 'leaveGroup' },
+              timeout: 8000
+            }).catch(function() {});
           }
 
           // 更新UI

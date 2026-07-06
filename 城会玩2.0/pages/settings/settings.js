@@ -84,7 +84,7 @@ Page({
       success: function(res) {
         if (res.confirm) {
           // 清除本地旅行数据，但保留登录信息和设置
-          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'myGroup'];
+          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityDisplayNames', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'cityAvoidTips', 'myGroup'];
           for (var i = 0; i < removeKeys.length; i++) {
             try { wx.removeStorageSync(removeKeys[i]); } catch (e) {}
           }
@@ -93,10 +93,12 @@ Page({
             app.globalData.visitedCities = [];
             app.globalData.visitedProvinces = [];
             app.globalData.visitDates = {};
+            app.globalData.cityDisplayNames = {};
             app.globalData.cityPhotos = {};
             app.globalData.cityTravelPhotos = {};
             app.globalData.cityFoodPhotos = {};
             app.globalData.cityNotes = {};
+            app.globalData.cityAvoidTips = {};
           }
           // 清除云端数据
           if (wx.cloud && app.globalData.isLogin) {
@@ -109,6 +111,12 @@ Page({
             }).catch(function(err) {
               console.warn('[settings] 云端清除失败:', err);
             });
+            // 同时退出群组，清除群组云端数据
+            wx.cloud.callFunction({
+              name: 'group',
+              data: { action: 'leaveGroup' },
+              timeout: 8000
+            }).catch(function() {});
           }
           self.setData({ cacheSize: '0 KB' });
           wx.showToast({ title: '数据已清除', icon: 'success' });
