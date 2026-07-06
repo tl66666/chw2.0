@@ -6,6 +6,7 @@ App({
     visitedCities: [],
     visitedProvinces: [],
     visitDates: {},       // 城市访问日期记录 { cityId: '2024-01-15' }
+    cityDisplayNames: {}, // 城市打卡时的显示名称 { cityId: '四川省' / '昆明市' }
     cityPhotos: {},
     cityTravelPhotos: {},
     cityFoodPhotos: {},
@@ -435,6 +436,10 @@ App({
       if (visitDates) {
         this.globalData.visitDates = JSON.parse(visitDates);
       }
+      var cityDisplayNames = wx.getStorageSync('cityDisplayNames');
+      if (cityDisplayNames) {
+        this.globalData.cityDisplayNames = JSON.parse(cityDisplayNames);
+      }
       if (cityPhotos) {
         this.globalData.cityPhotos = JSON.parse(cityPhotos);
       }
@@ -483,6 +488,7 @@ App({
       wx.setStorageSync('visitedCities', JSON.stringify(this.globalData.visitedCities));
       wx.setStorageSync('visitedProvinces', JSON.stringify(this.globalData.visitedProvinces));
       wx.setStorageSync('visitDates', JSON.stringify(this.globalData.visitDates));
+      wx.setStorageSync('cityDisplayNames', JSON.stringify(this.globalData.cityDisplayNames || {}));
       wx.setStorageSync('cityPhotos', JSON.stringify(this.globalData.cityPhotos));
       wx.setStorageSync('cityTravelPhotos', JSON.stringify(this.globalData.cityTravelPhotos));
       wx.setStorageSync('cityFoodPhotos', JSON.stringify(this.globalData.cityFoodPhotos));

@@ -193,13 +193,16 @@ Page({
     var localActivities = [];
     var visitedCities = groupView.mergeCityIds(app.globalData.visitedCities || []);
     var allCities = citiesData.cities || [];
+    var cityDisplayNames = app.globalData.cityDisplayNames || {};
     for (var i = 0; i < visitedCities.length && i < 20; i++) {
       var cityId = visitedCities[i];
-      var cityName = '';
-      for (var c = 0; c < allCities.length; c++) {
-        if (allCities[c].id === cityId) {
-          cityName = allCities[c].name;
-          break;
+      var cityName = cityDisplayNames[cityId] || '';
+      if (!cityName) {
+        for (var c = 0; c < allCities.length; c++) {
+          if (allCities[c].id === cityId) {
+            cityName = allCities[c].name;
+            break;
+          }
         }
       }
       if (cityName) {

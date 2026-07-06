@@ -344,9 +344,10 @@ Page({
     var allActivities = [];
 
     // 城市访问记录 —— 每个城市单独显示一条
+    var cityDisplayNames = app.globalData.cityDisplayNames || {};
     for (var i = 0; i < visitedCities.length; i++) {
       var cityId = visitedCities[i];
-      var cityName = this.getCityNameById(cityId);
+      var cityName = cityDisplayNames[cityId] || this.getCityNameById(cityId);
       allActivities.push({
         type: 'city',
         iconText: ACTIVITY_ICON_TEXT.city,
@@ -483,7 +484,10 @@ Page({
   // 根据城市ID获取城市名称
   getPlaceNameById: function(cityId) {
     if (!cityId) return '未知城市';
-    // 先尝试作为城市ID查找
+    // 先查 cityDisplayNames（记录了打卡时的显示名称）
+    var cityDisplayNames = app.globalData.cityDisplayNames || {};
+    if (cityDisplayNames[cityId]) return cityDisplayNames[cityId];
+    // 再尝试作为城市ID查找
     for (var i = 0; i < cities.length; i++) {
       if (cities[i].id === cityId) {
         return cities[i].name;

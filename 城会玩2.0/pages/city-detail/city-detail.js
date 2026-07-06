@@ -106,6 +106,7 @@ Page({
     cityName: '',
     provinceName: '',
     provinceId: '',
+    isProvinceEntry: false,
     landmark: '',
     landmarkList: [],
     cityGuide: null,
@@ -133,8 +134,10 @@ Page({
 
     
     if (cityId) {
+      this.setData({ isProvinceEntry: false });
       this.loadCityData(cityId);
     } else if (provinceId) {
+      this.setData({ isProvinceEntry: true });
       this.loadProvinceData(provinceId);
     }
   },
@@ -411,6 +414,19 @@ Page({
       var visitDates = app.globalData.visitDates || {};
       visitDates[cityId] = dateStr;
       app.globalData.visitDates = visitDates;
+
+      // 记录显示名称：省份入口记录省份名，城市搜索记录城市名
+      var cityDisplayNames = app.globalData.cityDisplayNames || {};
+      if (this.data.isProvinceEntry) {
+        var provName = '';
+        for (var pi = 0; pi < provinces.length; pi++) {
+          if (provinces[pi].id === provinceId) { provName = provinces[pi].name; break; }
+        }
+        cityDisplayNames[cityId] = provName || this.data.cityName;
+      } else {
+        cityDisplayNames[cityId] = this.data.cityName;
+      }
+      app.globalData.cityDisplayNames = cityDisplayNames;
       
       visitedCities.push(cityId);
       app.globalData.visitedCities = visitedCities;
@@ -470,6 +486,11 @@ Page({
     var visitDates2 = app.globalData.visitDates || {};
     delete visitDates2[cityId];
     app.globalData.visitDates = visitDates2;
+
+    // 移除显示名称
+    var displayNames = app.globalData.cityDisplayNames || {};
+    delete displayNames[cityId];
+    app.globalData.cityDisplayNames = displayNames;
     
     // 重新计算省份
     var citiesData = require('../../utils/cities.js');
