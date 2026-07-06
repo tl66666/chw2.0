@@ -84,7 +84,7 @@ Page({
       success: function(res) {
         if (res.confirm) {
           // 清除本地旅行数据，但保留登录信息和设置
-          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'cityAvoidTips', 'myGroup'];
+          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityDisplayNames', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'cityAvoidTips', 'myGroup', 'cardCount', 'ssrCount', 'urCount', 'nightVisit', 'earlyVisit', 'shareCount', 'noteCount', 'dailyVisit', 'todayVisits', 'unlockedAchievements'];
           for (var i = 0; i < removeKeys.length; i++) {
             try { wx.removeStorageSync(removeKeys[i]); } catch (e) {}
           }
@@ -93,11 +93,22 @@ Page({
             app.globalData.visitedCities = [];
             app.globalData.visitedProvinces = [];
             app.globalData.visitDates = {};
+            app.globalData.cityDisplayNames = {};
             app.globalData.cityPhotos = {};
             app.globalData.cityTravelPhotos = {};
             app.globalData.cityFoodPhotos = {};
             app.globalData.cityNotes = {};
             app.globalData.cityAvoidTips = {};
+            app.globalData.cardCount = 0;
+            app.globalData.ssrCount = 0;
+            app.globalData.urCount = 0;
+            app.globalData.nightVisit = 0;
+            app.globalData.earlyVisit = 0;
+            app.globalData.shareCount = 0;
+            app.globalData.noteCount = 0;
+            app.globalData.dailyVisit = 0;
+            app.globalData.todayVisits = 0;
+            app.globalData.unlockedAchievements = [];
           }
           // 清除云端数据
           if (wx.cloud && app.globalData.isLogin) {

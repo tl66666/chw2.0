@@ -1,9 +1,0 @@
-{
-  "usingComponents": {
-    "privacy-popup": "/components/privacy-popup/privacy-popup"
-  },
-  "navigationBarTitleText": "记录足迹",
-  "navigationBarBackgroundColor": "#F8F5F2",
-  "navigationBarTextStyle": "black",
-  "backgroundColor": "#F8F5F2"
-}

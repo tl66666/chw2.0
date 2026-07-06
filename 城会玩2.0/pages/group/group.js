@@ -1,6 +1,5 @@
 var app = getApp();
 var citiesData = require('../../utils/cities.js');
-var provincesData = require('../../utils/provinces.js');
 var groupView = require('../../utils/group-view.js');
 
 function parseJSON(value, fallback) {

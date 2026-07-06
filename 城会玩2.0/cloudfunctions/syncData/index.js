@@ -60,20 +60,35 @@ async function clearAllData(openid) {
   try {
     // 删除城市记录
     try {
-      await db.collection('cityRecords').where({ openid }).remove();
+      await db.collection('cityRecords').where({ _openid: openid }).remove();
     } catch (e) { console.warn('clearAllData: cityRecords:', e.message); }
     // 删除照片
     try {
-      await db.collection('photos').where({ openid }).remove();
+      await db.collection('photos').where({ _openid: openid }).remove();
     } catch (e) { console.warn('clearAllData: photos:', e.message); }
     // 删除笔记
     try {
-      await db.collection('notes').where({ openid }).remove();
+      await db.collection('notes').where({ _openid: openid }).remove();
     } catch (e) { console.warn('clearAllData: notes:', e.message); }
     // 删除避坑指南
     try {
-      await db.collection('avoidTips').where({ openid }).remove();
+      await db.collection('avoidTips').where({ _openid: openid }).remove();
     } catch (e) { console.warn('clearAllData: avoidTips:', e.message); }
+    // 重置用户统计信息
+    try {
+      await db.collection('users').where({ _openid: openid }).update({
+        data: {
+          stats: {
+            visitedCities: [],
+            visitedProvinces: [],
+            travelPhotoCount: 0,
+            foodPhotoCount: 0
+          },
+          currentGroup: '',
+          groups: []
+        }
+      });
+    } catch (e) { console.warn('clearAllData: users:', e.message); }
     return { success: true };
   } catch (err) {
     console.error('clearAllData failed:', err);

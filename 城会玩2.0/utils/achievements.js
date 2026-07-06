@@ -340,16 +340,6 @@ var achievements = [
     category: 'social',
     condition: function(stats) { return stats.groupCityCount >= 20; },
     reward: 900
-  },
-  {
-    id: 'province_halfway',
-    title: '半张中国地图',
-    desc: '点亮17个省份',
-    icon: '省',
-    badge: '/images/ui/badge-expert.jpg',
-    category: 'explore',
-    condition: function(stats) { return stats.visitedProvinces >= 17; },
-    reward: 1200
   }
 ];
 
