@@ -42,6 +42,10 @@ exports.main = async (event, context) => {
         return await removePhoto(openid, data);
       case 'removeNote':
         return await removeNote(openid, data);
+      case 'syncAvoidTips':
+        return await syncAvoidTips(openid, data);
+      case 'removeAvoidTip':
+        return await removeAvoidTip(openid, data);
       default:
         return { success: false, error: '未知操作' };
     }
@@ -66,6 +70,10 @@ async function clearAllData(openid) {
     try {
       await db.collection('notes').where({ openid }).remove();
     } catch (e) { console.warn('clearAllData: notes:', e.message); }
+    // 删除避坑指南
+    try {
+      await db.collection('avoidTips').where({ openid }).remove();
+    } catch (e) { console.warn('clearAllData: avoidTips:', e.message); }
     return { success: true };
   } catch (err) {
     console.error('clearAllData failed:', err);
@@ -90,6 +98,10 @@ async function removeCityRecord(openid, data) {
     try {
       await db.collection('notes').where({ _openid: openid, cityId: cityId }).remove();
     } catch (e) { console.warn('removeCityRecord: notes:', e.message); }
+    // 删除该城市的避坑指南
+    try {
+      await db.collection('avoidTips').where({ _openid: openid, cityId: cityId }).remove();
+    } catch (e) { console.warn('removeCityRecord: avoidTips:', e.message); }
     return { success: true };
   } catch (err) {
     console.error('removeCityRecord failed:', err);
@@ -131,6 +143,53 @@ async function removeNote(openid, data) {
     return { success: true };
   } catch (err) {
     console.error('removeNote failed:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+// 同步避坑指南
+async function syncAvoidTips(openid, tips) {
+  const now = new Date().toISOString();
+  for (let i = 0; i < tips.length; i++) {
+    const tip = tips[i];
+    const existRes = await db.collection('avoidTips').where({
+      _openid: openid,
+      cityId: tip.cityId
+    }).get();
+    if (existRes.data.length > 0) {
+      await db.collection('avoidTips').doc(existRes.data[0]._id).update({
+        data: { content: tip.content, updateTime: now }
+      });
+    } else {
+      await db.collection('avoidTips').add({
+        data: {
+          _openid: openid,
+          cityId: tip.cityId,
+          provinceId: tip.provinceId || '',
+          content: tip.content,
+          createTime: now,
+          updateTime: now
+        }
+      });
+    }
+  }
+  return { success: true };
+}
+
+// 删除单条避坑指南
+async function removeAvoidTip(openid, data) {
+  const cityId = data && data.cityId;
+  if (!cityId) return { success: false, error: '缺少cityId' };
+  try {
+    try {
+      await db.collection('avoidTips').where({
+        _openid: openid,
+        cityId: cityId
+      }).remove();
+    } catch (e) { console.warn('removeAvoidTip:', e.message); }
+    return { success: true };
+  } catch (err) {
+    console.error('removeAvoidTip failed:', err);
     return { success: false, error: err.message };
   }
 }
@@ -288,6 +347,15 @@ async function getAllData(openid) {
     _openid: openid
   }).get();
   
+  // 获取避坑指南
+  let avoidTipData = [];
+  try {
+    const avoidRes = await db.collection('avoidTips').where({
+      _openid: openid
+    }).get();
+    avoidTipData = avoidRes.data;
+  } catch (e) { console.warn('getAllData: avoidTips:', e.message); }
+  
   // 获取用户信息
   const userRes = await db.collection('users').where({
     _openid: openid
@@ -299,6 +367,7 @@ async function getAllData(openid) {
       cityRecords: cityRes.data,
       photos: photoRes.data,
       notes: noteRes.data,
+      avoidTips: avoidTipData,
       userInfo: userRes.data[0] || null
     }
   };

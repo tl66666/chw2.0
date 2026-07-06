@@ -10,6 +10,7 @@ App({
     cityTravelPhotos: {},
     cityFoodPhotos: {},
     cityNotes: {},
+    cityAvoidTips: {},
     cardCount: 0,
     ssrCount: 0,
     urCount: 0,
@@ -249,6 +250,16 @@ App({
     }
     this.globalData.cityNotes = cloudNotes;
 
+    // 合并避坑指南
+    var cloudAvoidTips = {};
+    if (cloudData.avoidTips) {
+      for (var at = 0; at < cloudData.avoidTips.length; at++) {
+        var tip = cloudData.avoidTips[at];
+        cloudAvoidTips[tip.cityId] = tip.content;
+      }
+    }
+    this.globalData.cityAvoidTips = cloudAvoidTips;
+
     // 重新计算省份
     var citiesData = require('./utils/cities.js');
     var allCities = citiesData.cities || [];
@@ -320,6 +331,31 @@ App({
       }).catch(function() { /* 静默失败 */ });
     }
 
+    // 同步避坑指南
+    var avoidTips = [];
+    var avoidKeys = Object.keys(this.globalData.cityAvoidTips || {});
+    for (var ak = 0; ak < avoidKeys.length; ak++) {
+      var avoidCityId = avoidKeys[ak];
+      var tipContent = this.globalData.cityAvoidTips[avoidCityId];
+      if (tipContent && tipContent.trim()) {
+        avoidTips.push({
+          cityId: avoidCityId,
+          provinceId: this.getProvinceIdByCityId(avoidCityId),
+          content: tipContent
+        });
+      }
+    }
+    if (avoidTips.length > 0) {
+      wx.cloud.callFunction({
+        name: 'syncData',
+        data: {
+          action: 'syncAvoidTips',
+          data: avoidTips
+        },
+        timeout: 8000
+      }).catch(function() { /* 静默失败 */ });
+    }
+
     var photos = [];
     var travelKeys = Object.keys(this.globalData.cityTravelPhotos || {});
     for (var p = 0; p < travelKeys.length; p++) {
@@ -384,6 +420,7 @@ App({
       var cityTravelPhotos = wx.getStorageSync('cityTravelPhotos');
       var cityFoodPhotos = wx.getStorageSync('cityFoodPhotos');
       var cityNotes = wx.getStorageSync('cityNotes');
+      var cityAvoidTips = wx.getStorageSync('cityAvoidTips');
       var settings = wx.getStorageSync('settings');
       var cardCount = wx.getStorageSync('cardCount');
       var ssrCount = wx.getStorageSync('ssrCount');
@@ -409,6 +446,9 @@ App({
       }
       if (cityNotes) {
         this.globalData.cityNotes = JSON.parse(cityNotes);
+      }
+      if (cityAvoidTips) {
+        this.globalData.cityAvoidTips = JSON.parse(cityAvoidTips);
       }
       if (settings) {
         this.globalData.settings = JSON.parse(settings);
@@ -447,6 +487,7 @@ App({
       wx.setStorageSync('cityTravelPhotos', JSON.stringify(this.globalData.cityTravelPhotos));
       wx.setStorageSync('cityFoodPhotos', JSON.stringify(this.globalData.cityFoodPhotos));
       wx.setStorageSync('cityNotes', JSON.stringify(this.globalData.cityNotes));
+      wx.setStorageSync('cityAvoidTips', JSON.stringify(this.globalData.cityAvoidTips));
       wx.setStorageSync('settings', JSON.stringify(this.globalData.settings));
       wx.setStorageSync('cardCount', this.globalData.cardCount);
       wx.setStorageSync('ssrCount', this.globalData.ssrCount);

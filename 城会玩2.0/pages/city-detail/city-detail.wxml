@@ -57,7 +57,31 @@
     <view class="landmark-header">
       <text class="landmark-title">必打卡地标</text>
     </view>
-    <text class="landmark-text">{{landmark}}</text>
+    <view class="landmark-tags">
+      <text class="landmark-tag" wx:for="{{landmarkList}}" wx:key="index">{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 城市攻略 -->
+  <view class="guide-card" wx:if="{{cityGuide}}">
+    <view class="guide-header">
+      <text class="guide-title">旅行攻略</text>
+    </view>
+    <view class="guide-intro">
+      <text class="guide-intro-text">{{cityGuide.intro}}</text>
+    </view>
+    <view class="guide-info-row" wx:if="{{cityGuide.bestSeason}}">
+      <text class="guide-info-label">最佳季节</text>
+      <text class="guide-info-value">{{cityGuide.bestSeason}}</text>
+    </view>
+    <view class="guide-info-row" wx:if="{{cityGuide.transport}}">
+      <text class="guide-info-label">交通建议</text>
+      <text class="guide-info-value">{{cityGuide.transport}}</text>
+    </view>
+    <view class="guide-info-row" wx:if="{{cityGuide.tips}}">
+      <text class="guide-info-label">实用提示</text>
+      <text class="guide-info-value">{{cityGuide.tips}}</text>
+    </view>
   </view>
 
   <!-- 照片分类标签 -->
@@ -167,6 +191,23 @@
     <view class="note-footer">
       <text class="note-count">{{note.length}}/200</text>
       <view class="note-save" bindtap="saveNote">
+        <text>保存</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 避坑指南 -->
+  <view class="note-card avoid-card">
+    <view class="note-header">
+      <text class="note-title">避坑指南</text>
+      <view class="note-delete-btn" wx:if="{{avoidTip}}" bindtap="deleteAvoidTip">
+        <text>删除</text>
+      </view>
+    </view>
+    <textarea class="note-textarea avoid-textarea" placeholder="分享交通、住宿等方面的经验教训，帮助其他旅行者少走弯路..." value="{{avoidTip}}" bindinput="onAvoidTipInput" maxlength="300"/>
+    <view class="note-footer">
+      <text class="note-count">{{avoidTip.length}}/300</text>
+      <view class="note-save" bindtap="saveAvoidTip">
         <text>保存</text>
       </view>
     </view>

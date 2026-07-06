@@ -4,6 +4,7 @@
     "pages/index/index",
     "pages/city-detail/city-detail",
     "pages/cards/cards",
+    "pages/group/group",
     "pages/album/album",
     "pages/profile/profile"
   ],
@@ -27,7 +28,6 @@
       "root": "package-others",
       "pages": [
         "pages/achievements/achievements",
-        "pages/group/group",
         "pages/settings/settings"
       ]
     }
@@ -62,6 +62,12 @@
         "text": "相册",
         "iconPath": "images/tab-album.png",
         "selectedIconPath": "images/tab-album.png"
+      },
+      {
+        "pagePath": "pages/group/group",
+        "text": "群组",
+        "iconPath": "images/tab-group.png",
+        "selectedIconPath": "images/tab-group.png"
       },
       {
         "pagePath": "pages/profile/profile",

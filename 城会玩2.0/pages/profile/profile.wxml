@@ -111,7 +111,7 @@
     <view class="section-title-row">
       <view>
         <text class="menu-title">旅行工具</text>
-        <text class="section-subtitle">记录、整理、分享你的足迹</text>
+        <text class="section-subtitle">记录、整理你的足迹</text>
       </view>
     </view>
     <view class="menu-grid">
@@ -125,16 +125,6 @@
         </view>
       </view>
 
-      <view class="menu-grid-item" bindtap="goToGroup">
-        <view class="menu-grid-icon menu-icon-group">
-          <text class="menu-grid-icon-text">友</text>
-        </view>
-        <view class="menu-grid-copy">
-          <text class="menu-grid-name">我的群组</text>
-          <text class="menu-grid-desc">和好友一起打卡</text>
-        </view>
-      </view>
-
       <view class="menu-grid-item" bindtap="goToAchievements">
         <view class="menu-grid-icon menu-icon-achievement">
           <text class="menu-grid-icon-text">章</text>
@@ -142,16 +132,6 @@
         <view class="menu-grid-copy">
           <text class="menu-grid-name">成就系统</text>
           <text class="menu-grid-desc">解锁旅行徽章</text>
-        </view>
-      </view>
-
-      <view class="menu-grid-item" bindtap="shareApp">
-        <view class="menu-grid-icon menu-icon-share">
-          <text class="menu-grid-icon-text">享</text>
-        </view>
-        <view class="menu-grid-copy">
-          <text class="menu-grid-name">分享好友</text>
-          <text class="menu-grid-desc">邀请朋友一起记录</text>
         </view>
       </view>
 

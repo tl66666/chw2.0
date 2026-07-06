@@ -80,9 +80,9 @@
   <view class="empty-state" wx:else>
     <image class="empty-image" src="/images/ui/{{activeTab === 'food' ? 'empty-food' : 'empty-travel'}}.jpg" mode="aspectFit"/>
     <text class="empty-title">还没有{{activeTab === 'food' ? '美食' : '旅行'}}照片</text>
-    <text class="empty-desc">去记录你的第一次{{activeTab === 'food' ? '美食' : '旅行'}}吧</text>
-    <view class="empty-btn btn-gold" bindtap="goToUpload">
-      <text>记录足迹</text>
+    <text class="empty-desc">在地图上选择城市，进入城市详情页上传照片</text>
+    <view class="empty-btn btn-gold" bindtap="goToMap">
+      <text>去地图选城市</text>
     </view>
   </view>
 

@@ -111,7 +111,11 @@ Page({
     mapMarkers: [],
     recentCities: [],
     selectedProvince: '',
-    selectedProvinceId: ''
+    selectedProvinceId: '',
+    searchKeyword: '',
+    searchResults: [],
+    showSearchPanel: false,
+    recommendation: null
   },
 
   onLoad: function() {
@@ -298,6 +302,7 @@ Page({
       recentCities: recentCities
     });
     this.resolveRecentPhotoUrls(recentCities);
+    this.loadRecommendation();
 
     console.log('mapMarkers loaded:', mapMarkers.length, 'visitedProvinces:', visitedProvinceIds.length);
   },
@@ -372,27 +377,141 @@ Page({
     }
   },
 
-  goToUpload: function() {
-    audioManager.play('button_tap');
-    wx.navigateTo({ url: '/package-album/pages/upload/upload' });
-  },
-
   goToAlbum: function() {
     audioManager.play('button_tap');
     wx.switchTab({ url: '/pages/album/album' });
   },
 
-  goToCityDetail: function(e) {
-    audioManager.play('page_navigate');
-    var cityId = e.currentTarget.dataset.cityid;
-    wx.navigateTo({ url: '/pages/city-detail/city-detail?cityId=' + cityId });
+  // ===== 城市搜索 =====
+  onSearchInput: function(e) {
+    var keyword = e.detail.value.trim();
+    if (!keyword) {
+      this.setData({ searchResults: [], showSearchPanel: false, searchKeyword: '' });
+      return;
+    }
+    var visitedCities = app.globalData.visitedCities || [];
+    var results = [];
+    var kw = keyword.toLowerCase();
+    for (var i = 0; i < cities.length; i++) {
+      var c = cities[i];
+      if (c.name.indexOf(keyword) > -1 ||
+          (c.pinyin && c.pinyin.indexOf(kw) > -1) ||
+          c.id.indexOf(kw) > -1) {
+        var provName = '';
+        for (var j = 0; j < provinces.length; j++) {
+          if (provinces[j].id === c.provinceId) {
+            provName = provinces[j].name;
+            break;
+          }
+        }
+        results.push({
+          id: c.id,
+          name: c.name,
+          provinceId: c.provinceId,
+          provinceName: provName,
+          landmark: c.landmark || '',
+          visited: visitedCities.indexOf(c.id) > -1
+        });
+      }
+    }
+    this.setData({
+      searchKeyword: keyword,
+      searchResults: results.slice(0, 20),
+      showSearchPanel: true
+    });
   },
 
-  shareMap: function() {
-    wx.showShareMenu({
-      withShareTicket: true,
-      menus: ['shareAppMessage', 'shareTimeline']
+  onSearchFocus: function() {
+    if (this.data.searchResults.length > 0) {
+      this.setData({ showSearchPanel: true });
+    }
+  },
+
+  onSearchBlur: function() {
+    var self = this;
+    setTimeout(function() {
+      self.setData({ showSearchPanel: false });
+    }, 200);
+  },
+
+  onSearchClear: function() {
+    this.setData({ searchKeyword: '', searchResults: [], showSearchPanel: false });
+  },
+
+  onSearchResultTap: function(e) {
+    var cityId = e.currentTarget.dataset.cityid;
+    var city = null;
+    for (var i = 0; i < cities.length; i++) {
+      if (cities[i].id === cityId) { city = cities[i]; break; }
+    }
+    if (!city) return;
+    audioManager.play('page_navigate');
+    this.setData({ showSearchPanel: false, searchKeyword: '' });
+    wx.navigateTo({
+      url: '/pages/city-detail/city-detail?cityId=' + cityId
     });
+  },
+
+  // ===== 下一站推荐 =====
+  loadRecommendation: function() {
+    var cityGuides = require('../../utils/city-guides.js');
+    var guides = cityGuides.cityGuides;
+    var guideIds = Object.keys(guides);
+    var visitedCities = app.globalData.visitedCities || [];
+
+    // 筛选未打卡的城市
+    var unvisited = [];
+    for (var i = 0; i < guideIds.length; i++) {
+      if (visitedCities.indexOf(guideIds[i]) === -1) {
+        var g = guides[guideIds[i]];
+        var cityName = '';
+        var provinceName = '';
+        for (var j = 0; j < cities.length; j++) {
+          if (cities[j].id === guideIds[i]) {
+            cityName = cities[j].name;
+            for (var k = 0; k < provinces.length; k++) {
+              if (provinces[k].id === cities[j].provinceId) {
+                provinceName = provinces[k].name;
+                break;
+              }
+            }
+            break;
+          }
+        }
+        if (cityName) {
+          unvisited.push({
+            id: guideIds[i],
+            name: cityName,
+            provinceName: provinceName,
+            intro: g.intro,
+            bestSeason: g.bestSeason
+          });
+        }
+      }
+    }
+
+    if (unvisited.length === 0) {
+      this.setData({ recommendation: null });
+      return;
+    }
+
+    // 随机选一个
+    var pick = unvisited[Math.floor(Math.random() * unvisited.length)];
+    this.setData({ recommendation: pick });
+  },
+
+  onRecommendTap: function() {
+    var rec = this.data.recommendation;
+    if (!rec) return;
+    audioManager.play('page_navigate');
+    wx.navigateTo({
+      url: '/pages/city-detail/city-detail?cityId=' + rec.id
+    });
+  },
+
+  refreshRecommendation: function() {
+    audioManager.play('button_tap');
+    this.loadRecommendation();
   },
 
   onRecentImageError: function(e) {
@@ -402,14 +521,5 @@ Page({
       recentCities[index].photoUrl = '';
       this.setData({ recentCities: recentCities });
     }
-  },
-
-  onShareAppMessage: function() {
-    var visitedCount = this.data.visitedCount;
-    var visitedProvinces = this.data.visitedProvinces;
-    return {
-      title: '我已点亮 ' + visitedCount + ' 座城市，足迹遍布 ' + visitedProvinces + ' 个省份！',
-      path: '/pages/index/index'
-    };
   }
 });

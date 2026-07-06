@@ -107,6 +107,8 @@ Page({
     provinceName: '',
     provinceId: '',
     landmark: '',
+    landmarkList: [],
+    cityGuide: null,
     cityImage: '',
     cityIntro: '',
     travelPhotos: [],
@@ -159,13 +161,23 @@ Page({
       var self = this;
       var cloudPath = getProvinceImagePath(city.provinceId);
       
+      // 解析地标列表
+      var landmarkStr = city.landmark || '';
+      var landmarkArr = landmarkStr ? landmarkStr.split(/\s*[\/,，、]\s*/).filter(function(s) { return s.trim(); }) : [];
+      
+      // 获取城市攻略
+      var cityGuidesData = require('../../utils/city-guides.js');
+      var guide = cityGuidesData.getCityGuide(city.id);
+      
       this.setData({
         cityId: city.id,
         cityName: city.name,
         provinceName: province ? province.name : '',
         provinceId: city.provinceId,
         landmark: city.landmark || '',
-        cityImage: '', // 先清空，等获取临时链接后再设置
+        landmarkList: landmarkArr,
+        cityGuide: guide,
+        cityImage: '',
         cityIntro: cityIntros[cityId] || ''
       });
       
@@ -214,6 +226,12 @@ Page({
     for (var k = 0; k < Math.min(3, provinceCities.length); k++) {
       landmarkNames.push(provinceCities[k].name);
     }
+    var landmarkStr = landmarkNames.join('、');
+    var landmarkArr = landmarkStr ? landmarkStr.split(/\s*[\/,，、]\s*/).filter(function(s) { return s.trim(); }) : [];
+
+    // 获取城市攻略
+    var cityGuidesData = require('../../utils/city-guides.js');
+    var guide = displayCity ? cityGuidesData.getCityGuide(displayCity.id) : null;
 
     var self = this;
     this.setData({
@@ -221,8 +239,10 @@ Page({
       cityName: province ? province.name : '',
       provinceId: provinceId,
       provinceName: provinceCities.length + ' 座城市',
-      cityImage: '', // 先清空，等获取临时链接后再设置
-      landmark: landmarkNames.join('、')
+      cityImage: '',
+      landmark: landmarkStr,
+      landmarkList: landmarkArr,
+      cityGuide: guide
     });
     
     // 异步获取云存储图片临时链接
@@ -277,10 +297,15 @@ Page({
     var cityNotes = app.globalData.cityNotes || {};
     var note = cityNotes[cityId] || null;
     
+    // 加载避坑指南
+    var cityAvoidTips = app.globalData.cityAvoidTips || {};
+    var avoidTip = cityAvoidTips[cityId] || null;
+    
     this.setData({ 
       travelPhotos: travelPhotos,
       foodPhotos: foodPhotos,
-      note: note
+      note: note,
+      avoidTip: avoidTip
     });
     this.resolvePhotoDisplayUrls(cityId, travelPhotos, foodPhotos);
   },
@@ -1306,6 +1331,106 @@ Page({
     });
   },
 
+  // ===== 避坑指南 =====
+  onAvoidTipInput: function(e) {
+    this.setData({ avoidTip: e.detail.value });
+  },
+
+  saveAvoidTip: function() {
+    var self = this;
+    privacy.ensure(this, function() {
+      self.saveAvoidTipAfterPrivacy();
+    });
+  },
+
+  saveAvoidTipAfterPrivacy: function() {
+    var cityId = this.data.cityId;
+    var avoidTip = this.data.avoidTip;
+
+    if (!avoidTip || !avoidTip.trim()) {
+      this.commitAvoidTip(cityId, '');
+      return;
+    }
+
+    var self = this;
+    // 本地模式直接保存
+    if (!app.globalData.useCloud) {
+      this.commitAvoidTip(cityId, avoidTip);
+      return;
+    }
+
+    // 云端模式：文本安全校验
+    if (wx.cloud && app.globalData.isLogin) {
+      wx.showLoading({ title: '校验中...' });
+      wx.cloud.callFunction({
+        name: 'contentSecurity',
+        data: {
+          action: 'checkText',
+          data: { content: avoidTip }
+        },
+        timeout: 15000
+      }).then(function(res) {
+        wx.hideLoading();
+        if (res.result && res.result.pass) {
+          self.commitAvoidTip(cityId, avoidTip);
+        } else {
+          wx.showToast({ title: '内容不合规', icon: 'none' });
+        }
+      }).catch(function(err) {
+        wx.hideLoading();
+        wx.showToast({ title: '安全校验暂时不可用', icon: 'none' });
+      });
+    } else {
+      this.commitAvoidTip(cityId, avoidTip);
+    }
+  },
+
+  commitAvoidTip: function(cityId, avoidTip) {
+    var cityAvoidTips = app.globalData.cityAvoidTips || {};
+    cityAvoidTips[cityId] = avoidTip;
+    app.globalData.cityAvoidTips = cityAvoidTips;
+    app.saveData();
+    app.syncToCloud();
+    wx.showToast({ title: '保存成功', icon: 'success' });
+  },
+
+  deleteAvoidTip: function() {
+    var cityId = this.data.cityId;
+    var self = this;
+    wx.showModal({
+      title: '删除避坑指南',
+      content: '确定要删除这条避坑指南吗？',
+      confirmColor: '#F87171',
+      success: function(res) {
+        if (res.confirm) {
+          var cityAvoidTips = app.globalData.cityAvoidTips || {};
+          delete cityAvoidTips[cityId];
+          app.globalData.cityAvoidTips = cityAvoidTips;
+          app.saveData();
+
+          // 删除云端
+          if (wx.cloud && app.globalData.isLogin) {
+            wx.cloud.callFunction({
+              name: 'syncData',
+              data: {
+                action: 'removeAvoidTip',
+                data: { cityId: cityId }
+              },
+              timeout: 8000
+            }).then(function(res) {
+              console.log('[deleteAvoidTip] 云端避坑指南已删除', res.result);
+            }).catch(function(err) {
+              console.warn('[deleteAvoidTip] 云端删除失败:', err);
+            });
+          }
+
+          self.setData({ avoidTip: '' });
+          wx.showToast({ title: '已删除', icon: 'success' });
+        }
+      }
+    });
+  },
+
   removeCity: function() {
     var cityId = this.data.cityId;
     var self = this;
@@ -1343,6 +1468,11 @@ Page({
           var cityNotes = app.globalData.cityNotes || {};
           delete cityNotes[cityId];
           app.globalData.cityNotes = cityNotes;
+          
+          // 移除避坑指南
+          var cityAvoidTips = app.globalData.cityAvoidTips || {};
+          delete cityAvoidTips[cityId];
+          app.globalData.cityAvoidTips = cityAvoidTips;
           
           // 移除访问日期
           var cityVisitDates = app.globalData.visitDates || {};
@@ -1388,7 +1518,7 @@ Page({
           
           self.loadPhotos();
           self.checkVisited();
-          self.setData({ note: '' });
+          self.setData({ note: '', avoidTip: '' });
           
           wx.showToast({
             title: '已移除',
@@ -1396,13 +1526,6 @@ Page({
           });
         }
       }
-    });
-  },
-
-  shareCity: function() {
-    wx.showShareMenu({
-      withShareTicket: true,
-      menus: ['shareAppMessage', 'shareTimeline']
     });
   },
 

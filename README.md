@@ -16,6 +16,7 @@
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
   <img src="https://img.shields.io/badge/省份-34-red" alt="34省">
   <img src="https://img.shields.io/badge/城市-391-orange" alt="391城">
+  <img src="https://img.shields.io/badge/攻略-42城-9B59B6" alt="42城攻略">
   <img src="https://img.shields.io/badge/成就-30+-blueviolet" alt="30+成就">
 </p>
 
@@ -63,7 +64,9 @@
 
 - 支持 34 个省级行政区、391 座城市的旅行足迹管理。
 - 已点亮省份会在地图和省份标签中同步展示进度。
-- 城市详情页展示省份主题图、必打卡地标、点亮状态、旅行照片、美食照片和旅行笔记。
+- 城市搜索：输入城市名实时筛选，搜索结果标记已打卡城市，点击直达城市详情。
+- 下一站推荐：从城市攻略库中随机推荐未打卡城市，支持换一个重新推荐。
+- 城市详情页展示省份主题图、必打卡地标、旅行攻略、避坑指南、点亮状态、旅行照片、美食照片和旅行笔记。
 - 本地记录与云端记录结合，未加入群组时也能保存自己的旅行数据。
 - 支持取消打卡和移除城市记录，操作前有确认提示防止误触。
 
@@ -71,8 +74,10 @@
 
 - 城市详情页可上传旅行照片和美食照片，照片会归属到对应城市。
 - 上传时记录城市、省份、照片类型、时间、图片地址和文字说明，避免照片脱离地点语境。
+- 上传页城市选择器支持搜索筛选，热门城市快捷选择，搜索结果标记已打卡城市。
 - 相册页按全部、旅行、美食进行筛选，并按城市聚合查看。
 - 相册支持长按照片删除，删除时同步清除本地和云端记录。
+- 相册空状态引导用户前往地图选择城市，形成自然的使用路径。
 - 动态页会显示"点亮城市""上传旅行照片""记录美食"等真实行为。
 - 已加入群组时，成员上传到同一城市的照片会在城市详情、相册和动态中同步可见。
 
@@ -93,6 +98,7 @@
 
 ### 群组共享
 
+- 群组作为底部导航独立 Tab，突显共享旅行视角的产品特色。
 - 支持创建群组并生成 6 位邀请码，好友输入邀请码即可加入。
 - 群组类型分为朋友、情侣、家人三种。
 - 群组不是单独的上传空间，而是一种共享旅行视角。
@@ -103,7 +109,7 @@
 ### 我的页面
 
 - 展示头像、昵称、探索经验、点亮城市、探索省份、照片数量和探索进度。
-- 支持编辑昵称、头像，查看群组、成就、分享好友和设置。
+- 支持编辑昵称、头像，查看相册、成就和设置。
 - 最近动态会按省份和城市展示真实记录，减少无意义占位内容。
 - 支持清除所有旅行数据（本地 + 云端同步清除）。
 
@@ -180,8 +186,9 @@
     ├── sitemap.json          # 搜索索引配置
     ├── project.config.json   # 项目配置
     ├── pages/                # 主包页面
-    │   ├── index/            # 首页（中国地图、省份标签、最近记录）
-    │   ├── city-detail/      # 城市详情（打卡、照片、笔记、移除记录）
+    │   ├── index/            # 首页（中国地图、城市搜索、下一站推荐）
+    │   ├── city-detail/      # 城市详情（打卡、照片、笔记、攻略、避坑指南）
+    │   ├── group/            # 群组（底部导航 Tab，共享旅行地图）
     │   ├── profile/          # 我的（统计、动态、菜单）
     │   ├── album/            # 相册（按类型/城市筛选、长按删除）
     │   ├── cards/            # 角色卡收集墙
@@ -189,9 +196,7 @@
     │   ├── upload/           # 照片上传
     │   ├── unlock-card/      # 角色卡解锁动画
     │   ├── achievements/     # 成就墙
-    │   ├── group/            # 群组管理
     │   ├── settings/         # 设置
-    │   ├── travel-log/       # 旅行日志
     │   └── launch/           # 启动页
     ├── package-cards/        # 角色卡分包
     │   └── pages/
@@ -204,7 +209,6 @@
     │       └── upload/       # 照片上传
     ├── package-others/       # 扩展功能分包
     │   └── pages/
-    │       ├── group/        # 群组管理
     │       ├── achievements/ # 成就墙
     │       └── settings/     # 设置
     ├── package-assets/       # 资源分包
@@ -222,6 +226,7 @@
     │   ├── characters.js     # 角色卡数据
     │   ├── achievements.js   # 成就数据
     │   ├── audio-manager.js  # 音效管理
+    │   ├── city-guides.js     # 城市旅行攻略数据（42城）
     │   ├── group-view.js     # 群组共享视图合并
     │   ├── cloudImage.js     # 云图片处理
     │   ├── privacy.js        # 隐私设置
@@ -248,11 +253,13 @@
 | `syncCityRecords` | 批量同步城市打卡记录 |
 | `syncPhotos` | 批量同步照片 |
 | `syncNotes` | 同步笔记 |
+| `syncAvoidTips` | 同步避坑指南 |
 | `getAllData` | 拉取用户全部云端数据 |
 | `clearAllData` | 清除用户所有云端数据 |
 | `removeCityRecord` | 删除单个城市记录（含照片和笔记） |
 | `removePhoto` | 删除单张照片 |
 | `removeNote` | 删除单条笔记 |
+| `removeAvoidTip` | 删除单条避坑指南 |
 
 ### group
 
@@ -297,6 +304,7 @@
 | `cityRecords` | 个人城市打卡记录 | openid, cityId, provinceId, isVisited, visitTime |
 | `photos` | 个人照片记录 | openid, cityId, provinceId, type, fileId, url |
 | `notes` | 个人旅行笔记 | openid, cityId, provinceId, content |
+| `avoidTips` | 个人避坑指南 | openid, cityId, provinceId, content |
 | `groups` | 群组信息 | name, type, inviteCode, creatorOpenid |
 | `group_members` | 群组成员 | groupId, openid, nickName, role, cityCount, cityIds |
 | `group_city_records` | 群组城市打卡记录 | groupId, openid, cityId, cityName, provinceId |
@@ -324,7 +332,7 @@ git clone https://github.com/tl66666/chw2.0.git
 2. 填写你的小程序 AppID。
 3. 开通微信云开发环境（工具栏 → 云开发 → 开通）。
 4. 在云开发控制台创建以下数据库集合：
-   - `users`、`cityRecords`、`photos`、`notes`
+   - `users`、`cityRecords`、`photos`、`notes`、`avoidTips`
    - `groups`、`group_members`、`group_city_records`、`group_photos`
 5. 右键 `cloudfunctions/` 下每个云函数文件夹 → "上传并部署：云端安装依赖"。
 6. 编译运行小程序，进入首页后即可体验完整功能。
@@ -371,6 +379,7 @@ cloud://xxx/footprints/{timestamp}_{index}.jpg
 | 移除城市记录 | 城市详情页 → 移除记录按钮 | 清除该城市所有数据（打卡+照片+笔记+日期）+ 云端三表 |
 | 删除照片 | 城市详情页 × / 相册长按 | 移除本地照片 + 云端 photos 记录 |
 | 删除笔记 | 城市详情页 → 删除按钮 | 清空本地笔记 + 云端 notes 记录 |
+| 删除避坑指南 | 城市详情页 → 删除按钮 | 清空本地避坑指南 + 云端 avoidTips 记录 |
 | 清除全部数据 | 设置页 / 个人页 | 清除本地所有旅行数据 + 云端所有个人数据 |
 
 所有删除操作均带确认提示，防止误触。云端同步采用替换模式，确保删除后重新进入小程序不会恢复已删除的数据。

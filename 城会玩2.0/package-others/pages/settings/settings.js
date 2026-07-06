@@ -84,7 +84,7 @@ Page({
       success: function(res) {
         if (res.confirm) {
           // 清除本地旅行数据，但保留登录信息和设置
-          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'myGroup'];
+          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'cityAvoidTips', 'myGroup'];
           for (var i = 0; i < removeKeys.length; i++) {
             try { wx.removeStorageSync(removeKeys[i]); } catch (e) {}
           }
@@ -97,6 +97,7 @@ Page({
             app.globalData.cityTravelPhotos = {};
             app.globalData.cityFoodPhotos = {};
             app.globalData.cityNotes = {};
+            app.globalData.cityAvoidTips = {};
           }
           // 清除云端数据
           if (wx.cloud && app.globalData.isLogin) {

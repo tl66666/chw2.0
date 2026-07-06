@@ -30,6 +30,31 @@
       <text class="section-subtitle">{{selectedProvince ? '选中：' + selectedProvince : '点击标记探索省份'}}</text>
     </view>
 
+    <!-- 城市搜索框 -->
+    <view class="search-bar">
+      <view class="search-input-wrap">
+        <text class="search-icon">🔍</text>
+        <input class="search-input" placeholder="搜索城市名称..." value="{{searchKeyword}}" bindinput="onSearchInput" bindfocus="onSearchFocus" bindblur="onSearchBlur" confirm-type="search"/>
+        <text class="search-clear" wx:if="{{searchKeyword}}" bindtap="onSearchClear">✕</text>
+      </view>
+      <!-- 搜索结果面板 -->
+      <view class="search-results-panel" wx:if="{{showSearchPanel && searchResults.length > 0}}">
+        <view class="search-result-item" wx:for="{{searchResults}}" wx:key="id" bindtap="onSearchResultTap" data-cityid="{{item.id}}">
+          <view class="result-info">
+            <view class="result-name-row">
+              <text class="result-name">{{item.name}}</text>
+              <text class="result-visited-tag" wx:if="{{item.visited}}">✓ 已打卡</text>
+            </view>
+            <text class="result-province">{{item.provinceName}}</text>
+          </view>
+          <text class="result-landmark" wx:if="{{item.landmark}}">{{item.landmark}}</text>
+        </view>
+      </view>
+      <view class="search-results-panel search-no-result" wx:if="{{showSearchPanel && searchResults.length === 0 && searchKeyword}}">
+        <text class="no-result-text">未找到"{{searchKeyword}}"相关城市</text>
+      </view>
+    </view>
+
     <!-- 地图容器 -->
     <view class="map-wrapper">
       <map
@@ -121,13 +146,27 @@
     </scroll-view>
   </view>
 
-  <!-- 快捷操作 -->
-  <view class="quick-actions">
-    <view class="action-btn btn-pink" bindtap="goToUpload">
-      <text>记录新足迹</text>
+  <!-- 下一站推荐 -->
+  <view class="recommend-section" wx:if="{{recommendation}}">
+    <view class="recommend-header">
+      <text class="recommend-title">下一站推荐</text>
+      <view class="recommend-refresh" bindtap="refreshRecommendation">
+        <text class="refresh-icon">↻</text>
+        <text class="refresh-text">换一个</text>
+      </view>
     </view>
-    <view class="action-btn btn-secondary" bindtap="shareMap">
-      <text>分享地图</text>
+    <view class="recommend-card" bindtap="onRecommendTap">
+      <view class="recommend-info">
+        <view class="recommend-city-row">
+          <text class="recommend-city">{{recommendation.name}}</text>
+          <text class="recommend-province">{{recommendation.provinceName}}</text>
+        </view>
+        <text class="recommend-intro">{{recommendation.intro}}</text>
+        <text class="recommend-season" wx:if="{{recommendation.bestSeason}}">最佳季节：{{recommendation.bestSeason}}</text>
+      </view>
+      <view class="recommend-arrow">
+        <text>›</text>
+      </view>
     </view>
   </view>
 </view>

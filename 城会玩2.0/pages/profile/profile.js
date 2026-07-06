@@ -513,12 +513,6 @@ Page({
     return cityId;
   },
 
-  goToUpload: function() {
-    wx.navigateTo({
-      url: '/package-album/pages/upload/upload'
-    });
-  },
-
   goToAlbum: function() {
     wx.switchTab({
       url: '/pages/album/album',
@@ -541,22 +535,9 @@ Page({
     });
   },
 
-  goToGroup: function() {
-    wx.navigateTo({
-      url: '/package-others/pages/group/group'
-    });
-  },
-
   goToAchievements: function() {
     wx.navigateTo({
       url: '/package-others/pages/achievements/achievements'
-    });
-  },
-
-  shareApp: function() {
-    wx.showShareMenu({
-      withShareTicket: true,
-      menus: ['shareAppMessage', 'shareTimeline']
     });
   },
 
@@ -576,10 +557,11 @@ Page({
           app.globalData.cityTravelPhotos = {};
           app.globalData.cityFoodPhotos = {};
           app.globalData.cityNotes = {};
+          app.globalData.cityAvoidTips = {};
           app.saveData();
 
           // 同步清除本地存储中的旅行数据
-          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'myGroup'];
+          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'cityAvoidTips', 'myGroup'];
           for (var i = 0; i < removeKeys.length; i++) {
             try { wx.removeStorageSync(removeKeys[i]); } catch (e) {}
           }
@@ -775,16 +757,6 @@ Page({
         });
       }
     });
-  },
-
-  onShareAppMessage: function() {
-    var visitedCount = this.data.visitedCount;
-    var visitedProvinces = this.data.visitedProvinces;
-    var levelTitle = this.data.levelInfo.title;
-    return {
-      title: '我是' + levelTitle + '，已点亮 ' + visitedCount + ' 座城市，足迹遍布 ' + visitedProvinces + ' 个省份！',
-      path: '/pages/index/index'
-    };
   },
 
   onPrivacyAgree: function() {

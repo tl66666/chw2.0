@@ -254,9 +254,9 @@ Page({
     });
   },
 
-  goToUpload: function() {
-    wx.navigateTo({
-      url: '/package-album/pages/upload/upload'
+  goToMap: function() {
+    wx.switchTab({
+      url: '/pages/index/index'
     });
   }
 });
