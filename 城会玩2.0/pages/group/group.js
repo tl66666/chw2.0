@@ -99,6 +99,9 @@ Page({
   },
 
   getCityName: function(cityId) {
+    // 优先使用 cityDisplayNames（记录了打卡时的显示名称）
+    var cityDisplayNames = app.globalData.cityDisplayNames || {};
+    if (cityDisplayNames[cityId]) return cityDisplayNames[cityId];
     var cities = citiesData.cities || [];
     for (var i = 0; i < cities.length; i++) {
       if (cities[i].id === cityId) return cities[i].name;
@@ -590,7 +593,8 @@ Page({
       cityNameMap[cities[i].id] = cities[i].name;
       cityProvinceMap[cities[i].id] = cities[i].provinceId || '';
     }
-    function getCityName(cityId) { return cityNameMap[cityId] || cityId; }
+    var displayNames = app.globalData.cityDisplayNames || {};
+    function getCityName(cityId) { return displayNames[cityId] || cityNameMap[cityId] || cityId; }
     function getProvinceId(cityId) { return cityProvinceMap[cityId] || ''; }
     addList(app.globalData.cityTravelPhotos || {}, 'travel');
     addList(app.globalData.cityPhotos || {}, 'travel');
