@@ -1,2 +1,96 @@
-<!--pages/album/album.wxml-->
-<text>pages/album/album.wxml</text>
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="album-header">
+    <text class="album-title">旅行相册</text>
+    <view class="album-stats">
+      <text class="stats-text">{{totalPhotos}} 张照片 · {{visitedCount}} 个省份</text>
+    </view>
+  </view>
+
+  <!-- 统计卡片 -->
+  <view class="stats-card">
+    <view class="stat-item">
+      <text class="stat-value">{{totalPhotos}}</text>
+      <text class="stat-label">全部照片</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value stat-travel">{{travelPhotoCount}}</text>
+      <text class="stat-label">旅行</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value stat-food">{{foodPhotoCount}}</text>
+      <text class="stat-label">美食</text>
+    </view>
+  </view>
+
+  <!-- 照片分类标签 -->
+  <view class="photo-tabs">
+    <view class="photo-tab {{activeTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">
+      <text class="tab-text">全部</text>
+      <text class="tab-count">{{totalPhotos}}</text>
+    </view>
+    <view class="photo-tab {{activeTab === 'travel' ? 'active' : ''}}" bindtap="switchTab" data-tab="travel">
+      <text class="tab-text">旅行</text>
+      <text class="tab-count">{{travelPhotoCount}}</text>
+    </view>
+    <view class="photo-tab {{activeTab === 'food' ? 'active' : ''}}" bindtap="switchTab" data-tab="food">
+      <text class="tab-text">美食</text>
+      <text class="tab-count">{{foodPhotoCount}}</text>
+    </view>
+  </view>
+
+  <!-- 城市筛选标签：仅当有已点亮城市且有照片时显示 -->
+  <view class="city-filter-section" wx:if="{{visitedCities.length > 0}}">
+    <view class="filter-header">
+      <text class="filter-label">按省份筛选</text>
+      <text class="filter-count">{{visitedCities.length}} 个省份</text>
+    </view>
+    <scroll-view scroll-x class="city-tags" enable-flex>
+      <view class="tags-list">
+        <view class="tag {{selectedCity === '' ? 'tag-active' : ''}}" bindtap="filterByCity" data-city="">
+          <text class="tag-text">全部省份</text>
+        </view>
+        <view wx:for="{{visitedCities}}" wx:key="id" class="tag {{selectedCity === item.id ? 'tag-active' : ''}}" bindtap="filterByCity" data-city="{{item.id}}">
+          <text class="tag-text">{{item.name}}</text>
+          <text class="tag-badge">{{item.photoCount}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 长按提示 -->
+  <view class="longpress-hint" wx:if="{{displayPhotos.length > 0}}">
+    <text>长按照片可删除</text>
+  </view>
+
+  <!-- 照片网格 -->
+  <view class="photos-grid" wx:if="{{displayPhotos.length > 0}}">
+    <view wx:for="{{displayPhotos}}" wx:key="index" class="photo-card" bindtap="previewPhoto" bindlongpress="onPhotoLongPress" data-url="{{item.displayUrl || item.url}}" data-index="{{index}}" data-city-id="{{item.cityId}}" data-type="{{item.type}}" data-file-id="{{item.url}}">
+      <image class="photo-image" src="{{item.displayUrl || item.url}}" mode="aspectFill" lazy-load/>
+      <view class="photo-overlay">
+        <view class="photo-info">
+          <view class="photo-meta-top">
+            <text class="photo-type {{item.type === 'food' ? 'type-food' : 'type-travel'}}">{{item.typeText}}</text>
+            <text class="photo-date">{{item.date}}</text>
+          </view>
+          <text class="photo-city">{{item.cityName}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:else>
+    <image class="empty-image" src="/images/ui/{{activeTab === 'food' ? 'empty-food' : 'empty-travel'}}.jpg" mode="aspectFit"/>
+    <text class="empty-title">还没有{{activeTab === 'food' ? '美食' : '旅行'}}照片</text>
+    <text class="empty-desc">去记录你的第一次{{activeTab === 'food' ? '美食' : '旅行'}}吧</text>
+    <view class="empty-btn btn-gold" bindtap="goToUpload">
+      <text>记录足迹</text>
+    </view>
+  </view>
+
+  <!-- 底部安全区域 -->
+  <view class="safe-area-bottom"></view>
+</view>

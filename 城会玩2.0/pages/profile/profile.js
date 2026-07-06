@@ -343,18 +343,14 @@ Page({
     // 收集所有活动数据
     var allActivities = [];
 
-    // 城市访问记录 —— 按省份去重，每个省份只显示一条
-    var seenProvinces = {};
+    // 城市访问记录 —— 每个城市单独显示一条
     for (var i = 0; i < visitedCities.length; i++) {
       var cityId = visitedCities[i];
-      var provinceId = this.getProvinceIdByCityId(cityId);
-      if (!provinceId || seenProvinces[provinceId]) continue;
-      seenProvinces[provinceId] = true;
-      var provinceName = this.getProvinceNameById(provinceId);
+      var cityName = this.getCityNameById(cityId);
       allActivities.push({
         type: 'city',
         iconText: ACTIVITY_ICON_TEXT.city,
-        text: '点亮了 ' + provinceName,
+        text: '已点亮 ' + cityName,
         time: '已探索',
         sortKey: i
       });
@@ -403,7 +399,7 @@ Page({
         allActivities.push({
           type: 'note',
           iconText: ACTIVITY_ICON_TEXT.note,
-          text: '为 ' + cityName + ' 添加了旅行笔记',
+          text: '为 ' + placeName + ' 添加了旅行笔记',
           time: '笔记记录',
           sortKey: 3000 + n
         });
@@ -484,32 +480,16 @@ Page({
     return '未知省份';
   },
 
-  // 根据城市ID获取省份名称（兼容城市名称字符串）
+  // 根据城市ID获取城市名称
   getPlaceNameById: function(cityId) {
-    if (!cityId) return '未知地区';
+    if (!cityId) return '未知城市';
     // 先尝试作为城市ID查找
-    var provinceId = '';
     for (var i = 0; i < cities.length; i++) {
       if (cities[i].id === cityId) {
-        provinceId = cities[i].provinceId;
-        break;
+        return cities[i].name;
       }
     }
-    if (provinceId) {
-      for (var j = 0; j < provinces.length; j++) {
-        if (provinces[j].id === provinceId) return provinces[j].name;
-      }
-    }
-    // 如果找不到，尝试作为城市名称查找对应省份
-    for (var k = 0; k < cities.length; k++) {
-      if (cities[k].name === cityId) {
-        var pid = cities[k].provinceId;
-        for (var m = 0; m < provinces.length; m++) {
-          if (provinces[m].id === pid) return provinces[m].name;
-        }
-      }
-    }
-    // 都找不到，返回原始值
+    // 如果找不到，尝试作为城市名称字符串直接返回
     return cityId;
   },
 

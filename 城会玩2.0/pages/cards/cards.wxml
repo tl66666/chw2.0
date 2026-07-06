@@ -1,2 +1,84 @@
-<!--pages/cards/cards.wxml-->
-<text>pages/cards/cards.wxml</text>
+<view class="container cards-page">
+  <view class="cards-hero">
+    <view>
+      <text class="eyebrow">Travel Companions</text>
+      <text class="cards-title">我的角色卡</text>
+      <text class="cards-desc">点亮城市后自动收集省份守护角色，云端卡面加载失败时也会显示旅行卡面。</text>
+    </view>
+    <view class="hero-counter">
+      <text class="counter-main">{{collectedCount}}</text>
+      <text class="counter-sub">/{{totalCount}}</text>
+    </view>
+  </view>
+
+  <view class="progress-card">
+    <view class="progress-row">
+      <text>图鉴进度</text>
+      <text>{{progressPercent}}%</text>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{progressPercent}}%"></view>
+    </view>
+  </view>
+
+  <scroll-view class="filter-scroll" scroll-x enable-flex>
+    <view class="filter-tabs">
+      <view class="filter-tab {{selectedRarity === 'all' ? 'active' : ''}}" bindtap="filterByRarity" data-rarity="all">全部</view>
+      <view class="filter-tab rarity-UR {{selectedRarity === 'UR' ? 'active' : ''}}" bindtap="filterByRarity" data-rarity="UR">UR</view>
+      <view class="filter-tab rarity-SSR {{selectedRarity === 'SSR' ? 'active' : ''}}" bindtap="filterByRarity" data-rarity="SSR">SSR</view>
+      <view class="filter-tab rarity-SR {{selectedRarity === 'SR' ? 'active' : ''}}" bindtap="filterByRarity" data-rarity="SR">SR</view>
+      <view class="filter-tab rarity-R {{selectedRarity === 'R' ? 'active' : ''}}" bindtap="filterByRarity" data-rarity="R">R</view>
+      <view class="filter-tab owned-tab {{ownedOnly ? 'active' : ''}}" bindtap="toggleOwnedOnly">只看已拥有</view>
+    </view>
+  </scroll-view>
+
+  <view class="cards-grid">
+    <view
+      wx:for="{{cards}}"
+      wx:key="provinceId"
+      class="card-item {{item.isCollected ? 'collected' : 'locked'}} rarity-{{item.rarity}}"
+      bindtap="goToCardDetail"
+      data-id="{{item.provinceId}}"
+      wx:if="{{(selectedRarity === 'all' || selectedRarity === item.rarity) && (!ownedOnly || item.isCollected)}}"
+    >
+      <view class="card-cover">
+        <view class="poster-fallback rarity-{{item.rarity}}">
+          <view class="poster-orbit"></view>
+          <view class="poster-mark">{{item.provinceShort}}</view>
+          <view class="poster-lines">
+            <view></view>
+            <view></view>
+            <view></view>
+          </view>
+        </view>
+        <image
+          wx:if="{{item.imagePath}}"
+          class="card-image {{item.isCollected ? '' : 'grayscale'}}"
+          src="{{item.imagePath}}"
+          mode="aspectFill"
+          data-id="{{item.provinceId}}"
+          binderror="onCardImageError"
+        />
+        <view class="lock-mask" wx:if="{{!item.isCollected}}">
+          <view class="lock-dot"></view>
+          <text>未解锁</text>
+        </view>
+        <view class="rarity-badge rarity-{{item.rarity}}">{{item.rarity}}</view>
+      </view>
+      <view class="card-info">
+        <text class="card-name">{{item.name}}</text>
+        <text class="card-title">「{{item.title}}」</text>
+        <view class="meta-row">
+          <text>{{item.provinceName}}</text>
+          <text>{{item.isCollected ? '已收集' : '去点亮'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{visibleCount === 0}}">
+    <view class="empty-symbol">卡</view>
+    <text class="empty-title">{{ownedOnly ? '还没有已拥有的角色卡' : '没有符合筛选的角色卡'}}</text>
+    <text class="empty-desc">去地图点亮城市，就能解锁对应省份的旅行角色。</text>
+  </view>
+</view>

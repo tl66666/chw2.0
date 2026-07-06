@@ -1,7 +1,7 @@
 var app = getApp();
-var citiesData = require('../../utils/cities.js');
-var provincesData = require('../../utils/provinces.js');
-var groupView = require('../../utils/group-view.js');
+var citiesData = require('../../../utils/cities.js');
+var provincesData = require('../../../utils/provinces.js');
+var groupView = require('../../../utils/group-view.js');
 
 function parseJSON(value, fallback) {
   if (!value) return fallback;
@@ -192,22 +192,33 @@ Page({
     var userInfo = this.getSafeUserInfo();
     var localActivities = [];
     var visitedCities = groupView.mergeCityIds(app.globalData.visitedCities || []);
+    var seenProv = {};
     var allCities = citiesData.cities || [];
+    var allProvinces = provincesData.provinces || [];
     for (var i = 0; i < visitedCities.length && i < 20; i++) {
       var cityId = visitedCities[i];
-      var cityName = '';
+      var provId = '';
+      var provName = '';
       for (var c = 0; c < allCities.length; c++) {
         if (allCities[c].id === cityId) {
-          cityName = allCities[c].name;
+          provId = allCities[c].provinceId;
           break;
         }
       }
-      if (cityName) {
+      if (!provId || seenProv[provId]) continue;
+      seenProv[provId] = true;
+      for (var p = 0; p < allProvinces.length; p++) {
+        if (allProvinces[p].id === provId) {
+          provName = allProvinces[p].name;
+          break;
+        }
+      }
+      if (provName) {
         localActivities.push({
-          id: 'local_city_' + cityId,
+          id: 'local_city_' + provId,
           type: 'city',
           userName: userInfo.nickName,
-          cityName: cityName,
+          cityName: provName,
           createTime: '',
           displayTime: '已探索'
         });
@@ -260,15 +271,16 @@ Page({
     this.setData({ loading: true });
 
     try {
-      var localGroup = parseJSON(wx.getStorageSync('myGroup'), null);
-      if (localGroup && localGroup.groupInfo) {
-        var freshActivities = this.buildLocalActivities();
-        if (freshActivities.length > 0) {
-          localGroup.recentActivities = freshActivities;
-          wx.setStorageSync('myGroup', JSON.stringify(localGroup));
-        }
-        this.applyGroupData(localGroup);
+    var localGroup = parseJSON(wx.getStorageSync('myGroup'), null);
+    if (localGroup && localGroup.groupInfo) {
+      // 刷新本地动态：用用户最新的已访问城市重新生成
+      var freshActivities = this.buildLocalActivities();
+      if (freshActivities.length > 0) {
+        localGroup.recentActivities = freshActivities;
+        wx.setStorageSync('myGroup', JSON.stringify(localGroup));
       }
+      this.applyGroupData(localGroup);
+    }
     } catch (e) {
       console.error('[group] loadGroupInfo local data error:', e);
       this.setData({ loading: false });
@@ -286,6 +298,7 @@ Page({
     }).then(function(res) {
       var result = res.result || {};
       if (result.success && result.groupInfo) {
+        // 如果云端动态为空，保留本地动态
         if ((!result.recentActivities || result.recentActivities.length === 0) &&
             localGroup && localGroup.recentActivities && localGroup.recentActivities.length > 0) {
           result.recentActivities = localGroup.recentActivities;
@@ -386,7 +399,7 @@ Page({
         self.setData({ showCreateModal: false });
         wx.showModal({
           title: '云端同步失败',
-          content: (result.message || '群组已保存在本机，但好友可能暂时无法加入。'),
+          content: (result.message || '群组已保存在本机，但好友可能暂时无法加入。请确认 group 云函数和 groups/group_members 集合已部署。'),
           showCancel: false
         });
       }
@@ -397,7 +410,7 @@ Page({
       self.setData({ showCreateModal: false });
       wx.showModal({
         title: '云端连接超时',
-        content: '群组已保存在本机。多人同步需要云函数 group 可用。',
+        content: '群组已保存在本机。多人同步需要云函数 group 可用，稍后可重新进入群组页刷新。',
         showCancel: false
       });
     });
@@ -648,5 +661,28 @@ Page({
     var urls = (this.data.sharedPhotos || []).map(function(item) { return item.url; }).filter(Boolean);
     if (!url || urls.length === 0) return;
     wx.previewImage({ current: url, urls: urls });
+  },
+
+  onShareAppMessage: function() {
+    var groupInfo = this.data.groupInfo;
+    var inviteCode = this.data.inviteCode;
+    if (groupInfo && inviteCode) {
+      return {
+        title: '邀请你加入「' + groupInfo.name + '」旅行小队',
+        path: '/package-others/pages/group/group?inviteCode=' + inviteCode
+      };
+    }
+    return {
+      title: '城会玩2.0 - 和朋友一起点亮城市',
+      path: '/pages/index/index'
+    };
+  },
+
+  onShareTimeline: function() {
+    var groupInfo = this.data.groupInfo;
+    return {
+      title: groupInfo ? '「' + groupInfo.name + '」的共同城市足迹' : '城会玩2.0 - 和朋友一起点亮城市',
+      query: groupInfo ? 'inviteCode=' + this.data.inviteCode : ''
+    };
   }
 });
