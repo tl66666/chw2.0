@@ -1,0 +1,115 @@
+<view class="page-container">
+  <!-- 角色卡大图 -->
+  <view class="card-image-section">
+    <view class="card-image-wrapper">
+      <image class="card-image" src="{{cardImage}}" mode="aspectFill"/>
+      <view class="card-rarity" style="background:{{rarityColor}}">{{character.rarity}}</view>
+      <view class="card-overlay" wx:if="{{!isUnlocked}}">
+        <view class="lock-circle">
+          <view class="lock-icon"></view>
+        </view>
+        <text class="lock-text">未解锁</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 角色信息 -->
+  <view class="info-section">
+    <text class="character-name">{{character.name}}</text>
+    <text class="character-title">「{{character.title}}」</text>
+    <view class="province-badge">
+      <text class="province-name">{{province.name}}</text>
+      <text class="province-abbr">{{province.abbr}}</text>
+    </view>
+  </view>
+
+  <!-- 属性区域 -->
+  <view class="attributes-section" wx:if="{{isUnlocked}}">
+    <view class="section-header">
+      <text class="section-title">角色属性</text>
+    </view>
+    <view class="attr-grid">
+      <view class="attr-row">
+        <view class="attr-icon icon-culture"></view>
+        <text class="attr-label">文化</text>
+        <view class="attr-bar-bg">
+          <view class="attr-bar-fill culture" style="width: {{character.attributes.culture}}%"></view>
+        </view>
+        <text class="attr-score">{{character.attributes.culture}}</text>
+      </view>
+      <view class="attr-row">
+        <view class="attr-icon icon-fashion"></view>
+        <text class="attr-label">时尚</text>
+        <view class="attr-bar-bg">
+          <view class="attr-bar-fill fashion" style="width: {{character.attributes.fashion}}%"></view>
+        </view>
+        <text class="attr-score">{{character.attributes.fashion}}</text>
+      </view>
+      <view class="attr-row">
+        <view class="attr-icon icon-food"></view>
+        <text class="attr-label">美食</text>
+        <view class="attr-bar-bg">
+          <view class="attr-bar-fill food" style="width: {{character.attributes.food}}%"></view>
+        </view>
+        <text class="attr-score">{{character.attributes.food}}</text>
+      </view>
+      <view class="attr-row">
+        <view class="attr-icon icon-history"></view>
+        <text class="attr-label">历史</text>
+        <view class="attr-bar-bg">
+          <view class="attr-bar-fill history" style="width: {{character.attributes.history}}%"></view>
+        </view>
+        <text class="attr-score">{{character.attributes.history}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 技能 + 引言 合并卡片 -->
+  <view class="skill-quote-section" wx:if="{{isUnlocked}}">
+    <view class="section-header">
+      <text class="section-title">专属技能</text>
+    </view>
+    <view class="skill-row">
+      <view class="skill-icon icon-skill"></view>
+      <text class="skill-name">「{{character.skill}}」</text>
+    </view>
+    <view class="quote-divider"></view>
+    <view class="quote-row">
+      <text class="quote-mark">"</text>
+      <text class="quote-text">{{character.quote}}</text>
+      <text class="quote-mark">"</text>
+    </view>
+  </view>
+
+  <!-- 角色故事 -->
+  <view class="story-section" wx:if="{{isUnlocked && character.description}}">
+    <view class="section-header">
+      <text class="section-title">角色故事</text>
+    </view>
+    <text class="story-text">{{character.description}}</text>
+  </view>
+
+  <!-- 未解锁提示 -->
+  <view class="locked-section" wx:if="{{!isUnlocked}}">
+    <view class="locked-card">
+      <view class="locked-title">
+        <view class="lock-icon-small"></view>
+        <text>角色卡未解锁</text>
+      </view>
+      <text class="locked-hint">前往{{province.name}}打卡即可解锁此角色卡</text>
+      <text class="locked-rarity">稀有度：{{character.rarity}}</text>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-actions">
+    <button class="action-btn btn-back" bindtap="goBack">
+      <view class="btn-icon icon-back"></view>
+      <text>返回</text>
+    </button>
+    <button class="action-btn btn-share" open-type="share">
+      <view class="btn-icon icon-share"></view>
+      <text>分享</text>
+    </button>
+  </view>
+</view>
