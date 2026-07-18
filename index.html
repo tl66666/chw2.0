@@ -55,13 +55,15 @@
                               radial-gradient(circle at 50% 75%, rgba(255,217,61,0.12) 0%, transparent 30%);
         }
         .site-nav {
-            position: absolute; z-index: 5; top: 1.15rem; left: 50%; transform: translateX(-50%);
+            position: fixed; z-index: 20; top: 1.15rem; left: 50%; transform: translateX(-50%);
             width: min(960px, calc(100% - 2.4rem)); min-height: 3.45rem; padding: 0.42rem 0.5rem 0.42rem 1rem;
             display: flex; align-items: center; gap: 1rem;
-            border: 1px solid rgba(255,255,255,0.2); border-radius: 16px;
-            background: rgba(18, 26, 48, 0.48); backdrop-filter: blur(18px);
-            box-shadow: 0 12px 32px rgba(4, 8, 24, 0.2);
+            border: 1px solid rgba(255,255,255,0.16); border-radius: 16px;
+            background: rgba(18, 26, 48, 0.22); backdrop-filter: blur(20px) saturate(1.15);
+            box-shadow: 0 12px 32px rgba(4, 8, 24, 0.13);
+            transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
         }
+        .site-nav.is-scrolled { background: rgba(18, 26, 48, 0.58); border-color: rgba(255,255,255,0.24); box-shadow: 0 12px 34px rgba(4, 8, 24, 0.22); }
         .site-nav-brand {
             flex: 0 0 auto; color: #FFFFFF; font-size: 0.98rem; font-weight: 800;
             line-height: 1; text-decoration: none; letter-spacing: 0.03em;
@@ -992,6 +994,12 @@
         entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
     }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Keep the translucent navigation legible over both the hero and light content sections.
+    const siteNav = document.querySelector('.site-nav');
+    const updateNavContrast = () => siteNav && siteNav.classList.toggle('is-scrolled', window.scrollY > 60);
+    updateNavContrast();
+    window.addEventListener('scroll', updateNavContrast, { passive: true });
 
     // Hero video soft loop transition (single video)
     (function() {
