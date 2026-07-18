@@ -63,7 +63,12 @@
             box-shadow: 0 12px 32px rgba(4, 8, 24, 0.13);
             transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
         }
-        .site-nav.is-scrolled { background: rgba(18, 26, 48, 0.58); border-color: rgba(255,255,255,0.24); box-shadow: 0 12px 34px rgba(4, 8, 24, 0.22); }
+        .site-nav.is-scrolled {
+            top: 0.7rem; min-height: 2.9rem; padding-block: 0.27rem;
+            background: rgba(18, 26, 48, 0.42); border-color: rgba(255,255,255,0.18);
+            box-shadow: 0 10px 26px rgba(4, 8, 24, 0.14);
+        }
+        .site-nav.is-scrolled .site-nav-links a { min-height: 2.1rem; }
         .site-nav-brand {
             flex: 0 0 auto; color: #FFFFFF; font-size: 0.98rem; font-weight: 800;
             line-height: 1; text-decoration: none; letter-spacing: 0.03em;
@@ -997,7 +1002,11 @@
 
     // Keep the translucent navigation legible over both the hero and light content sections.
     const siteNav = document.querySelector('.site-nav');
-    const updateNavContrast = () => siteNav && siteNav.classList.toggle('is-scrolled', window.scrollY > 60);
+    const updateNavContrast = () => {
+        if (!siteNav) return;
+        const currentScrollY = window.scrollY;
+        siteNav.classList.toggle('is-scrolled', currentScrollY > 60);
+    };
     updateNavContrast();
     window.addEventListener('scroll', updateNavContrast, { passive: true });
 
