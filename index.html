@@ -54,20 +54,41 @@
                               radial-gradient(circle at 75% 25%, rgba(168,216,234,0.16) 0%, transparent 30%),
                               radial-gradient(circle at 50% 75%, rgba(255,217,61,0.12) 0%, transparent 30%);
         }
+        .site-nav {
+            position: absolute; z-index: 5; top: 1.15rem; left: 50%; transform: translateX(-50%);
+            width: min(960px, calc(100% - 2.4rem)); min-height: 3.45rem; padding: 0.42rem 0.5rem 0.42rem 1rem;
+            display: flex; align-items: center; gap: 1rem;
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 16px;
+            background: rgba(18, 26, 48, 0.48); backdrop-filter: blur(18px);
+            box-shadow: 0 12px 32px rgba(4, 8, 24, 0.2);
+        }
+        .site-nav-brand {
+            flex: 0 0 auto; color: #FFFFFF; font-size: 0.98rem; font-weight: 800;
+            line-height: 1; text-decoration: none; letter-spacing: 0.03em;
+        }
+        .site-nav-brand span { color: var(--gold); }
+        .site-nav-links { display: flex; align-items: center; justify-content: flex-end; flex: 1; gap: 0.2rem; min-width: 0; }
+        .site-nav-links a {
+            display: inline-flex; align-items: center; min-height: 2.35rem; padding: 0.36rem 0.7rem;
+            border-radius: 10px; color: rgba(255,255,255,0.78); font-size: 0.8rem; font-weight: 600;
+            line-height: 1; text-decoration: none; white-space: nowrap; transition: color 0.2s ease, background 0.2s ease;
+        }
+        .site-nav-links a:hover, .site-nav-links a:focus-visible { color: #FFFFFF; background: rgba(255,255,255,0.14); outline: none; }
+        .site-nav-links .nav-repo { color: #FFFFFF; background: rgba(244,166,181,0.2); }
         .hero-container {
             position: relative; z-index: 3;
-            display: flex; flex-direction: column;
+            display: flex; flex-direction: column; height: 100%;
             align-items: center; justify-content: center;
-            text-align: center; padding: 3rem 2rem;
+            text-align: center; padding: 6.5rem 2rem 1.5rem;
             max-width: 900px; width: 100%;
         }
         .hero-badge {
-            display: inline-flex; align-items: center; gap: 0.5rem;
+            display: none; align-items: center; gap: 0.5rem;
             background: rgba(255,255,255,0.13); backdrop-filter: blur(16px);
             padding: 0.5rem 1.4rem; border-radius: 50px; font-size: 0.85rem;
             font-weight: 500; color: rgba(255,255,255,0.9);
             border: 1px solid rgba(255,255,255,0.18);
-            margin-bottom: 2rem;
+            margin-bottom: 1.15rem;
         }
         .hero-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ECDC4; box-shadow: 0 0 8px rgba(78,205,196,0.6); }
         .hero h1 { font-size: clamp(2.8rem, 6vw, 5rem); font-weight: 900; line-height: 1.1; margin-bottom: 1.2rem; letter-spacing: -0.03em; color: white; }
@@ -75,8 +96,8 @@
             background: linear-gradient(135deg, #F4A6B5 0%, #A8D8EA 50%, #FFD93D 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
-        .hero-desc { font-size: 1.15rem; color: rgba(255,255,255,0.8); line-height: 1.9; margin-bottom: 2.5rem; max-width: 560px; }
-        .hero-stats { display: flex; gap: 3rem; margin-bottom: 2.5rem; }
+        .hero-desc { font-size: 1.15rem; color: rgba(255,255,255,0.8); line-height: 1.9; margin-bottom: 1.7rem; max-width: 560px; }
+        .hero-stats { display: flex; gap: 3rem; margin-bottom: 1.7rem; }
         .hero-stat { text-align: center; }
         .hero-stat .n { font-size: 2.2rem; font-weight: 800; color: white; }
         .hero-stat .l { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-top: 0.3rem; letter-spacing: 0.05em; }
@@ -84,7 +105,7 @@
         .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
         .hero-access {
             display: flex; align-items: center; justify-content: center; gap: 1rem;
-            margin-top: 1.2rem; padding: 0.75rem 0.95rem 0.75rem 0.8rem;
+            margin-top: 0.85rem; padding: 0.75rem 0.95rem 0.75rem 0.8rem;
             border: 1px solid rgba(255,255,255,0.18); border-radius: 22px;
             background: rgba(255,255,255,0.12); backdrop-filter: blur(18px);
             box-shadow: 0 16px 44px rgba(0,0,0,0.16);
@@ -110,8 +131,8 @@
         .btn-purple { background: linear-gradient(135deg, var(--purple), var(--purple-dark)); color: white; box-shadow: 0 6px 24px rgba(102,126,234,0.4); }
 
         .scroll-indicator {
-            position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
-            z-index: 3; display: flex; flex-direction: column; align-items: center;
+            display: none; position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+            z-index: 3; flex-direction: column; align-items: center;
             color: rgba(255,255,255,0.55); font-size: 0.78rem; gap: 0.4rem;
             animation: bounce-scroll 2.5s ease-in-out infinite;
         }
@@ -197,6 +218,14 @@
         }
         .journey-card h3 { font-size: 1rem; margin-bottom: 0.38rem; }
         .journey-card p { color: var(--text-light); font-size: 0.82rem; line-height: 1.58; }
+
+        .run-proof-section { padding-top: 1.6rem; }
+        .run-proof-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.2rem; }
+        .run-proof-card { position: relative; overflow: hidden; padding: 0.7rem; border: 1px solid rgba(244, 166, 181, 0.32); border-radius: 22px; background: linear-gradient(145deg, #FFFDFB, #FFF4F5); box-shadow: var(--shadow-sm); }
+        .run-proof-card::before { content: "LIVE RUN"; position: absolute; z-index: 2; top: 1.2rem; left: 1.2rem; padding: 0.3rem 0.55rem; border-radius: 999px; color: #FFFFFF; background: rgba(207, 99, 124, 0.92); font-size: 0.64rem; font-weight: 800; letter-spacing: 0.08em; }
+        .run-proof-card img { display: block; width: 100%; border-radius: 16px; background: #FFFFFF; }
+        .run-proof-card strong { display: block; margin: 0.85rem 0.15rem 0.18rem; font-size: 1rem; }
+        .run-proof-card span { display: block; margin: 0 0.15rem 0.3rem; color: var(--text-light); font-size: 0.8rem; line-height: 1.5; }
 
         section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
         .section-header { text-align: center; margin-bottom: 3.5rem; }
@@ -426,6 +455,10 @@
         footer a:hover { opacity: 0.75; }
 
         @media (max-width: 900px) {
+            .site-nav { top: 0.75rem; width: calc(100% - 1.25rem); min-height: 3rem; padding: 0.3rem 0.4rem 0.3rem 0.7rem; gap: 0.35rem; border-radius: 14px; }
+            .site-nav-brand { font-size: 0.82rem; }
+            .site-nav-links { gap: 0; }
+            .site-nav-links a { min-height: 2.25rem; padding: 0.3rem 0.38rem; font-size: 0.67rem; }
             .hero-stats { gap: 1.5rem; }
             .hero-stat .n { font-size: 1.6rem; }
             .hero-divider { display: none; }
@@ -439,6 +472,7 @@
             .spotlight.reverse .spotlight-image { order: 1; }
             .city-gallery { grid-template-columns: 1fr; }
             .journey-grid { grid-template-columns: 1fr 1fr; }
+            .run-proof-grid { grid-template-columns: 1fr 1fr; }
             .cards-showcase { grid-template-columns: 1fr; }
             .ccard-wrapper { max-width: 240px; }
             .flow-steps { grid-template-columns: 1fr; gap: 1.5rem; }
@@ -454,13 +488,17 @@
         }
         @media (max-width: 500px) {
             section { padding: 3rem 1rem; }
-            .hero-container { padding: 2.2rem 1.2rem; }
+            .hero-container { padding: 4.5rem 1.2rem 1rem; }
+            .hero-badge { margin-bottom: 0.8rem; }
+            .hero-desc, .hero-stats { margin-bottom: 1.1rem; }
+            .hero-access { margin-top: 0.65rem; }
             .hero-access { width: 100%; max-width: 320px; gap: 0.8rem; }
             .hero-qr { width: 72px; height: 72px; border-radius: 15px; }
             .hero-access-copy strong { font-size: 0.9rem; }
             .hero-access-copy span { font-size: 0.74rem; }
             .badges-grid { grid-template-columns: repeat(2, 1fr); }
             .journey-grid { grid-template-columns: 1fr; }
+            .run-proof-grid { grid-template-columns: 1fr; max-width: 360px; margin: 0 auto; }
             .stack-strip { grid-template-columns: 1fr; }
             .tech-grid { grid-template-columns: 1fr; }
             .tech-panel { padding: 1.2rem; }
@@ -473,12 +511,22 @@
 <body>
 
 <!-- ====== HERO ====== -->
-<section class="hero">
+<section id="top" class="hero">
     <video class="hero-video-bg" id="hero-video" autoplay muted loop playsinline webkit-playsinline x5-playsinline x5-video-player-type="h5" x5-video-player-fullscreen="false" preload="auto">
         <source src="site-assets/hero-bg-mobile.mp4" type="video/mp4">
     </video>
     <div class="hero-overlay"></div>
     <div class="hero-particles"></div>
+    <nav class="site-nav" aria-label="&#39029;&#38754;&#23548;&#33322;">
+        <a class="site-nav-brand" href="#top">&#22478;&#20250;&#29609; <span>2.0</span></a>
+        <div class="site-nav-links">
+            <a href="#run-screens">&#36816;&#34892;&#30028;&#38754;</a>
+            <a href="#journey">&#26680;&#24515;&#36335;&#24452;</a>
+            <a href="#features">&#21151;&#33021;</a>
+            <a href="#get-started">&#20307;&#39564;</a>
+            <a class="nav-repo" href="https://github.com/tl66666/chw2.0" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+    </nav>
     <div class="hero-container">
         <div class="hero-badge"><span class="dot"></span> 微信小程序</div>
         <h1>城会玩<span class="hl">2.0</span></h1>
@@ -550,8 +598,33 @@
     </div>
 </div>
 
+<!-- ====== LIVE APP SCREENS ====== -->
+<section id="run-screens" class="run-proof-section">
+    <div class="section-header reveal">
+        <h2>真实小程序运行界面</h2>
+        <p>从地图点亮、城市归档到角色卡图鉴，三张真机截图呈现城会玩 2.0 的核心操作状态。</p>
+    </div>
+    <div class="run-proof-grid">
+        <article class="run-proof-card reveal">
+            <img src="site-assets/screenshots/footprint-map.jpg" alt="城会玩足迹地图真实运行截图">
+            <strong>足迹地图</strong>
+            <span>城市标记、省份进度与探索统计在同一张地图中更新。</span>
+        </article>
+        <article class="run-proof-card reveal">
+            <img src="site-assets/screenshots/city-detail.jpg" alt="城会玩城市详情真实运行截图">
+            <strong>城市详情</strong>
+            <span>打卡、攻略、旅行照片和群组城市档案围绕具体地点沉淀。</span>
+        </article>
+        <article class="run-proof-card reveal">
+            <img src="site-assets/screenshots/companion-cards.jpg" alt="城会玩角色卡真实运行截图">
+            <strong>角色卡图鉴</strong>
+            <span>点亮城市后解锁地域角色，图鉴进度与稀有度一目了然。</span>
+        </article>
+    </div>
+</section>
+
 <!-- ====== EXPERIENCE PATH ====== -->
-<section>
+<section id="journey">
     <div class="section-header reveal">
         <h2>完整体验路径</h2>
         <p>从点亮一座城市，到上传照片、按城市回看，再和好友共享同一份旅行记忆，核心路径完整闭环。</p>
