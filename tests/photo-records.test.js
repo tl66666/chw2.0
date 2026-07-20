@@ -39,7 +39,7 @@ test('removes only the requested file from one city and category', () => {
 
 test('album cards provide a stable key and long-press deletion handler', () => {
   const template = fs.readFileSync(
-    path.join(__dirname, '../城会玩2.0/package-album/pages/album/album.wxml'),
+    path.join(__dirname, '../城会玩2.0/pages/album/album.wxml'),
     'utf8'
   );
 
