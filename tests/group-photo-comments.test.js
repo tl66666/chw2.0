@@ -51,3 +51,30 @@ test('home map keeps province summaries separate from city check-in records', ()
   assert.doesNotMatch(source, /city-detail\/city-detail\?provinceId=/);
   assert.match(appConfig, /pages\/province-detail\/province-detail/);
 });
+
+test('province overview uses one province cover and city cards only use real travel photos', () => {
+  const template = fs.readFileSync(path.join(root, 'pages/province-detail/province-detail.wxml'), 'utf8');
+  const source = fs.readFileSync(path.join(root, 'pages/province-detail/province-detail.js'), 'utf8');
+
+  assert.match(template, /class="province-cover"/);
+  assert.match(template, /class="city-real-photo"/);
+  assert.match(template, /class="city-atlas-card"/);
+  assert.match(source, /provinceCover/);
+  assert.match(source, /photoUrl/);
+  assert.match(source, /landmarks/);
+});
+
+test('province city landmarks are split into a primary place and compact tags', () => {
+  const template = fs.readFileSync(path.join(root, 'pages/province-detail/province-detail.wxml'), 'utf8');
+
+  assert.match(template, /city-primary-landmark/);
+  assert.match(template, /wx:for="{{item\.landmarks}}"/);
+});
+
+test('city detail does not reuse a province cover as a city image', () => {
+  const source = fs.readFileSync(path.join(root, 'pages/city-detail/city-detail.js'), 'utf8');
+
+  const cityLoad = source.slice(source.indexOf('loadCityData: function'), source.indexOf('loadProvinceData: function'));
+  assert.doesNotMatch(cityLoad, /getProvinceImagePath\(city\.provinceId\)/);
+  assert.match(cityLoad, /cityImage: ''/);
+});

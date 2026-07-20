@@ -167,10 +167,6 @@ Page({
         }
       }
 
-      // 先设置基本数据，图片稍后异步加载
-      var self = this;
-      var cloudPath = getProvinceImagePath(city.provinceId);
-      
       // 解析地标列表
       var landmarkStr = city.landmark || '';
       var landmarkArr = landmarkStr ? landmarkStr.split(/\s*[\/,，、]\s*/).filter(function(s) { return s.trim(); }) : [];
@@ -190,84 +186,11 @@ Page({
         cityImage: '',
         cityIntro: cityIntros[cityId] || ''
       });
-      
-      // 异步获取云存储图片临时链接
-      if (cloudPath) {
-        getCloudImageUrl(cloudPath, function(imageUrl) {
-          // 确保获取到的是临时文件路径，而不是 cloud:// 路径
-          if (imageUrl && imageUrl.indexOf('cloud://') !== 0) {
-            self.setData({
-              cityImage: imageUrl
-            });
-          } else {
-            console.error('Failed to get valid image URL:', imageUrl);
-          }
-        });
-      }
     }
   },
 
   loadProvinceData: function(provinceId) {
-    var provinceCities = [];
-    for (var i = 0; i < cities.length; i++) {
-      if (cities[i].provinceId === provinceId) {
-        provinceCities.push(cities[i]);
-      }
-    }
-
-    var province = null;
-    for (var j = 0; j < provinces.length; j++) {
-      if (provinces[j].id === provinceId) {
-        province = provinces[j];
-        break;
-      }
-    }
-
-    // 获取省份图片路径
-    var imagePath = getProvinceImagePath(provinceId);
-    var displayCity = null;
-
-    // 如果没找到显示城市，使用第一个城市
-    if (!displayCity && provinceCities.length > 0) {
-      displayCity = provinceCities[0];
-    }
-
-    var landmarkNames = [];
-    for (var k = 0; k < Math.min(3, provinceCities.length); k++) {
-      landmarkNames.push(provinceCities[k].name);
-    }
-    var landmarkStr = landmarkNames.join('、');
-    var landmarkArr = landmarkStr ? landmarkStr.split(/\s*[\/,，、]\s*/).filter(function(s) { return s.trim(); }) : [];
-
-    // 获取城市攻略
-    var cityGuidesData = require('../../utils/city-guides.js');
-    var guide = displayCity ? cityGuidesData.getCityGuide(displayCity.id) : null;
-
-    var self = this;
-    this.setData({
-      cityId: displayCity ? displayCity.id : provinceId,
-      cityName: province ? province.name : '',
-      provinceId: provinceId,
-      provinceName: provinceCities.length + ' 座城市',
-      cityImage: '',
-      landmark: landmarkStr,
-      landmarkList: landmarkArr,
-      cityGuide: guide
-    });
-    
-    // 异步获取云存储图片临时链接
-    if (imagePath) {
-      getCloudImageUrl(imagePath, function(imageUrl) {
-        // 确保获取到的是临时文件路径，而不是 cloud:// 路径
-        if (imageUrl && imageUrl.indexOf('cloud://') !== 0) {
-          self.setData({
-            cityImage: imageUrl
-          });
-        } else {
-          console.error('Failed to get valid image URL:', imageUrl);
-        }
-      });
-    }
+    wx.redirectTo({ url: '/pages/province-detail/province-detail?provinceId=' + provinceId });
   },
 
   checkVisited: function() {
@@ -317,6 +240,7 @@ Page({
       note: note,
       avoidTip: avoidTip
     });
+    this.updateCityHeroFromPhotos(travelPhotos, foodPhotos);
     this.resolvePhotoDisplayUrls(cityId, travelPhotos, foodPhotos);
   },
 
@@ -395,7 +319,22 @@ Page({
         travelPhotos: apply(self.data.travelPhotos),
         foodPhotos: apply(self.data.foodPhotos)
       });
+      self.updateCityHeroFromPhotos(self.data.travelPhotos, self.data.foodPhotos);
     }).catch(function() {});
+  },
+
+  updateCityHeroFromPhotos: function(travelPhotos, foodPhotos) {
+    var photos = (travelPhotos || []).concat(foodPhotos || []);
+    var imageUrl = '';
+    for (var i = 0; i < photos.length; i++) {
+      var item = photos[i];
+      var value = typeof item === 'string' ? item : (item && (item.displayUrl || item.localPath || item.url || item.fileId));
+      if (value && value.indexOf('cloud://') !== 0) {
+        imageUrl = value;
+        break;
+      }
+    }
+    if (imageUrl !== this.data.cityImage) this.setData({ cityImage: imageUrl });
   },
 
   switchTab: function(e) {

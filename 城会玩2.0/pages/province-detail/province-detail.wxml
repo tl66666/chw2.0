@@ -1,32 +1,53 @@
 <view class="province-page">
-  <view class="province-hero">
-    <text class="hero-kicker">PROVINCE OVERVIEW</text>
-    <text class="hero-title">{{provinceName}}</text>
-    <text class="hero-desc">省份进度由城市足迹汇总，城市记录和小队足迹都能在这里找到。</text>
-    <view class="hero-stats">
-      <view><text class="hero-number">{{visitedCities}}</text><text class="hero-label">已记录城市</text></view>
-      <view><text class="hero-number">{{totalCities}}</text><text class="hero-label">收录城市</text></view>
-      <view><text class="hero-number">{{photoCount}}</text><text class="hero-label">照片</text></view>
+  <view class="province-cover-wrap">
+    <image class="province-cover" wx:if="{{provinceCover}}" src="{{provinceCover}}" mode="aspectFill" />
+    <view class="province-cover-fallback" wx:else>
+      <text class="cover-abbr">{{provinceAbbr}}</text>
+    </view>
+    <view class="cover-shade"></view>
+    <view class="cover-copy">
+      <text class="cover-kicker">省份印象</text>
+      <text class="cover-title">{{provinceName}}</text>
+      <text class="cover-summary">{{visitedCities}} 座城市留下足迹</text>
     </view>
   </view>
 
-  <view class="province-progress">
-    <view class="progress-row"><text>城市探索进度</text><text>{{visitedCities}} / {{totalCities}}</text></view>
+  <view class="province-overview">
+    <view class="overview-item"><text class="overview-number">{{visitedCities}}</text><text class="overview-label">已记录</text></view>
+    <view class="overview-divider"></view>
+    <view class="overview-item"><text class="overview-number">{{totalCities}}</text><text class="overview-label">收录城市</text></view>
+    <view class="overview-divider"></view>
+    <view class="overview-item"><text class="overview-number">{{photoCount}}</text><text class="overview-label">真实照片</text></view>
+  </view>
+
+  <view class="progress-panel">
+    <view class="progress-row"><text>探索进度</text><text>{{visitedCities}} / {{totalCities}}</text></view>
     <view class="progress-track"><view class="progress-fill" style="width: {{completionRate}}%"></view></view>
   </view>
 
   <view class="province-card-entry" bindtap="openCard">
-    <view><text class="entry-kicker">省份图鉴</text><text class="entry-title">查看 {{provinceName}} 角色卡</text></view>
+    <view><text class="entry-kicker">PROVINCE CARD</text><text class="entry-title">查看 {{provinceName}} 角色卡</text></view>
     <text class="entry-arrow">›</text>
   </view>
 
   <view class="city-section">
-    <view class="section-header"><text class="section-title">城市记录</text><text class="section-subtitle">点城市进入详情与打卡</text></view>
-    <view class="city-list">
-      <view class="city-row" wx:for="{{cities}}" wx:key="id" bindtap="openCity" data-cityid="{{item.id}}">
-        <view class="city-status {{item.recorded ? 'recorded' : ''}}"></view>
-        <view class="city-copy"><text class="city-name">{{item.name}}</text><text class="city-landmark">{{item.landmark}}</text></view>
-        <view class="city-meta"><text class="city-source">{{item.sourceText}}</text><text class="city-photo" wx:if="{{item.photoCount > 0}}">{{item.photoCount}} 张</text></view>
+    <view class="section-header"><view><text class="section-title">城市图鉴</text><text class="section-subtitle">有实拍才展示照片，其余保留城市信息</text></view><text class="section-count">{{totalCities}}</text></view>
+    <view class="city-grid">
+      <view class="city-atlas-card" wx:for="{{cities}}" wx:key="id" bindtap="openCity" data-cityid="{{item.id}}">
+        <view class="city-photo-area" wx:if="{{item.photoUrl}}">
+          <image class="city-real-photo" src="{{item.photoUrl}}" mode="aspectFill" />
+          <view class="photo-shade"></view>
+          <text class="photo-count">{{item.photoCount}} 张实拍</text>
+        </view>
+        <view class="city-no-photo" wx:else>
+          <text class="city-no-photo-name">{{item.name}}</text>
+          <text class="city-no-photo-note">暂无实拍</text>
+        </view>
+        <view class="city-card-copy">
+          <view class="city-name-row"><text class="city-name">{{item.name}}</text><text class="city-state {{item.recorded ? 'is-recorded' : ''}}">{{item.sourceText}}</text></view>
+          <text class="city-primary-landmark">{{item.primaryLandmark}}</text>
+          <view class="city-landmark-tags" wx:if="{{item.landmarks.length}}"><text class="city-landmark-tag" wx:for="{{item.landmarks}}" wx:key="index">{{item}}</text></view>
+        </view>
       </view>
     </view>
   </view>
