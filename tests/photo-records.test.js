@@ -1,6 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const records = require('../utils/photo-records.js');
+const fs = require('node:fs');
+const path = require('node:path');
+const records = require('../城会玩2.0/utils/photo-records.js');
 
 test('normalizes a legacy travel photo with a stable identity', () => {
   const item = records.toAlbumPhoto('cloud://env/footprints/a.jpg', {
@@ -33,4 +35,14 @@ test('removes only the requested file from one city and category', () => {
   assert.deepEqual(result.shanghai, ['cloud://b']);
   assert.deepEqual(result.beijing, ['cloud://a']);
   assert.notEqual(result, maps);
+});
+
+test('album cards provide a stable key and long-press deletion handler', () => {
+  const template = fs.readFileSync(
+    path.join(__dirname, '../城会玩2.0/package-album/pages/album/album.wxml'),
+    'utf8'
+  );
+
+  assert.match(template, /wx:key="photoKey"/);
+  assert.match(template, /bindlongpress="requestDeletePhoto"/);
 });

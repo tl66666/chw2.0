@@ -76,15 +76,19 @@ function getPhotosByCity(cityId, type) {
 function getAllPhotos() {
   var group = getGroupData();
   return (group.photos || []).map(function(item) {
+    var fileId = item.fileId || item.url || '';
     return {
-      url: item.url || item.fileId || '',
-      fileId: item.fileId || item.url || '',
+      url: item.url || fileId,
+      fileId: fileId,
       displayUrl: item.displayUrl || '',
       cityId: item.cityId || '',
       cityName: item.cityName || '',
       type: item.type || 'travel',
       typeText: item.type === 'food' ? '队友美食' : '队友旅行',
       status: 'group',
+      source: 'group',
+      ownerOpenid: item.openid || item._openid || '',
+      photoKey: 'group:' + (item.type || 'travel') + ':' + (item.cityId || '') + ':' + fileId,
       userName: item.userName || item.nickName || '群友',
       date: item.displayTime || ''
     };
