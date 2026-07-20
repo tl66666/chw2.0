@@ -20,8 +20,6 @@ exports.main = async (event, context) => {
     switch (action) {
       case 'syncCityRecords':
         return await syncCityRecords(openid, data);
-      case 'syncProvinceRecords':
-        return await syncProvinceRecords(openid, data);
       case 'syncPhotos':
         return await syncPhotos(openid, data);
       case 'syncNotes':
@@ -251,19 +249,6 @@ async function syncCityRecords(openid, records) {
   await updateUserStats(openid);
   
   return { success: true, syncedCount: records.length };
-}
-
-async function syncProvinceRecords(openid, data) {
-  const provinceIds = Array.isArray(data && data.provinceIds)
-    ? [...new Set(data.provinceIds.filter(Boolean))]
-    : [];
-  await db.collection('users').where({ _openid: openid }).update({
-    data: {
-      'stats.visitedProvinces': provinceIds,
-      'stats.manualProvinceRecords': true
-    }
-  });
-  return { success: true, syncedCount: provinceIds.length };
 }
 
 // 同步照片记录
@@ -629,6 +614,7 @@ async function updateUserStats(openid) {
     }).get();
     
     const visitedCities = cityRes.data.map(item => item.cityId);
+    const visitedProvinces = [...new Set(cityRes.data.map(item => item.provinceId))];
     
     // 统计照片
     const travelPhotoRes = await db.collection('photos').where({
@@ -647,6 +633,7 @@ async function updateUserStats(openid) {
     }).update({
       data: {
         'stats.visitedCities': visitedCities,
+        'stats.visitedProvinces': visitedProvinces,
         'stats.travelPhotoCount': travelPhotoRes.total,
         'stats.foodPhotoCount': foodPhotoRes.total
       }

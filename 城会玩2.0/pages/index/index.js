@@ -142,7 +142,13 @@ Page({
     var visitDates = app.globalData.visitDates || {};
 
     // 计算已访问省份
-    var visitedProvinceIds = (app.globalData.visitedProvinces || []).slice();
+    var visitedProvinceIds = [];
+    for (var i = 0; i < visitedCities.length; i++) {
+      var provinceId = cityToProvinceMap[visitedCities[i]];
+      if (provinceId && visitedProvinceIds.indexOf(provinceId) === -1) {
+        visitedProvinceIds.push(provinceId);
+      }
+    }
 
     // 计算照片总数（合并新旧格式）
     var photoCount = 0;
@@ -194,13 +200,21 @@ Page({
       var isVisited = visitedProvinceIds.indexOf(province.id) !== -1;
       
       // 计算该省已打卡城市数
+      var visitedInProvince = 0;
+      for (var vc = 0; vc < provinceCityIds.length; vc++) {
+        if (visitedCities.indexOf(provinceCityIds[vc]) !== -1) {
+          visitedInProvince++;
+        }
+      }
+
       provinceList.push({
         id: province.id,
         name: province.name,
         visited: isVisited,
         hot: isHot,
         photoCount: provincePhotoCount,
-        totalCities: provinceCityIds.length
+        totalCities: provinceCityIds.length,
+        visitedCities: visitedInProvince
       });
 
       // 使用PNG格式标记（手机端兼容性更好）
@@ -217,7 +231,7 @@ Page({
         width: markerWidth,
         height: markerHeight,
         callout: {
-          content: province.name + (isVisited ? ' ✓ 已点亮' : '\n点击进入省份打卡'),
+          content: province.name + (isVisited ? ' ✓' : '') + '\n' + visitedInProvince + '/' + provinceCityIds.length + ' 城',
           color: isVisited ? '#E98296' : '#666666',
           fontSize: 11,
           borderRadius: 8,
@@ -230,22 +244,15 @@ Page({
       });
     }
 
-    // 最近记录只展示城市事件；省份仍是地图的聚合单位。
+    // 最近记录——按省份聚合（去重，最近5个省份）
     var recentCities = [];
+    var seenProvinces = {};
     var maxItems = 5;
     for (var i = visitedCities.length - 1; i >= 0 && recentCities.length < maxItems; i--) {
       var cityId = visitedCities[i];
       var pid = cityToProvinceMap[cityId];
-      if (!pid) continue;
-
-      var city = null;
-      for (var cityIndex = 0; cityIndex < cities.length; cityIndex++) {
-        if (cities[cityIndex].id === cityId) {
-          city = cities[cityIndex];
-          break;
-        }
-      }
-      if (!city) continue;
+      if (!pid || seenProvinces[pid]) continue;  // 跳过已出现的省份，去重
+      seenProvinces[pid] = true;
 
       // 省份名
       var pName = pid;
@@ -253,12 +260,17 @@ Page({
         if (provinces[pn].id === pid) { pName = provinces[pn].name; break; }
       }
 
+      // 省份下所有城市的照片汇总
+      var provinceCityIds = provinceToCitiesMap[pid] || [];
       var allPhotos = [];
-      if (cityTravelPhotos[cityId]) allPhotos = allPhotos.concat(cityTravelPhotos[cityId]);
-      if (cityFoodPhotos[cityId]) allPhotos = allPhotos.concat(cityFoodPhotos[cityId]);
-      if (cityPhotos[cityId]) allPhotos = allPhotos.concat(cityPhotos[cityId]);
+      for (var pc = 0; pc < provinceCityIds.length; pc++) {
+        var cid2 = provinceCityIds[pc];
+        if (cityTravelPhotos[cid2]) allPhotos = allPhotos.concat(cityTravelPhotos[cid2]);
+        if (cityFoodPhotos[cid2]) allPhotos = allPhotos.concat(cityFoodPhotos[cid2]);
+        if (cityPhotos[cid2]) allPhotos = allPhotos.concat(cityPhotos[cid2]);
+      }
       allPhotos = allPhotos.concat(groupView.getAllPhotos().filter(function(item) {
-        return item.cityId === cityId;
+        return provinceCityIds.indexOf(item.cityId) !== -1;
       }));
 
       // 取该城市的打卡日期
@@ -272,10 +284,9 @@ Page({
       }
 
       recentCities.push({
-        id: cityId,
-        name: city.name,
-        provinceName: pName,
-        sourceText: localVisitedCities.indexOf(cityId) !== -1 ? '我的打卡' : '小队足迹',
+        id: pid,                          // 省份ID，用于跳转省份详情
+        name: pName,                     // 省份名，如"安徽"
+        provinceName: (groupData.hasGroup ? '小队共同足迹 · ' : '') + (provinceLandmarks[pid] || ''),
         photoUrl: allPhotos.length > 0 ? this.getPhotoUrl(allPhotos[allPhotos.length - 1]) : '',
         visitDate: displayDate
       });
@@ -341,17 +352,16 @@ Page({
         selectedProvince: province.name,
         selectedProvinceId: province.id
       });
-      this.openProvinceOverviewById(province.id);
+      wx.navigateTo({
+        url: '/pages/city-detail/city-detail?provinceId=' + province.id
+      });
     }
   },
 
-  openProvinceOverview: function(e) {
+  // 省份标签点击（从已点亮列表点击）
+  onProvinceTagTap: function(e) {
     audioManager.play('button_tap');
     var provinceId = e.currentTarget.dataset.provinceid;
-    this.openProvinceOverviewById(provinceId);
-  },
-
-  openProvinceOverviewById: function(provinceId) {
     var provinceList = this.data.provinceList;
     for (var i = 0; i < provinceList.length; i++) {
       if (provinceList[i].id === provinceId) {
@@ -360,18 +370,11 @@ Page({
           selectedProvinceId: provinceId
         });
         wx.navigateTo({
-          url: '/pages/province-detail/province-detail?provinceId=' + provinceId
+          url: '/pages/city-detail/city-detail?provinceId=' + provinceId
         });
         break;
       }
     }
-  },
-
-  openCityRecord: function(e) {
-    var cityId = e.currentTarget.dataset.cityid;
-    if (!cityId) return;
-    audioManager.play('page_navigate');
-    wx.navigateTo({ url: '/pages/city-detail/city-detail?cityId=' + cityId });
   },
 
   goToAlbum: function() {
@@ -402,30 +405,12 @@ Page({
           }
         }
         results.push({
-          key: 'city:' + c.id,
           id: c.id,
           name: c.name,
-          type: 'city',
-          typeText: '城市',
           provinceId: c.provinceId,
           provinceName: provName,
           landmark: c.landmark || '',
           visited: visitedCities.indexOf(c.id) > -1
-        });
-      }
-    }
-    for (var pi = 0; pi < provinces.length; pi++) {
-      var province = provinces[pi];
-      if (province.name.indexOf(keyword) > -1 || province.id.indexOf(kw) > -1) {
-        results.push({
-          key: 'province:' + province.id,
-          id: province.id,
-          name: province.name,
-          type: 'province',
-          typeText: '省份总览',
-          provinceName: (app.globalData.visitedProvinces || []).indexOf(province.id) > -1 ? '已点亮省份' : '未点亮省份',
-          landmark: provinceLandmarks[province.id] || '',
-          visited: (app.globalData.visitedProvinces || []).indexOf(province.id) > -1
         });
       }
     }
@@ -454,14 +439,7 @@ Page({
   },
 
   onSearchResultTap: function(e) {
-    var id = e.currentTarget.dataset.id;
-    var type = e.currentTarget.dataset.type;
-    if (type === 'province') {
-      this.setData({ showSearchPanel: false, searchKeyword: '' });
-      this.openProvinceOverviewById(id);
-      return;
-    }
-    var cityId = id;
+    var cityId = e.currentTarget.dataset.cityid;
     var city = null;
     for (var i = 0; i < cities.length; i++) {
       if (cities[i].id === cityId) { city = cities[i]; break; }

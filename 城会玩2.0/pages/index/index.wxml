@@ -27,24 +27,23 @@
   <view class="map-section">
     <view class="section-header">
       <text class="section-title">中国地图</text>
-      <text class="section-subtitle">{{selectedProvince ? selectedProvince + ' · 省份总览' : '省份进度，城市足迹'}}</text>
+      <text class="section-subtitle">{{selectedProvince ? '选中：' + selectedProvince : '点击标记探索省份'}}</text>
     </view>
 
     <!-- 城市搜索框 -->
     <view class="search-bar">
       <view class="search-input-wrap">
         <text class="search-icon">🔍</text>
-        <input class="search-input" placeholder="搜索城市或省份..." value="{{searchKeyword}}" bindinput="onSearchInput" bindfocus="onSearchFocus" bindblur="onSearchBlur" confirm-type="search"/>
+        <input class="search-input" placeholder="搜索城市名称..." value="{{searchKeyword}}" bindinput="onSearchInput" bindfocus="onSearchFocus" bindblur="onSearchBlur" confirm-type="search"/>
         <text class="search-clear" wx:if="{{searchKeyword}}" bindtap="onSearchClear">✕</text>
       </view>
       <!-- 搜索结果面板 -->
       <view class="search-results-panel" wx:if="{{showSearchPanel && searchResults.length > 0}}">
-        <view class="search-result-item" wx:for="{{searchResults}}" wx:key="key" bindtap="onSearchResultTap" data-id="{{item.id}}" data-type="{{item.type}}">
+        <view class="search-result-item" wx:for="{{searchResults}}" wx:key="id" bindtap="onSearchResultTap" data-cityid="{{item.id}}">
           <view class="result-info">
             <view class="result-name-row">
               <text class="result-name">{{item.name}}</text>
-              <text class="result-type-tag">{{item.typeText}}</text>
-              <text class="result-visited-tag" wx:if="{{item.visited}}">✓ 已记录</text>
+              <text class="result-visited-tag" wx:if="{{item.visited}}">✓ 已打卡</text>
             </view>
             <text class="result-province">{{item.provinceName}}</text>
           </view>
@@ -52,7 +51,7 @@
         </view>
       </view>
       <view class="search-results-panel search-no-result" wx:if="{{showSearchPanel && searchResults.length === 0 && searchKeyword}}">
-        <text class="no-result-text">未找到"{{searchKeyword}}"相关城市或省份</text>
+        <text class="no-result-text">未找到"{{searchKeyword}}"相关城市</text>
       </view>
     </view>
 
@@ -90,10 +89,10 @@
     <scroll-view scroll-x class="provinces-scroll" enhanced show-scrollbar="{{false}}">
       <view class="provinces-row">
         <block wx:for="{{provinceList}}" wx:key="id">
-          <view class="province-tag {{item.visited ? 'tag-visited' : 'tag-normal'}}" wx:if="{{item.visited}}" bindtap="openProvinceOverview" data-provinceid="{{item.id}}">
+          <view class="province-tag {{item.visited ? 'tag-visited' : 'tag-normal'}}" wx:if="{{item.visited}}" bindtap="onProvinceTagTap" data-provinceid="{{item.id}}">
             <text class="tag-check">✓</text>
             <text>{{item.name}}</text>
-            <text class="tag-count">省份打卡</text>
+            <text class="tag-count">{{item.visitedCities}}/{{item.totalCities}}</text>
           </view>
         </block>
         <view class="province-tag tag-hint" wx:if="{{visitedProvinces === 0}}">
@@ -116,7 +115,7 @@
     <text class="progress-desc">已探索 {{visitedCount}}/{{totalCities}} 座城市</text>
   </view>
 
-  <!-- 最近城市记录：省份只作归属信息，不混入城市事件 -->
+  <!-- 最近记录 — 按省份展示 -->
   <view class="recent-section" wx:if="{{recentCities.length > 0}}">
     <view class="section-header">
       <text class="section-title">最近记录</text>
@@ -128,8 +127,8 @@
           wx:for="{{recentCities}}"
           wx:key="id"
           class="recent-item"
-          bindtap="openCityRecord"
-          data-cityid="{{item.id}}"
+          bindtap="onProvinceTagTap"
+          data-provinceid="{{item.id}}"
         >
           <view class="recent-image-wrapper">
             <image class="recent-image" src="{{item.photoUrl}}" mode="aspectFill" wx:if="{{item.photoUrl}}" binderror="onRecentImageError" data-index="{{index}}"/>
@@ -139,7 +138,7 @@
           </view>
           <view class="recent-info">
             <text class="recent-name">{{item.name}}</text>
-            <text class="recent-landmark" wx:if="{{item.provinceName}}">{{item.sourceText}} · {{item.provinceName}}</text>
+            <text class="recent-landmark" wx:if="{{item.provinceName}}">{{item.provinceName}}</text>
             <text class="recent-date">{{item.visitDate}}</text>
           </view>
         </view>

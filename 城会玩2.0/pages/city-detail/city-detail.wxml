@@ -4,8 +4,7 @@
     <view class="city-hero">
       <image class="city-image" src="{{cityImage}}" mode="widthFix" binderror="onImageError" wx:if="{{cityImage}}"/>
       <view class="city-gradient" wx:if="{{!cityImage}}">
-        <text class="gradient-text">{{cityName}}</text>
-        <text class="gradient-note">城市档案 · 暂无实拍</text>
+        <text class="gradient-text">城市</text>
       </view>
       <view class="city-overlay">
         <view class="city-badge" wx:if="{{isVisited}}">
