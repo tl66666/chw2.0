@@ -180,7 +180,7 @@
       <view class="danger-icon-wrap">
         <text class="danger-icon-text">清</text>
       </view>
-      <text class="danger-text">清除所有旅行数据</text>
+      <text class="danger-text">清除个人旅行数据</text>
       <text class="danger-arrow">›</text>
     </view>
   </view>

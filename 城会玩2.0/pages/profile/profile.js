@@ -528,8 +528,8 @@ Page({
   clearData: function() {
     var self = this;
     wx.showModal({
-      title: '清除数据',
-      content: '确定要清除所有旅行记录吗？此操作不可恢复，云端数据也会一并清除。',
+      title: '清除个人旅行数据',
+      content: '确定要清除个人旅行记录吗？此操作不可恢复，云端数据也会一并清除。你仍会保留当前群组成员身份，群组内已经共享的内容不会受影响。',
       confirmColor: '#F87171',
       success: function(res) {
         if (res.confirm) {
@@ -556,7 +556,7 @@ Page({
           app.saveData();
 
           // 同步清除本地存储中的旅行数据
-          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityDisplayNames', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'cityAvoidTips', 'myGroup', 'cardCount', 'ssrCount', 'urCount', 'nightVisit', 'earlyVisit', 'shareCount', 'noteCount', 'dailyVisit', 'todayVisits', 'unlockedAchievements'];
+          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityDisplayNames', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'cityAvoidTips', 'cardCount', 'ssrCount', 'urCount', 'nightVisit', 'earlyVisit', 'shareCount', 'noteCount', 'dailyVisit', 'todayVisits', 'unlockedAchievements'];
           for (var i = 0; i < removeKeys.length; i++) {
             try { wx.removeStorageSync(removeKeys[i]); } catch (e) {}
           }
@@ -572,12 +572,6 @@ Page({
             }).catch(function(err) {
               console.warn('[clearData] 云端清除失败，仅清除本地:', err);
             });
-            // 同时退出群组，清除群组云端数据
-            wx.cloud.callFunction({
-              name: 'group',
-              data: { action: 'leaveGroup' },
-              timeout: 8000
-            }).catch(function() {});
           }
 
           // 更新UI
@@ -585,7 +579,7 @@ Page({
           self.loadRecentActivities();
 
           wx.showToast({
-            title: '数据已清除',
+            title: '个人数据已清除',
             icon: 'success'
           });
         }

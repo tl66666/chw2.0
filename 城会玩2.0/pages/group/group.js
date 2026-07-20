@@ -1,6 +1,6 @@
 var app = getApp();
-var citiesData = require('../../utils/cities.js');
 var groupView = require('../../utils/group-view.js');
+var groupHistory = require('../../utils/group-history.js');
 
 function parseJSON(value, fallback) {
   if (!value) return fallback;
@@ -38,7 +38,8 @@ Page({
     newGroupType: 'friends',
     joinCode: '',
     groupTypeText: '',
-    isCloudBacked: false
+    isCloudBacked: false,
+    copiedInviteCode: false
   },
 
   preventClose: function() {},
@@ -61,7 +62,6 @@ Page({
     var self = this;
     if (app.globalData.isLogin && (app.globalData.openid || wx.getStorageSync('openid'))) {
       this.loadGroupInfo();
-      this.syncMyStats();
       return;
     }
 
@@ -69,7 +69,6 @@ Page({
       app.login(function(ok) {
         if (ok) {
           self.loadGroupInfo();
-          self.syncMyStats();
         } else {
           self.setData({ loading: false });
         }
@@ -96,66 +95,6 @@ Page({
   getGroupTypeText: function(type) {
     var map = { friends: '朋友', couple: '情侣', family: '家人' };
     return map[type] || '朋友';
-  },
-
-  getCityName: function(cityId) {
-    // 优先使用 cityDisplayNames（记录了打卡时的显示名称）
-    var cityDisplayNames = app.globalData.cityDisplayNames || {};
-    if (cityDisplayNames[cityId]) return cityDisplayNames[cityId];
-    var cities = citiesData.cities || [];
-    for (var i = 0; i < cities.length; i++) {
-      if (cities[i].id === cityId) return cities[i].name;
-    }
-    return cityId || '城市';
-  },
-
-  getProvinceIdByCityId: function(cityId) {
-    var cities = citiesData.cities || [];
-    for (var i = 0; i < cities.length; i++) {
-      if (cities[i].id === cityId) return cities[i].provinceId || '';
-    }
-    return '';
-  },
-
-  getVisitedProvinceIds: function() {
-    var visitedCities = app.globalData.visitedCities || [];
-    var result = [];
-    for (var i = 0; i < visitedCities.length; i++) {
-      var provinceId = this.getProvinceIdByCityId(visitedCities[i]);
-      if (provinceId && result.indexOf(provinceId) === -1) result.push(provinceId);
-    }
-    return result;
-  },
-
-  getUserPhotoCount: function() {
-    var cityTravelPhotos = app.globalData.cityTravelPhotos || {};
-    var cityFoodPhotos = app.globalData.cityFoodPhotos || {};
-    var cityPhotos = app.globalData.cityPhotos || {};
-    var count = 0;
-    Object.keys(cityTravelPhotos).forEach(function(k) { count += (cityTravelPhotos[k] || []).length; });
-    Object.keys(cityPhotos).forEach(function(k) { count += (cityPhotos[k] || []).length; });
-    Object.keys(cityFoodPhotos).forEach(function(k) { count += (cityFoodPhotos[k] || []).length; });
-    return count;
-  },
-
-  getUserStats: function() {
-    var cityIds = app.globalData.visitedCities || [];
-    var provinceIds = this.getVisitedProvinceIds();
-    var cityProvinceMap = {};
-    var cityNames = {};
-    for (var i = 0; i < cityIds.length; i++) {
-      cityProvinceMap[cityIds[i]] = this.getProvinceIdByCityId(cityIds[i]);
-      cityNames[cityIds[i]] = this.getCityName(cityIds[i]);
-    }
-    return {
-      photoCount: this.getUserPhotoCount(),
-      visitedCount: cityIds.length,
-      visitedProvinces: provinceIds.length,
-      cityIds: cityIds,
-      provinceIds: provinceIds,
-      cityProvinceMap: cityProvinceMap,
-      cityNames: cityNames
-    };
   },
 
   normalizeGroupPayload: function(payload) {
@@ -192,42 +131,10 @@ Page({
     wx.setStorageSync('myGroup', JSON.stringify(data));
   },
 
-  buildLocalActivities: function() {
-    var userInfo = this.getSafeUserInfo();
-    var localActivities = [];
-    var visitedCities = groupView.mergeCityIds(app.globalData.visitedCities || []);
-    var allCities = citiesData.cities || [];
-    var cityDisplayNames = app.globalData.cityDisplayNames || {};
-    for (var i = 0; i < visitedCities.length && i < 20; i++) {
-      var cityId = visitedCities[i];
-      var cityName = cityDisplayNames[cityId] || '';
-      if (!cityName) {
-        for (var c = 0; c < allCities.length; c++) {
-          if (allCities[c].id === cityId) {
-            cityName = allCities[c].name;
-            break;
-          }
-        }
-      }
-      if (cityName) {
-        localActivities.push({
-          id: 'local_city_' + cityId,
-          type: 'city',
-          userName: userInfo.nickName,
-          cityName: cityName,
-          createTime: '',
-          displayTime: '已探索'
-        });
-      }
-    }
-    return localActivities;
-  },
-
   buildLocalGroupData: function(name, type, inviteCode, isCreator) {
     var userInfo = this.getSafeUserInfo();
     var openid = app.globalData.openid || wx.getStorageSync('openid') || 'local_user';
-    var stats = this.getUserStats();
-    var localActivities = this.buildLocalActivities();
+    var stats = groupHistory.createFreshGroupStats();
     return {
       groupInfo: {
         id: 'group_local_' + Date.now(),
@@ -246,19 +153,19 @@ Page({
         avatarUrl: userInfo.avatarUrl,
         isCreator: !!isCreator,
         role: isCreator ? '创建者' : '成员',
-        cityCount: stats.visitedCount,
-        provinceCount: stats.visitedProvinces,
+        cityCount: stats.cityCount,
+        provinceCount: stats.provinceCount,
         photoCount: stats.photoCount
       }],
       stats: {
         totalMembers: 1,
-        totalCities: stats.visitedCount,
-        totalProvinces: stats.visitedProvinces,
+        totalCities: stats.cityCount,
+        totalProvinces: stats.provinceCount,
         totalPhotos: stats.photoCount
       },
       groupCities: [],
       sharedPhotos: [],
-      recentActivities: localActivities
+      recentActivities: []
     };
   },
 
@@ -269,11 +176,6 @@ Page({
     try {
       var localGroup = parseJSON(wx.getStorageSync('myGroup'), null);
       if (localGroup && localGroup.groupInfo) {
-        var freshActivities = this.buildLocalActivities();
-        if (freshActivities.length > 0) {
-          localGroup.recentActivities = freshActivities;
-          wx.setStorageSync('myGroup', JSON.stringify(localGroup));
-        }
         this.applyGroupData(localGroup, false);
       }
     } catch (e) {
@@ -346,7 +248,7 @@ Page({
     var inviteCode = '';
     for (var i = 0; i < 6; i++) inviteCode += chars.charAt(Math.floor(Math.random() * chars.length));
     var userInfo = this.getSafeUserInfo();
-    var stats = this.getUserStats();
+    var stats = groupHistory.createFreshGroupStats();
     var localData = this.buildLocalGroupData(name, type, inviteCode, true);
 
     wx.showLoading({ title: '创建中...' });
@@ -369,8 +271,8 @@ Page({
           type: type,
           inviteCode: inviteCode,
           userInfo: userInfo,
-          cityCount: stats.visitedCount,
-          provinceCount: stats.visitedProvinces,
+          cityCount: stats.cityCount,
+          provinceCount: stats.provinceCount,
           photoCount: stats.photoCount,
           cityIds: stats.cityIds,
           provinceIds: stats.provinceIds,
@@ -385,8 +287,6 @@ Page({
       if (result.success) {
         self.applyGroupData(result, true);
         self.setData({ showCreateModal: false });
-        self.syncMyStats();
-        self.syncMyPhotosToGroup(result.groupInfo && result.groupInfo.id);
         wx.showToast({ title: '创建成功', icon: 'success' });
       } else {
         self.applyGroupData(localData, false);
@@ -411,7 +311,7 @@ Page({
   },
 
   showInvite: function() {
-    this.setData({ showInviteModal: true });
+    this.setData({ showInviteModal: true, copiedInviteCode: false });
   },
 
   hideInviteModal: function() {
@@ -419,9 +319,11 @@ Page({
   },
 
   copyInviteCode: function() {
+    var self = this;
     wx.setClipboardData({
       data: this.data.inviteCode,
       success: function() {
+        self.setData({ copiedInviteCode: true });
         wx.showToast({ title: '已复制', icon: 'success' });
       }
     });
@@ -453,15 +355,10 @@ Page({
         showCancel: false
       });
       return;
-      var localData = this.buildLocalGroupData('我的旅行小队', 'friends', code, false);
-      this.applyGroupData(localData);
-      this.setData({ showJoinModal: false, joinCode: '' });
-      wx.showToast({ title: '已本地加入', icon: 'success' });
-      return;
     }
 
     var userInfo = this.getSafeUserInfo();
-    var stats = this.getUserStats();
+    var stats = groupHistory.createFreshGroupStats();
     wx.showLoading({ title: '加入中...' });
     wx.cloud.callFunction({
       name: 'group',
@@ -470,8 +367,8 @@ Page({
         data: {
           inviteCode: code,
           userInfo: userInfo,
-          cityCount: stats.visitedCount,
-          provinceCount: stats.visitedProvinces,
+          cityCount: stats.cityCount,
+          provinceCount: stats.provinceCount,
           photoCount: stats.photoCount,
           cityIds: stats.cityIds,
           provinceIds: stats.provinceIds,
@@ -486,8 +383,6 @@ Page({
       if (result.success) {
         self.applyGroupData(result, true);
         self.setData({ showJoinModal: false, joinCode: '' });
-        self.syncMyStats();
-        self.syncMyPhotosToGroup(result.groupInfo && result.groupInfo.id);
         wx.showToast({ title: '加入成功', icon: 'success' });
       } else {
         wx.showModal({
@@ -504,46 +399,6 @@ Page({
         content: '请确认 group 云函数已上传部署，并检查网络后重试。',
         showCancel: false
       });
-    });
-  },
-
-  leaveGroupUnsafe: function() {
-    var self = this;
-    wx.showModal({
-      title: '退出群组',
-      content: '退出后将不再同步这个群组的共同足迹，确定退出吗？',
-      confirmText: '退出',
-      confirmColor: '#D66F58',
-      success: function(res) {
-        if (!res.confirm) return;
-        var localGroup = parseJSON(wx.getStorageSync('myGroup'), null);
-        wx.removeStorageSync('myGroup');
-        self.setData({
-          groupInfo: null,
-          isCreator: false,
-          isAdmin: false,
-          inviteCode: '',
-          members: [],
-          groupCities: [],
-          recentActivities: [],
-          sharedPhotos: [],
-          stats: {
-            totalMembers: 0,
-            totalCities: 0,
-            totalProvinces: 0,
-            totalPhotos: 0
-          }
-        });
-
-        if (self.canUseGroupCloud() && localGroup && localGroup.groupInfo) {
-          wx.cloud.callFunction({
-            name: 'group',
-            data: { action: 'leaveGroup' },
-            timeout: 10000
-          }).catch(function() {});
-        }
-        wx.showToast({ title: '已退出', icon: 'success' });
-      }
     });
   },
 
@@ -632,104 +487,6 @@ Page({
       return;
     }
     this.confirmLeaveGroup();
-  },
-
-  syncMyStats: function() {
-    var self = this;
-    var groupInfo = this.data.groupInfo || (parseJSON(wx.getStorageSync('myGroup'), {}) || {}).groupInfo;
-    if (!groupInfo || !groupInfo.id || !this.canUseGroupCloud()) return;
-    var stats = this.getUserStats();
-    wx.cloud.callFunction({
-      name: 'group',
-      data: {
-        action: 'syncMemberStats',
-        data: {
-          groupId: groupInfo.id,
-          cityCount: stats.visitedCount,
-          provinceCount: stats.visitedProvinces,
-          photoCount: stats.photoCount,
-          cityIds: stats.cityIds,
-          provinceIds: stats.provinceIds,
-          cityProvinceMap: stats.cityProvinceMap,
-          cityNames: stats.cityNames
-        }
-      },
-      timeout: 8000
-    }).then(function() {
-      self.syncMyPhotosToGroup(groupInfo.id);
-    }).catch(function(err) {
-      console.warn('[group] syncMyStats failed:', err);
-    });
-  },
-
-  collectShareablePhotos: function() {
-    var photos = [];
-    var addList = function(map, type) {
-      Object.keys(map || {}).forEach(function(cityId) {
-        (map[cityId] || []).forEach(function(item) {
-          var fileId = typeof item === 'string' ? item : (item.fileId || item.url || '');
-          if (!fileId || fileId.indexOf('wxfile://') === 0 || fileId.indexOf('http://tmp') === 0) return;
-          photos.push({
-            cityId: cityId,
-            provinceId: getProvinceId(cityId),
-            cityName: getCityName(cityId),
-            fileId: fileId,
-            url: fileId,
-            type: type
-          });
-        });
-      });
-    };
-    var cities = citiesData.cities || [];
-    var cityNameMap = {};
-    var cityProvinceMap = {};
-    for (var i = 0; i < cities.length; i++) {
-      cityNameMap[cities[i].id] = cities[i].name;
-      cityProvinceMap[cities[i].id] = cities[i].provinceId || '';
-    }
-    var displayNames = app.globalData.cityDisplayNames || {};
-    function getCityName(cityId) { return displayNames[cityId] || cityNameMap[cityId] || cityId; }
-    function getProvinceId(cityId) { return cityProvinceMap[cityId] || ''; }
-    addList(app.globalData.cityTravelPhotos || {}, 'travel');
-    addList(app.globalData.cityPhotos || {}, 'travel');
-    addList(app.globalData.cityFoodPhotos || {}, 'food');
-    return photos;
-  },
-
-  syncMyPhotosToGroup: function(groupId) {
-    groupId = groupId || (this.data.groupInfo && this.data.groupInfo.id);
-    if (!groupId || !this.canUseGroupCloud()) return;
-    var photos = this.collectShareablePhotos();
-    var index = 0;
-    var self = this;
-    function next() {
-      if (index >= photos.length) {
-        if (app.refreshGroupCache) {
-          app.refreshGroupCache(function(updated) {
-            if (updated) self.loadGroupInfo();
-          });
-        }
-        return;
-      }
-      var item = photos[index++];
-      wx.cloud.callFunction({
-        name: 'group',
-        data: {
-          action: 'sharePhoto',
-          data: {
-            groupId: groupId,
-            fileId: item.fileId,
-            url: item.url,
-            cityId: item.cityId,
-            cityName: item.cityName,
-            provinceId: item.provinceId,
-            type: item.type
-          }
-        },
-        timeout: 8000
-      }).then(next).catch(next);
-    }
-    next();
   },
 
   showPhotoWall: function() {

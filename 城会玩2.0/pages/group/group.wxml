@@ -172,12 +172,23 @@
         <text class="modal-title">邀请好友</text>
         <view class="modal-close" bindtap="hideInviteModal"></view>
       </view>
-      <view class="invite-box">
-        <text class="invite-code">{{inviteCode}}</text>
-        <text class="invite-hint">好友进入群组页输入邀请码即可加入</text>
+      <view class="invite-card">
+        <text class="invite-kicker">旅行小队邀请</text>
+        <text class="invite-group-name">{{groupInfo.name}}</text>
+        <text class="invite-group-type">{{groupTypeText}}小队</text>
+        <view class="invite-code-panel">
+          <text class="invite-code-label">邀请码</text>
+          <text class="invite-code">{{inviteCode}}</text>
+        </view>
+        <view class="invite-steps">
+          <text class="invite-step">1. 打开「城会玩」并进入群组页</text>
+          <text class="invite-step">2. 点击“输入邀请码”，粘贴这串六码</text>
+        </view>
       </view>
-      <view class="modal-actions">
-        <view class="modal-btn confirm" bindtap="copyInviteCode">复制邀请码</view>
+      <view class="invite-actions">
+        <view class="invite-copy-btn" bindtap="copyInviteCode">
+          <text>{{copiedInviteCode ? '已复制邀请码' : '复制邀请码'}}</text>
+        </view>
       </view>
     </view>
   </view>

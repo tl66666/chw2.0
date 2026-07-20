@@ -406,25 +406,6 @@ async function joinGroup(data, openid) {
   }
 }
 
-async function leaveGroupUnsafe(openid) {
-  try {
-    await db.collection('group_members').where({ openid }).remove();
-    try {
-      await db.collection('group_city_records').where({ openid }).remove();
-    } catch (e) {
-      console.warn('[group] leaveGroup: group_city_records remove skipped:', e.message);
-    }
-    try {
-      await db.collection('group_photos').where({ openid }).remove();
-    } catch (e) {
-      console.warn('[group] leaveGroup: group_photos remove skipped:', e.message);
-    }
-    return { success: true };
-  } catch (err) {
-    return { success: true, offline: true, error: err.message };
-  }
-}
-
 async function removeSharedPhoto(data, openid) {
   const fileId = data && data.fileId;
   if (!fileId) return { success: false, error: 'MISSING_FILE_ID' };
@@ -520,6 +501,25 @@ async function transferOwnership(data, openid) {
   }
 }
 
+async function refreshMemberCityStats(groupId, openid) {
+  try {
+    const recordRes = await db.collection('group_city_records')
+      .where({ groupId, openid, isVisited: true })
+      .get();
+    const records = recordRes.data || [];
+    const provinceIds = uniq(records.map(item => item.provinceId));
+    await db.collection('group_members').where({ groupId, openid }).update({
+      data: {
+        cityCount: records.length,
+        provinceCount: provinceIds.length,
+        syncTime: db.serverDate()
+      }
+    });
+  } catch (err) {
+    console.error('[group] refreshMemberCityStats failed:', err);
+  }
+}
+
 async function syncCityRecords(data, openid) {
   const groupId = data.groupId;
   if (!groupId) return { success: false, error: '缺少群组ID' };
@@ -558,6 +558,7 @@ async function syncCityRecords(data, openid) {
       }
     }
 
+    await refreshMemberCityStats(groupId, openid);
     return { success: true, syncedCount: cityIds.length };
   } catch (err) {
     console.warn('[group] syncCityRecords: collection not ready, skipping:', err.message);
@@ -568,6 +569,13 @@ async function syncCityRecords(data, openid) {
 async function syncSingleCity(data, openid) {
   if (!data.groupId || !data.cityId) return { success: false, error: '缺少群组ID或城市ID' };
   try {
+    const memberRes = await db.collection('group_members')
+      .where({ openid, groupId: data.groupId })
+      .limit(1)
+      .get();
+    const member = memberRes.data && memberRes.data[0];
+    if (!member) return { success: false, error: 'NOT_A_MEMBER' };
+
     const userInfo = safeUserInfo(data.userInfo, openid);
     let existRes = { data: [] };
     try {
@@ -597,6 +605,7 @@ async function syncSingleCity(data, openid) {
     } else {
       await db.collection('group_city_records').add({ data: Object.assign(payload, { createTime: now() }) });
     }
+    await refreshMemberCityStats(data.groupId, openid);
     return { success: true };
   } catch (err) {
     console.warn('[group] syncSingleCity: collection not ready, skipping:', err.message);
@@ -660,26 +669,6 @@ async function refreshMemberPhotoCount(groupId, openid) {
   }
 }
 
-async function syncMemberStats(data, openid) {
-  if (!data.groupId) return { success: false, error: '缺少群组ID' };
-  try {
-    await db.collection('group_members').where({ openid, groupId: data.groupId }).update({
-      data: {
-        cityCount: data.cityCount || 0,
-        provinceCount: data.provinceCount || 0,
-        photoCount: data.photoCount || 0,
-        cityIds: data.cityIds || [],
-        provinceIds: data.provinceIds || [],
-        syncTime: db.serverDate()
-      }
-    });
-    await syncCityRecords(data, openid);
-    return { success: true };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
-}
-
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext();
   const openid = (event && event.openid) || wxContext.OPENID || 'mock_openid';
@@ -691,7 +680,6 @@ exports.main = async (event) => {
   if (action === 'joinGroup') return joinGroup(data, openid);
   if (action === 'leaveGroup') return leaveGroup(openid);
   if (action === 'transferOwnership') return transferOwnership(data, openid);
-  if (action === 'syncMemberStats') return syncMemberStats(data, openid);
   if (action === 'syncCityRecord') return syncSingleCity(data, openid);
   if (action === 'sharePhoto') return shareGroupPhoto(data, openid);
   if (action === 'removeSharedPhoto') return removeSharedPhoto(data, openid);

@@ -83,9 +83,7 @@ async function clearAllData(openid) {
             visitedProvinces: [],
             travelPhotoCount: 0,
             foodPhotoCount: 0
-          },
-          currentGroup: '',
-          groups: []
+          }
         }
       });
     } catch (e) { console.warn('clearAllData: users:', e.message); }

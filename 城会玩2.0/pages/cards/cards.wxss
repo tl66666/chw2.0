@@ -178,6 +178,9 @@
 
 .card-image {
   z-index: 2;
+  top: 16rpx;
+  bottom: auto;
+  height: calc(100% - 16rpx);
 }
 
 .card-image.grayscale {
