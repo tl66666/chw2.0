@@ -5,6 +5,7 @@ App({
     isLogin: false,
     visitedCities: [],
     visitedProvinces: [],
+    manualProvinceRecords: false,
     visitDates: {},       // 城市访问日期记录 { cityId: '2024-01-15' }
     cityDisplayNames: {}, // 城市打卡时的显示名称 { cityId: '四川省' / '昆明市' }
     cityPhotos: {},
@@ -262,20 +263,11 @@ App({
     this.globalData.cityAvoidTips = cloudAvoidTips;
 
     // 重新计算省份
-    var citiesData = require('./utils/cities.js');
-    var allCities = citiesData.cities || [];
-    var visitedProvinceIds = [];
-    for (var p = 0; p < cloudVisitedCities.length; p++) {
-      for (var q = 0; q < allCities.length; q++) {
-        if (allCities[q].id === cloudVisitedCities[p]) {
-          if (visitedProvinceIds.indexOf(allCities[q].provinceId) === -1) {
-            visitedProvinceIds.push(allCities[q].provinceId);
-          }
-          break;
-        }
-      }
-    }
-    this.globalData.visitedProvinces = visitedProvinceIds;
+    var userStats = (cloudData.userInfo && cloudData.userInfo.stats) || {};
+    this.globalData.manualProvinceRecords = userStats.manualProvinceRecords === true;
+    this.globalData.visitedProvinces = this.globalData.manualProvinceRecords && Array.isArray(userStats.visitedProvinces)
+      ? userStats.visitedProvinces.slice()
+      : [];
 
     this.saveData();
   },
@@ -401,6 +393,18 @@ App({
   },
 
   // 根据城市ID获取省份ID
+  syncProvinceRecords: function() {
+    if (!this.globalData.isLogin || !this.globalData.useCloud) return;
+    wx.cloud.callFunction({
+      name: 'syncData',
+      data: {
+        action: 'syncProvinceRecords',
+        data: { provinceIds: (this.globalData.visitedProvinces || []).slice() }
+      },
+      timeout: 8000
+    }).catch(function() {});
+  },
+
   getProvinceIdByCityId: function(cityId) {
     var citiesData = require('./utils/cities.js');
     var cities = citiesData.cities;
@@ -416,6 +420,7 @@ App({
     try {
       var visitedCities = wx.getStorageSync('visitedCities');
       var visitedProvinces = wx.getStorageSync('visitedProvinces');
+      var manualProvinceRecords = wx.getStorageSync('manualProvinceRecords');
       var visitDates = wx.getStorageSync('visitDates');
       var cityPhotos = wx.getStorageSync('cityPhotos');
       var cityTravelPhotos = wx.getStorageSync('cityTravelPhotos');
@@ -430,7 +435,8 @@ App({
       if (visitedCities) {
         this.globalData.visitedCities = JSON.parse(visitedCities);
       }
-      if (visitedProvinces) {
+      this.globalData.manualProvinceRecords = manualProvinceRecords === true;
+      if (visitedProvinces && this.globalData.manualProvinceRecords) {
         this.globalData.visitedProvinces = JSON.parse(visitedProvinces);
       }
       if (visitDates) {
@@ -487,6 +493,7 @@ App({
     try {
       wx.setStorageSync('visitedCities', JSON.stringify(this.globalData.visitedCities));
       wx.setStorageSync('visitedProvinces', JSON.stringify(this.globalData.visitedProvinces));
+      wx.setStorageSync('manualProvinceRecords', this.globalData.manualProvinceRecords === true);
       wx.setStorageSync('visitDates', JSON.stringify(this.globalData.visitDates));
       wx.setStorageSync('cityDisplayNames', JSON.stringify(this.globalData.cityDisplayNames || {}));
       wx.setStorageSync('cityPhotos', JSON.stringify(this.globalData.cityPhotos));
@@ -528,25 +535,7 @@ App({
   },
 
   getVisitedProvinceCount: function() {
-    var provincesData = require('./utils/provinces.js');
-    var citiesData = require('./utils/cities.js');
-    var provinces = provincesData.provinces;
-    var cities = citiesData.cities;
-
-    var visitedProvinceIds = [];
-    for (var i = 0; i < this.globalData.visitedCities.length; i++) {
-      var cityId = this.globalData.visitedCities[i];
-      for (var j = 0; j < cities.length; j++) {
-        if (cities[j].id === cityId) {
-          if (visitedProvinceIds.indexOf(cities[j].provinceId) === -1) {
-            visitedProvinceIds.push(cities[j].provinceId);
-          }
-          break;
-        }
-      }
-    }
-
-    return visitedProvinceIds.length;
+    return (this.globalData.visitedProvinces || []).length;
   },
 
   getStats: function() {

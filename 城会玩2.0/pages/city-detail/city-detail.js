@@ -378,11 +378,6 @@ Page({
       app.globalData.visitedCities = visitedCities;
 
       // 更新省份列表
-      app.globalData.visitedProvinces = app.globalData.visitedProvinces || [];
-      if (provinceId && app.globalData.visitedProvinces.indexOf(provinceId) === -1) {
-        app.globalData.visitedProvinces.push(provinceId);
-      }
-
       app.saveData();
       app.syncToCloud();
       this.syncCityToCurrentGroup(cityId, provinceId, true);
@@ -394,7 +389,7 @@ Page({
       this.markTimeAchievementStats();
 
       // 检查该省份是否是第一次点亮
-      var isFirstTimeInProvince = this.checkFirstTimeInProvince(provinceId);
+      var isFirstTimeInProvince = false;
       
       if (isFirstTimeInProvince) {
         // 延迟后跳转到角色卡解锁页面
@@ -439,22 +434,6 @@ Page({
     app.globalData.cityDisplayNames = displayNames;
     
     // 重新计算省份
-    var citiesData = require('../../utils/cities.js');
-    var allCities = citiesData.cities || [];
-    var stillHasProv = false;
-    for (var ci = 0; ci < allCities.length; ci++) {
-      if (allCities[ci].provinceId === provinceId &&
-          visitedCities.indexOf(allCities[ci].id) > -1) {
-        stillHasProv = true;
-        break;
-      }
-    }
-    if (!stillHasProv) {
-      app.globalData.visitedProvinces = app.globalData.visitedProvinces || [];
-      var provIdx = app.globalData.visitedProvinces.indexOf(provinceId);
-      if (provIdx > -1) app.globalData.visitedProvinces.splice(provIdx, 1);
-    }
-    
     app.saveData();
     
     // 删除云端记录（防止syncFromCloud恢复数据）
@@ -645,7 +624,7 @@ Page({
       this.checkVisited();
       
       // 检查该省份是否是第一次点亮
-      var isFirstTimeInProvince = this.checkFirstTimeInProvince(provinceId);
+      var isFirstTimeInProvince = false;
       
       if (isFirstTimeInProvince) {
         // 先显示打卡成功，再跳转抽卡页面
@@ -1453,22 +1432,6 @@ Page({
           app.globalData.visitDates = cityVisitDates;
           
           // 重新计算省份
-          app.globalData.visitedProvinces = app.globalData.visitedProvinces || [];
-          var citiesData = require('../../utils/cities.js');
-          var allCities = citiesData.cities || [];
-          var stillHasProvince = false;
-          for (var ci = 0; ci < allCities.length; ci++) {
-            if (allCities[ci].provinceId === self.data.provinceId &&
-                visitedCities.indexOf(allCities[ci].id) > -1) {
-              stillHasProvince = true;
-              break;
-            }
-          }
-          if (!stillHasProvince) {
-            var provIdx = app.globalData.visitedProvinces.indexOf(self.data.provinceId);
-            if (provIdx > -1) app.globalData.visitedProvinces.splice(provIdx, 1);
-          }
-
           app.saveData();
           
           // 删除云端记录（防止syncFromCloud恢复数据）

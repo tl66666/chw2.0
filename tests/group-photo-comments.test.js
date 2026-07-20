@@ -52,23 +52,15 @@ test('home map keeps province summaries separate from city check-in records', ()
   assert.match(appConfig, /pages\/province-detail\/province-detail/);
 });
 
-test('province overview uses one province cover and city cards only use real travel photos', () => {
+test('map province entry has one independent province check-in and card path', () => {
   const template = fs.readFileSync(path.join(root, 'pages/province-detail/province-detail.wxml'), 'utf8');
   const source = fs.readFileSync(path.join(root, 'pages/province-detail/province-detail.js'), 'utf8');
 
   assert.match(template, /class="province-cover"/);
-  assert.match(template, /class="city-real-photo"/);
-  assert.match(template, /class="city-atlas-card"/);
-  assert.match(source, /provinceCover/);
-  assert.match(source, /photoUrl/);
-  assert.match(source, /landmarks/);
-});
-
-test('province city landmarks are split into a primary place and compact tags', () => {
-  const template = fs.readFileSync(path.join(root, 'pages/province-detail/province-detail.wxml'), 'utf8');
-
-  assert.match(template, /city-primary-landmark/);
-  assert.match(template, /wx:for="{{item\.landmarks}}"/);
+  assert.match(template, /bindtap="toggleProvinceVisit"/);
+  assert.match(source, /isProvinceVisited/);
+  assert.match(source, /visitedProvinces/);
+  assert.doesNotMatch(template, /city-atlas-card/);
 });
 
 test('city detail does not reuse a province cover as a city image', () => {
@@ -77,4 +69,17 @@ test('city detail does not reuse a province cover as a city image', () => {
   const cityLoad = source.slice(source.indexOf('loadCityData: function'), source.indexOf('loadProvinceData: function'));
   assert.doesNotMatch(cityLoad, /getProvinceImagePath\(city\.provinceId\)/);
   assert.match(cityLoad, /cityImage: ''/);
+});
+
+test('province and city check-ins stay independent across page and cloud sync paths', () => {
+  const home = fs.readFileSync(path.join(root, 'pages/index/index.js'), 'utf8');
+  const city = fs.readFileSync(path.join(root, 'pages/city-detail/city-detail.js'), 'utf8');
+  const appSource = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+  const cloudSource = fs.readFileSync(path.join(root, 'cloudfunctions/syncData/index.js'), 'utf8');
+  const cityToggle = city.slice(city.indexOf('toggleVisit: function'), city.indexOf('doCancelVisit: function'));
+
+  assert.match(home, /app\.globalData\.visitedProvinces/);
+  assert.doesNotMatch(cityToggle, /visitedProvinces/);
+  assert.match(appSource, /manualProvinceRecords/);
+  assert.match(cloudSource, /case 'syncProvinceRecords'/);
 });

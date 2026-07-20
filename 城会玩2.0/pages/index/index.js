@@ -142,13 +142,7 @@ Page({
     var visitDates = app.globalData.visitDates || {};
 
     // 计算已访问省份
-    var visitedProvinceIds = [];
-    for (var i = 0; i < visitedCities.length; i++) {
-      var provinceId = cityToProvinceMap[visitedCities[i]];
-      if (provinceId && visitedProvinceIds.indexOf(provinceId) === -1) {
-        visitedProvinceIds.push(provinceId);
-      }
-    }
+    var visitedProvinceIds = (app.globalData.visitedProvinces || []).slice();
 
     // 计算照片总数（合并新旧格式）
     var photoCount = 0;
@@ -200,21 +194,13 @@ Page({
       var isVisited = visitedProvinceIds.indexOf(province.id) !== -1;
       
       // 计算该省已打卡城市数
-      var visitedInProvince = 0;
-      for (var vc = 0; vc < provinceCityIds.length; vc++) {
-        if (visitedCities.indexOf(provinceCityIds[vc]) !== -1) {
-          visitedInProvince++;
-        }
-      }
-
       provinceList.push({
         id: province.id,
         name: province.name,
         visited: isVisited,
         hot: isHot,
         photoCount: provincePhotoCount,
-        totalCities: provinceCityIds.length,
-        visitedCities: visitedInProvince
+        totalCities: provinceCityIds.length
       });
 
       // 使用PNG格式标记（手机端兼容性更好）
@@ -231,7 +217,7 @@ Page({
         width: markerWidth,
         height: markerHeight,
         callout: {
-          content: province.name + (isVisited ? ' ✓' : '') + '\n' + visitedInProvince + '/' + provinceCityIds.length + ' 城',
+          content: province.name + (isVisited ? ' ✓ 已点亮' : '\n点击进入省份打卡'),
           color: isVisited ? '#E98296' : '#666666',
           fontSize: 11,
           borderRadius: 8,
@@ -431,20 +417,15 @@ Page({
     for (var pi = 0; pi < provinces.length; pi++) {
       var province = provinces[pi];
       if (province.name.indexOf(keyword) > -1 || province.id.indexOf(kw) > -1) {
-        var provinceCityIds = provinceToCitiesMap[province.id] || [];
-        var recordedCount = 0;
-        for (var pci = 0; pci < provinceCityIds.length; pci++) {
-          if (visitedCities.indexOf(provinceCityIds[pci]) > -1) recordedCount++;
-        }
         results.push({
           key: 'province:' + province.id,
           id: province.id,
           name: province.name,
           type: 'province',
           typeText: '省份总览',
-          provinceName: recordedCount + '/' + provinceCityIds.length + ' 座城市已记录',
+          provinceName: (app.globalData.visitedProvinces || []).indexOf(province.id) > -1 ? '已点亮省份' : '未点亮省份',
           landmark: provinceLandmarks[province.id] || '',
-          visited: recordedCount > 0
+          visited: (app.globalData.visitedProvinces || []).indexOf(province.id) > -1
         });
       }
     }

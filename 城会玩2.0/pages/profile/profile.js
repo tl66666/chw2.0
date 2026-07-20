@@ -244,18 +244,7 @@ Page({
     var cityNotes = app.globalData.cityNotes || {};
 
     // 计算省份数量
-    var visitedProvinceIds = [];
-    for (var i = 0; i < visitedCities.length; i++) {
-      var cityId = visitedCities[i];
-      for (var j = 0; j < cities.length; j++) {
-        if (cities[j].id === cityId) {
-          if (visitedProvinceIds.indexOf(cities[j].provinceId) === -1) {
-            visitedProvinceIds.push(cities[j].provinceId);
-          }
-          break;
-        }
-      }
-    }
+    var visitedProvinceIds = app.globalData.visitedProvinces || [];
 
     // 计算旅游照片数量
     var travelPhotoCount = 0;

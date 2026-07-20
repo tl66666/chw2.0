@@ -291,19 +291,7 @@ Page({
     var visitedCities = app.globalData.visitedCities || [];
 
     // 从 visitedCities 派生已访问省份
-    var citiesModule = require('../../../utils/cities.js');
-    var cities = citiesModule.cities;
-    var provinceIds = [];
-    for (var i = 0; i < visitedCities.length; i++) {
-      for (var j = 0; j < cities.length; j++) {
-        if (cities[j].id === visitedCities[i]) {
-          if (provinceIds.indexOf(cities[j].provinceId) === -1) {
-            provinceIds.push(cities[j].provinceId);
-          }
-          break;
-        }
-      }
-    }
+    var provinceIds = app.globalData.visitedProvinces || [];
 
     // 计算照片总数
     var cityTravelPhotos = app.globalData.cityTravelPhotos || {};

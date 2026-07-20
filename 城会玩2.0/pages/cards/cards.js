@@ -25,48 +25,10 @@ Page({
   },
 
   deriveVisitedProvinces: function() {
-    var visitedCities = app.globalData.visitedCities || [];
     var storedProvinces = app.globalData.visitedProvinces || [];
     var visitedProvinces = storedProvinces.slice();
-    var citiesData = require('../../utils/cities.js');
-    var cities = citiesData.cities;
-
-    try {
-      var cached = wx.getStorageSync('visitedProvinces');
-      if (cached) {
-        var cachedList = typeof cached === 'string' ? JSON.parse(cached) : cached;
-        if (Array.isArray(cachedList)) {
-          for (var c = 0; c < cachedList.length; c++) {
-            if (visitedProvinces.indexOf(cachedList[c]) === -1) {
-              visitedProvinces.push(cachedList[c]);
-            }
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('read visitedProvinces cache failed:', e);
-    }
-
-    for (var i = 0; i < visitedCities.length; i++) {
-      var cityId = visitedCities[i];
-      for (var j = 0; j < cities.length; j++) {
-        if (cities[j].id === cityId) {
-          var provinceId = cities[j].provinceId;
-          if (visitedProvinces.indexOf(provinceId) === -1) {
-            visitedProvinces.push(provinceId);
-          }
-          break;
-        }
-      }
-    }
 
     app.globalData.visitedProvinces = visitedProvinces;
-    try {
-      wx.setStorageSync('visitedProvinces', JSON.stringify(visitedProvinces));
-    } catch (e2) {
-      console.error('save visitedProvinces failed:', e2);
-    }
-
     return visitedProvinces;
   },
 

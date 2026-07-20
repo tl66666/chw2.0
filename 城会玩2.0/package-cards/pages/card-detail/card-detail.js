@@ -53,30 +53,7 @@ Page({
   checkUnlocked: function(provinceId) {
     var app = getApp();
     var visitedProvinces = app.globalData.visitedProvinces || [];
-
-    try {
-      var cached = wx.getStorageSync('visitedProvinces');
-      var cachedList = typeof cached === 'string' ? JSON.parse(cached || '[]') : cached;
-      if (Array.isArray(cachedList)) {
-        visitedProvinces = visitedProvinces.concat(cachedList);
-      }
-    } catch (e) {}
-
-    if (visitedProvinces.indexOf(provinceId) !== -1) {
-      return true;
-    }
-
-    var visitedCities = app.globalData.visitedCities || [];
-    var citiesData = require('../../../utils/cities.js');
-    var cities = citiesData.cities;
-    for (var i = 0; i < visitedCities.length; i++) {
-      for (var j = 0; j < cities.length; j++) {
-        if (cities[j].id === visitedCities[i] && cities[j].provinceId === provinceId) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return visitedProvinces.indexOf(provinceId) !== -1;
   },
 
   getProvinceShort: function(province) {

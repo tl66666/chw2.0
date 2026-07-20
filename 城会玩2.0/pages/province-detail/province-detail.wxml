@@ -1,54 +1,29 @@
 <view class="province-page">
   <view class="province-cover-wrap">
     <image class="province-cover" wx:if="{{provinceCover}}" src="{{provinceCover}}" mode="aspectFill" />
-    <view class="province-cover-fallback" wx:else>
-      <text class="cover-abbr">{{provinceAbbr}}</text>
-    </view>
+    <view class="province-cover-fallback" wx:else><text class="cover-abbr">{{provinceAbbr}}</text></view>
     <view class="cover-shade"></view>
     <view class="cover-copy">
-      <text class="cover-kicker">省份印象</text>
+      <text class="cover-kicker">地图足迹</text>
       <text class="cover-title">{{provinceName}}</text>
-      <text class="cover-summary">{{visitedCities}} 座城市留下足迹</text>
+      <text class="cover-summary">{{isProvinceVisited ? '这片地图已经点亮' : '点亮这片地图，收下对应角色卡'}}</text>
     </view>
   </view>
 
-  <view class="province-overview">
-    <view class="overview-item"><text class="overview-number">{{visitedCities}}</text><text class="overview-label">已记录</text></view>
-    <view class="overview-divider"></view>
-    <view class="overview-item"><text class="overview-number">{{totalCities}}</text><text class="overview-label">收录城市</text></view>
-    <view class="overview-divider"></view>
-    <view class="overview-item"><text class="overview-number">{{photoCount}}</text><text class="overview-label">真实照片</text></view>
+  <view class="province-status">
+    <view class="status-mark {{isProvinceVisited ? 'is-visited' : ''}}"><text>{{isProvinceVisited ? '✓' : '○'}}</text></view>
+    <view class="status-copy"><text class="status-title">{{isProvinceVisited ? '已点亮省份' : '还未点亮'}}</text><text class="status-desc">省份打卡不会新增或改变下属城市记录</text></view>
   </view>
 
-  <view class="progress-panel">
-    <view class="progress-row"><text>探索进度</text><text>{{visitedCities}} / {{totalCities}}</text></view>
-    <view class="progress-track"><view class="progress-fill" style="width: {{completionRate}}%"></view></view>
+  <view class="province-action {{isProvinceVisited ? 'is-visited' : ''}}" bindtap="toggleProvinceVisit">
+    <view><text class="action-kicker">PROVINCE CHECK-IN</text><text class="action-title">{{isProvinceVisited ? '取消点亮 ' + provinceName : '点亮 ' + provinceName}}</text></view>
+    <text class="action-icon">{{isProvinceVisited ? '✓' : '+'}}</text>
   </view>
 
   <view class="province-card-entry" bindtap="openCard">
-    <view><text class="entry-kicker">PROVINCE CARD</text><text class="entry-title">查看 {{provinceName}} 角色卡</text></view>
+    <view><text class="entry-kicker">PROVINCE CARD</text><text class="entry-title">查看对应角色卡</text><text class="entry-desc">{{provinceName}} 专属角色资料</text></view>
     <text class="entry-arrow">›</text>
   </view>
 
-  <view class="city-section">
-    <view class="section-header"><view><text class="section-title">城市图鉴</text><text class="section-subtitle">有实拍才展示照片，其余保留城市信息</text></view><text class="section-count">{{totalCities}}</text></view>
-    <view class="city-grid">
-      <view class="city-atlas-card" wx:for="{{cities}}" wx:key="id" bindtap="openCity" data-cityid="{{item.id}}">
-        <view class="city-photo-area" wx:if="{{item.photoUrl}}">
-          <image class="city-real-photo" src="{{item.photoUrl}}" mode="aspectFill" />
-          <view class="photo-shade"></view>
-          <text class="photo-count">{{item.photoCount}} 张实拍</text>
-        </view>
-        <view class="city-no-photo" wx:else>
-          <text class="city-no-photo-name">{{item.name}}</text>
-          <text class="city-no-photo-note">暂无实拍</text>
-        </view>
-        <view class="city-card-copy">
-          <view class="city-name-row"><text class="city-name">{{item.name}}</text><text class="city-state {{item.recorded ? 'is-recorded' : ''}}">{{item.sourceText}}</text></view>
-          <text class="city-primary-landmark">{{item.primaryLandmark}}</text>
-          <view class="city-landmark-tags" wx:if="{{item.landmarks.length}}"><text class="city-landmark-tag" wx:for="{{item.landmarks}}" wx:key="index">{{item}}</text></view>
-        </view>
-      </view>
-    </view>
-  </view>
+  <view class="province-note"><text>想记录具体城市时，请通过首页搜索进入该城市打卡。</text></view>
 </view>
