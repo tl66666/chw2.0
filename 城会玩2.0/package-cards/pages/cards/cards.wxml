@@ -56,6 +56,7 @@
           class="card-image {{item.isCollected ? '' : 'grayscale'}}"
           src="{{item.imagePath}}"
           mode="aspectFill"
+          lazy-load
           data-id="{{item.provinceId}}"
           binderror="onCardImageError"
         />

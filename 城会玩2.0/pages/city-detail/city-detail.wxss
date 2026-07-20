@@ -1,17 +1,17 @@
 page {
-  --bg-primary: #F8F5F2;
-  --bg-card: #FFFFFF;
-  --gold-primary: #D4A574;
-  --gold-dark: #B8935F;
-  --gold-light: #E8D5C4;
-  --text-primary: #2C2C2C;
-  --text-secondary: #5A5A5A;
-  --text-muted: #8A8A8A;
-  --radius-sm: 8rpx;
-  --radius-md: 16rpx;
-  --radius-lg: 24rpx;
-  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  --bg-primary: #F5F3EE;
+  --bg-card: #FFFEFB;
+  --gold-primary: #B65E4A;
+  --gold-dark: #965345;
+  --gold-light: #F4E3DC;
+  --text-primary: #3F3732;
+  --text-secondary: #70675F;
+  --text-muted: #9A9189;
+  --radius-sm: 6rpx;
+  --radius-md: 10rpx;
+  --radius-lg: 14rpx;
+  --shadow-sm: none;
+  --shadow-md: none;
 }
 
 .container {
@@ -19,6 +19,8 @@ page {
   padding-bottom: 32rpx;
   background: var(--bg-primary);
   min-height: 100vh;
+  color: var(--text-primary);
+  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
 }
 
 /* 头部卡片 */
@@ -31,7 +33,7 @@ page {
   width: 100%;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  background: linear-gradient(135deg, #E8D5C4 0%, #D4A574 50%, #C9B8A8 100%);
+  background: #E9E4DA;
 }
 
 .city-image {
@@ -45,7 +47,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #E8D5C4 0%, #D4A574 50%, #C9B8A8 100%);
+  background: #E9E4DA;
 }
 
 .gradient-text {
@@ -135,11 +137,11 @@ page {
 }
 
 .quick-action-main {
-  background: linear-gradient(135deg, #FFF0EA, #FFF8F1);
+  background: #F8EEE9;
 }
 
 .quick-action-card {
-  background: linear-gradient(135deg, #EAF4F0, #F7FBF8);
+  background: #EDF2F3;
 }
 
 .quick-action-main:active,
@@ -148,18 +150,18 @@ page {
 }
 
 .quick-action-main.visited .quick-action-icon {
-  background: linear-gradient(135deg, #27AE60, #2ECC71);
+  background: #B65E4A;
 }
 
 .quick-action-main.visited .quick-action-label {
-  color: #27AE60;
+  color: #B9574D;
 }
 
 .quick-action-icon {
   width: 60rpx;
   height: 60rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold-primary), var(--gold-dark));
+  background: var(--gold-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -167,8 +169,8 @@ page {
 }
 
 .quick-action-card .quick-action-icon {
-  background: linear-gradient(135deg, #78B6A6, #4C9B8A);
-  box-shadow: 0 4rpx 12rpx rgba(76, 155, 138, 0.24);
+  background: #7B98A6;
+  box-shadow: none;
 }
 
 .quick-action-copy {
@@ -406,22 +408,31 @@ page {
 
 /* 地标推荐 */
 .landmark-card {
-  background: var(--bg-card);
+  background: #FAF2ED;
   border-radius: var(--radius-md);
-  padding: 16rpx 20rpx;
+  padding: 20rpx;
   margin-bottom: 12rpx;
   box-shadow: var(--shadow-sm);
-  border: 1rpx solid rgba(0, 0, 0, 0.04);
+  border: 1rpx solid rgba(182, 94, 74, 0.15);
 }
 
 .landmark-header {
-  margin-bottom: 8rpx;
+  margin-bottom: 12rpx;
 }
 
 .landmark-title {
+  display: block;
   font-size: 26rpx;
+  font-family: 'Songti SC', 'STSong', 'Noto Serif CJK SC', serif;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.landmark-subtitle {
+  display: block;
+  margin-top: 4rpx;
+  color: var(--text-muted);
+  font-size: 20rpx;
 }
 
 .landmark-text {
@@ -441,11 +452,11 @@ page {
 .landmark-tag {
   display: inline-block;
   padding: 8rpx 20rpx;
-  background: rgba(212, 165, 116, 0.1);
-  border-radius: 24rpx;
+  background: #FFFEFB;
+  border-radius: 5rpx;
   font-size: 24rpx;
-  color: var(--pink-dark);
-  border: 1rpx solid rgba(212, 165, 116, 0.15);
+  color: #8B5B51;
+  border: 1rpx solid rgba(182, 94, 74, 0.16);
 }
 
 /* 城市攻略卡片 */
@@ -456,7 +467,7 @@ page {
   margin-bottom: 16rpx;
   box-shadow: var(--shadow-sm);
   border: 1rpx solid rgba(0, 0, 0, 0.04);
-  border-left: 4rpx solid #667eea;
+  border-left: 4rpx solid #7B98A6;
 }
 
 .guide-header {
@@ -466,7 +477,7 @@ page {
 .guide-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #667eea;
+  color: #668494;
 }
 
 .guide-intro {
@@ -576,7 +587,7 @@ page {
 
 /* 添加照片按钮（醒目样式） */
 .add-photo-btn {
-  background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
+  background: var(--gold-primary);
   border-radius: var(--radius-md);
   padding: 16rpx;
   margin-bottom: 12rpx;
@@ -745,20 +756,20 @@ page {
 
 /* 避坑指南卡片 */
 .avoid-card {
-  border-left: 4rpx solid #4ECDC4;
-  background: linear-gradient(135deg, rgba(78, 205, 196, 0.04), var(--bg-card));
+  border-left: 4rpx solid #D4A574;
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.08), var(--bg-card));
 }
 
 .avoid-card .note-title {
-  color: #2a9d8f;
+  color: #B87437;
 }
 
 .avoid-card .note-save {
-  background: rgba(78, 205, 196, 0.12);
+  background: rgba(212, 165, 116, 0.16);
 }
 
 .avoid-card .note-save text {
-  color: #2a9d8f;
+  color: #B87437;
 }
 
 .avoid-textarea {
@@ -878,6 +889,36 @@ page {
   line-height: 1.5;
 }
 
+.group-share-alert {
+  margin-top: 14rpx;
+  padding: 16rpx 18rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  border-radius: var(--radius-md);
+  background: #FFF4E8;
+  border: 1rpx solid rgba(184, 116, 55, 0.18);
+}
+
+.group-share-alert-text {
+  flex: 1;
+  min-width: 0;
+  color: #8C5B27;
+  font-size: 22rpx;
+  line-height: 1.45;
+}
+
+.group-share-retry {
+  flex-shrink: 0;
+  padding: 8rpx 14rpx;
+  color: #FFFFFF;
+  font-size: 21rpx;
+  font-family: 'Songti SC', 'STSong', 'Noto Serif CJK SC', serif;
+  font-weight: 600;
+  border-radius: 14rpx;
+  background: #B87437;
+}
+
 .group-visitors {
   display: flex;
   gap: 12rpx;
@@ -950,7 +991,7 @@ page {
 }
 
 .photo-status.group {
-  background: rgba(120, 182, 166, 0.92);
+  background: rgba(214, 111, 88, 0.92);
   color: #FFFFFF;
 }
 
@@ -987,7 +1028,7 @@ page {
   padding: 38rpx 34rpx 34rpx;
   border-radius: 32rpx;
   background:
-    radial-gradient(circle at 88% 18%, rgba(120, 182, 166, 0.24), transparent 28%),
+    radial-gradient(circle at 88% 18%, rgba(212, 165, 116, 0.24), transparent 28%),
     linear-gradient(135deg, #FFFDF8 0%, #FFF1E8 100%);
   border: 2rpx solid rgba(214, 111, 88, 0.14);
   box-shadow: 0 28rpx 80rpx rgba(58, 42, 34, 0.28);

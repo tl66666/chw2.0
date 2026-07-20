@@ -6,6 +6,7 @@ var provinces = provincesData.provinces;
 var audioManager = require('../../utils/audio-manager.js').getAudioManager();
 var groupView = require('../../utils/group-view.js');
 var photoRecords = require('../../utils/photo-records.js');
+var cloudImage = require('../../utils/cloudImage.js');
 
 Page({
   data: {
@@ -37,7 +38,7 @@ Page({
 
   loadData: function() {
     try {
-    var visitedCities = groupView.mergeCityIds(app.globalData.visitedCities || []);
+    var visitedCities = app.globalData.visitedCities || [];
     var cityTravelPhotos = app.globalData.cityTravelPhotos || {};
     var cityFoodPhotos = app.globalData.cityFoodPhotos || {};
     var cityPhotos = app.globalData.cityPhotos || {};
@@ -153,6 +154,30 @@ Page({
       }
     }
 
+    allPhotos = photoRecords.uniquePhotos(allPhotos);
+    travelPhotoCount = 0;
+    foodPhotoCount = 0;
+    cityList = [];
+    visitedProvinceIds = [];
+    var cityPhotoMap = {};
+    allPhotos.forEach(function(photo) {
+      var provinceId = this.getProvinceIdByCityId(photo.cityId);
+      if (provinceId && visitedProvinceIds.indexOf(provinceId) === -1) {
+        visitedProvinceIds.push(provinceId);
+      }
+      if (!cityPhotoMap[photo.cityId]) {
+        cityPhotoMap[photo.cityId] = {
+          id: photo.cityId,
+          name: this.getProvinceNameByCityId(photo.cityId),
+          photoCount: 0
+        };
+        cityList.push(cityPhotoMap[photo.cityId]);
+      }
+      cityPhotoMap[photo.cityId].photoCount++;
+      if (photo.type === 'food') foodPhotoCount++;
+      else travelPhotoCount++;
+    }, this);
+
     this.setData({
       totalPhotos: travelPhotoCount + foodPhotoCount,
       travelPhotoCount: travelPhotoCount,
@@ -185,6 +210,9 @@ Page({
         return cities[i].provinceId;
       }
     }
+    for (var p = 0; p < provinces.length; p++) {
+      if (provinces[p].id === cityId) return cityId;
+    }
     return '';
   },
 
@@ -199,18 +227,14 @@ Page({
     if (fileList.length === 0) return;
 
     var self = this;
-    wx.cloud.getTempFileURL({ fileList: fileList }).then(function(res) {
-      var map = {};
-      (res.fileList || []).forEach(function(item) {
-        if (item.fileID && item.tempFileURL) map[item.fileID] = item.tempFileURL;
-      });
+    cloudImage.resolveMany(fileList, function(map) {
       var allPhotos = (self.data.allPhotos || []).map(function(item) {
         if (item.url && map[item.url]) item.displayUrl = map[item.url];
         return item;
       });
       self.setData({ allPhotos: allPhotos });
       self.filterPhotos();
-    }).catch(function() {});
+    });
   },
 
   formatDate: function(date) {
@@ -303,37 +327,46 @@ Page({
 
   deletePersonalPhoto: function(photo) {
     var storageKey = photo.storageKey || (photo.type === 'food' ? 'cityFoodPhotos' : 'cityTravelPhotos');
+    if (app.markPhotoDeleted) app.markPhotoDeleted(photo.fileId);
     app.globalData[storageKey] = photoRecords.removeFromMap(app.globalData[storageKey] || {}, photo.cityId, photo.fileId);
     app.saveData();
     this.loadData();
-    this.removePhotoFromCloud(photo);
-    wx.showToast({ title: '照片已删除', icon: 'success' });
+    this.removePhotoFromCloud(photo).then(function(removed) {
+      wx.showToast({
+        title: removed ? '照片已删除' : '已从本地删除，联网后会重试',
+        icon: removed ? 'success' : 'none'
+      });
+    });
   },
 
   removePhotoFromCloud: function(photo) {
-    if (!app.globalData.isLogin || !wx.cloud || !photo.fileId) return;
+    if (!app.globalData.isLogin || !wx.cloud || !photo.fileId) return Promise.resolve(true);
     var self = this;
     var removeRecord = wx.cloud.callFunction({
       name: 'syncData',
       data: { action: 'removePhoto', data: { cityId: photo.cityId, fileId: photo.fileId } }
     }).then(function(res) {
-      return !!(res.result && res.result.success);
+      return !!(res.result && res.result.success && typeof res.result.removed === 'number');
     });
-    var removeFile = photo.fileId.indexOf('cloud://') === 0
-      ? wx.cloud.deleteFile({ fileList: [photo.fileId] }).then(function() { return true; })
-      : Promise.resolve(true);
-
-    Promise.all([removeRecord, removeFile]).then(function(result) {
-      if (result[0] && result[1]) self.removePendingPhotoRemoval(photo.photoKey);
-      else self.queuePendingPhotoRemoval(photo);
-    }).catch(function() {
-      self.queuePendingPhotoRemoval(photo);
-    });
-
     wx.cloud.callFunction({
       name: 'group',
       data: { action: 'removeSharedPhoto', data: { fileId: photo.fileId } }
     }).catch(function() {});
+    return removeRecord.then(function(removed) {
+      if (removed) {
+        self.removePendingPhotoRemoval(photo.photoKey);
+        if (photo.fileId.indexOf('cloud://') === 0) {
+          wx.cloud.deleteFile({ fileList: [photo.fileId] }).catch(function() {});
+        }
+        return true;
+      }
+      self.queuePendingPhotoRemoval(photo);
+      return false;
+    }).catch(function() {
+      self.queuePendingPhotoRemoval(photo);
+      return false;
+    });
+
   },
 
   getPendingPhotoRemovals: function() {

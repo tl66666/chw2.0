@@ -1,9 +1,12 @@
 <view class="container">
   <!-- 页面标题 -->
   <view class="album-header">
-    <text class="album-title">旅行相册</text>
-    <view class="album-stats">
-      <text class="stats-text">{{totalPhotos}} 张照片 · {{visitedCount}} 个省份</text>
+    <image class="album-hero-art" src="/images/headers/album-hero-final-v2.png" mode="aspectFill"/>
+    <view class="album-header-copy">
+      <text class="album-title">旅行相册</text>
+      <view class="album-stats">
+        <text class="stats-text">{{totalPhotos}} 张照片 · {{visitedCount}} 个省份</text>
+      </view>
     </view>
   </view>
 
@@ -84,7 +87,7 @@
 
   <!-- 空状态 -->
   <view class="empty-state" wx:else>
-    <image class="empty-image" src="/images/ui/{{activeTab === 'food' ? 'empty-food' : 'empty-travel'}}.jpg" mode="aspectFit"/>
+    <image class="empty-image" src="/images/ui/empty-{{activeTab === 'food' ? 'food' : 'travel'}}.jpg" mode="aspectFit"/>
     <text class="empty-title">还没有{{activeTab === 'food' ? '美食' : '旅行'}}照片</text>
     <text class="empty-desc">在地图上选择城市，进入城市详情页上传照片</text>
     <view class="empty-btn btn-gold" bindtap="goToMap">

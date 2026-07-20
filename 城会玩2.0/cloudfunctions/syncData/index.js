@@ -58,23 +58,15 @@ exports.main = async (event, context) => {
 // 清除用户所有云端数据
 async function clearAllData(openid) {
   try {
-    // 删除城市记录
-    try {
-      await db.collection('cityRecords').where({ _openid: openid }).remove();
-    } catch (e) { console.warn('clearAllData: cityRecords:', e.message); }
-    // 删除照片
-    try {
-      await db.collection('photos').where({ _openid: openid }).remove();
-    } catch (e) { console.warn('clearAllData: photos:', e.message); }
-    // 删除笔记
-    try {
-      await db.collection('notes').where({ _openid: openid }).remove();
-    } catch (e) { console.warn('clearAllData: notes:', e.message); }
+    // Core collections must succeed. Returning success after a failed delete makes old data reappear on login.
+    await db.collection('cityRecords').where({ _openid: openid }).remove();
+    await db.collection('photos').where({ _openid: openid }).remove();
+    await db.collection('notes').where({ _openid: openid }).remove();
     // 删除避坑指南
     try {
       await db.collection('avoidTips').where({ _openid: openid }).remove();
     } catch (e) { console.warn('clearAllData: avoidTips:', e.message); }
-    // 重置用户统计信息
+    // 用户统计不影响清除结果，部分老环境可能没有 users 集合。
     try {
       await db.collection('users').where({ _openid: openid }).update({
         data: {
@@ -128,14 +120,23 @@ async function removePhoto(openid, data) {
   const fileId = data && (data.fileId || data.url);
   if (!cityId || !fileId) return { success: false, error: '缺少cityId或fileId' };
   try {
-    try {
-      await db.collection('photos').where({
+    const byFileId = await db.collection('photos').where({
+      _openid: openid,
+      cityId: cityId,
+      fileId: fileId
+    }).remove();
+    let removed = (byFileId.stats && byFileId.stats.removed) || 0;
+
+    // Older records could store a temporary URL locally while preserving the real file ID in the database.
+    if (removed === 0) {
+      const byLegacyUrl = await db.collection('photos').where({
         _openid: openid,
         cityId: cityId,
-        fileId: fileId
+        url: fileId
       }).remove();
-    } catch (e) { console.warn('removePhoto:', e.message); }
-    return { success: true };
+      removed += (byLegacyUrl.stats && byLegacyUrl.stats.removed) || 0;
+    }
+    return { success: true, removed: removed };
   } catch (err) {
     console.error('removePhoto failed:', err);
     return { success: false, error: err.message };

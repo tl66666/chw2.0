@@ -282,7 +282,7 @@
 .attr-bar-fill.culture { background: linear-gradient(90deg, #D66F58, #E9B17D); }
 .attr-bar-fill.fashion { background: linear-gradient(90deg, #C85785, #D99E78); }
 .attr-bar-fill.food { background: linear-gradient(90deg, #D99E54, #F0CA72); }
-.attr-bar-fill.history { background: linear-gradient(90deg, #78B6A6, #6F99C8); }
+.attr-bar-fill.history { background: linear-gradient(90deg, #D99E78, #C9915F); }
 
 .attr-score {
   width: 48rpx;
@@ -353,7 +353,7 @@
   margin-top: 22rpx;
   height: 78rpx;
   border-radius: 999rpx;
-  background: linear-gradient(135deg, #D66F58, #78B6A6);
+  background: linear-gradient(135deg, #D66F58, #D99E78);
   color: #FFFFFF;
   font-size: 27rpx;
   font-weight: 800;

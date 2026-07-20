@@ -1,6 +1,8 @@
 <view class="container">
   <!-- 顶部欢迎区域 -->
   <view class="welcome-section">
+    <image class="welcome-banner" src="/images/headers/map-hero-final-v2.png" mode="aspectFill"/>
+    <view class="welcome-overlay"></view>
     <view class="welcome-text">
       <text class="welcome-title">探索中国</text>
       <text class="welcome-subtitle">点亮城市，收集旅行角色卡</text>
@@ -92,7 +94,7 @@
           <view class="province-tag {{item.visited ? 'tag-visited' : 'tag-normal'}}" wx:if="{{item.visited}}" bindtap="onProvinceTagTap" data-provinceid="{{item.id}}">
             <text class="tag-check">✓</text>
             <text>{{item.name}}</text>
-            <text class="tag-count">{{item.visitedCities}}/{{item.totalCities}}</text>
+            <text class="tag-count">{{item.hasProvinceRecord ? '省份足迹' : item.visitedCities + '/' + item.totalCities}}</text>
           </view>
         </block>
         <view class="province-tag tag-hint" wx:if="{{visitedProvinces === 0}}">

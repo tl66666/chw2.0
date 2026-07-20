@@ -10,7 +10,7 @@ page {
   --pink-light: #FFF0EA;
   --pink-glow: rgba(214, 111, 88, 0.22);
   
-  --blue-soft: #78B6A6;
+  --blue-soft: #D99E78;
   --blue-light: #E8F3EF;
   
   --yellow-soft: #FCE38A;

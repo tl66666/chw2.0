@@ -116,14 +116,14 @@ async function getGroupCities(groupId) {
 }
 
 async function getSharedPhotos(groupId, limit) {
-  try {
-    const photosRes = await db.collection('group_photos')
-      .where({ groupId })
-      .limit(limit || 50)
-      .get();
+  const photosRes = await db.collection('group_photos')
+    .where({ groupId })
+    .limit(limit || 50)
+    .get();
 
-    return (photosRes.data || []).map(p => ({
+  return (photosRes.data || []).map(p => ({
       id: p._id,
+      groupId: p.groupId,
       url: p.url || p.fileId,
       fileId: p.fileId || '',
       openid: p.openid,
@@ -139,13 +139,9 @@ async function getSharedPhotos(groupId, limit) {
       commentCount: Number(p.commentCount) || 0,
       createTime: p.createTime,
       displayTime: displayTime(p.createTime)
-    })).sort((a, b) => {
-      return String(b.travelDate || b.createTime || '').localeCompare(String(a.travelDate || a.createTime || ''));
-    });
-  } catch (err) {
-    console.warn('[group] getSharedPhotos: collection not ready, returning empty:', err.message);
-    return [];
-  }
+  })).sort((a, b) => {
+    return String(b.travelDate || b.createTime || '').localeCompare(String(a.travelDate || a.createTime || ''));
+  });
 }
 
 async function getMembership(groupId, openid) {
@@ -534,9 +530,20 @@ async function getMyGroup(openid) {
       photoCount: m.photoCount || 0
     }));
 
-    const groupCities = await getGroupCities(member.groupId);
-    const sharedPhotos = await getSharedPhotos(member.groupId, 50);
-    const travelPlans = await getTravelPlans(member.groupId, openid);
+    const groupData = await Promise.all([
+      getGroupCities(member.groupId),
+      getSharedPhotos(member.groupId, 50).then(function(photos) {
+        return { photos: photos, error: '' };
+      }).catch(function(err) {
+        console.error('[group] getMyGroup shared photos failed:', err);
+        return { photos: [], error: '群相册暂不可用，请稍后再试' };
+      }),
+      getTravelPlans(member.groupId, openid)
+    ]);
+    const groupCities = groupData[0];
+    const sharedPhotos = groupData[1].photos;
+    const photoSyncError = groupData[1].error;
+    const travelPlans = groupData[2];
     const recentActivities = await buildRecentActivities(member.groupId, groupCities, sharedPhotos);
 
     return {
@@ -556,6 +563,7 @@ async function getMyGroup(openid) {
       stats: buildStats(members, groupCities, sharedPhotos),
       groupCities,
       sharedPhotos,
+      photoSyncError,
       travelPlans,
       recentActivities
     };
@@ -886,10 +894,19 @@ async function syncSingleCity(data, openid) {
       await db.collection('group_city_records').add({ data: Object.assign(payload, { createTime: now() }) });
     }
     await refreshMemberCityStats(data.groupId, openid);
-    return { success: true };
+    return {
+      success: true,
+      city: {
+        cityId: payload.cityId,
+        cityName: payload.cityName,
+        provinceId: payload.provinceId,
+        isVisited: payload.isVisited,
+        updateTime: payload.updateTime
+      }
+    };
   } catch (err) {
-    console.warn('[group] syncSingleCity: collection not ready, skipping:', err.message);
-    return { success: true, skipped: true };
+    console.error('[group] syncSingleCity failed:', err);
+    return { success: false, error: 'CITY_SYNC_FAILED' };
   }
 }
 
@@ -901,6 +918,9 @@ async function shareGroupPhoto(data, openid) {
     if (!member) return { success: false, error: '你不是该群组成员' };
 
     const fileId = data.fileId || data.url || '';
+    if (!fileId || !String(fileId).startsWith('cloud://')) {
+      return { success: false, error: 'INVALID_FILE_ID', message: '群相册只能同步已上传到云存储的照片' };
+    }
     const existRes = await db.collection('group_photos').where({
       groupId: data.groupId,
       openid,

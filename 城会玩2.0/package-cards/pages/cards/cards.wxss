@@ -14,7 +14,7 @@
   gap: 24rpx;
   background:
     radial-gradient(circle at 18% 18%, rgba(255,255,255,0.72) 0, rgba(255,255,255,0) 120rpx),
-    linear-gradient(135deg, #D66F58 0%, #D99E78 54%, #78B6A6 100%);
+    linear-gradient(135deg, #D66F58 0%, #D99E78 54%, #F0C78D 100%);
   box-shadow: 0 16rpx 38rpx rgba(190, 109, 86, 0.22);
   color: #FFFFFF;
   box-sizing: border-box;
@@ -98,7 +98,7 @@
 .progress-fill {
   height: 100%;
   border-radius: 999rpx;
-  background: linear-gradient(90deg, #D66F58, #E9B17D, #78B6A6);
+  background: linear-gradient(90deg, #D66F58, #E9B17D, #F0C78D);
 }
 
 .filter-scroll {
@@ -135,9 +135,9 @@
 
 .filter-tab.rarity-UR.active { background: linear-gradient(135deg, #D66F58, #C85785); }
 .filter-tab.rarity-SSR.active { background: linear-gradient(135deg, #D99E54, #D66F58); }
-.filter-tab.rarity-SR.active { background: linear-gradient(135deg, #78B6A6, #6F99C8); }
+.filter-tab.rarity-SR.active { background: linear-gradient(135deg, #D99E78, #C9915F); }
 .filter-tab.rarity-R.active { background: linear-gradient(135deg, #9B8B82, #6F7774); }
-.owned-tab.active { background: linear-gradient(135deg, #365B51, #78B6A6); }
+.owned-tab.active { background: linear-gradient(135deg, #9C5F4D, #D99E78); }
 
 .cards-grid {
   display: grid;
@@ -297,7 +297,7 @@
 
 .rarity-badge.rarity-UR { background: #D66F58; }
 .rarity-badge.rarity-SSR { background: #D99E54; }
-.rarity-badge.rarity-SR { background: #78B6A6; }
+.rarity-badge.rarity-SR { background: #D99E78; }
 .rarity-badge.rarity-R { background: #8D8A84; }
 
 .card-info {

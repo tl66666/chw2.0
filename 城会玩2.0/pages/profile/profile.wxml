@@ -1,6 +1,12 @@
 <view class="container">
-  <view class="header-bg">
-    <view class="header-wave"></view>
+  <view class="profile-masthead">
+    <image class="profile-hero-art" src="/images/headers/profile-hero-final-v2.png" mode="aspectFill"/>
+    <view class="masthead-copy">
+      <text class="masthead-kicker">TRAVEL PASSPORT</text>
+      <text class="masthead-title">我的旅程</text>
+      <text class="masthead-desc">把每一次抵达，都收进自己的旅行护照。</text>
+    </view>
+    <view class="masthead-mark">城会玩</view>
   </view>
 
   <view class="user-card">
@@ -86,24 +92,6 @@
         <text class="stat-value">{{completionRate}}%</text>
         <text class="stat-label">完成度</text>
       </view>
-    </view>
-  </view>
-
-  <view class="photo-stats" wx:if="{{photoCount > 0}}">
-    <view class="photo-stat-item">
-      <view class="photo-stat-icon-wrap photo-stat-travel">
-        <text class="photo-stat-icon-text">行</text>
-      </view>
-      <text class="photo-stat-value">{{travelPhotoCount}}</text>
-      <text class="photo-stat-label">旅行照片</text>
-    </view>
-    <view class="photo-stat-divider"></view>
-    <view class="photo-stat-item">
-      <view class="photo-stat-icon-wrap photo-stat-food">
-        <text class="photo-stat-icon-text">味</text>
-      </view>
-      <text class="photo-stat-value">{{foodPhotoCount}}</text>
-      <text class="photo-stat-label">美食照片</text>
     </view>
   </view>
 

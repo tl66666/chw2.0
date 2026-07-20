@@ -37,8 +37,52 @@ function removeFromMap(map, cityId, fileId) {
   return next;
 }
 
+function uniquePhotos(photos) {
+  var seen = {};
+  return (photos || []).filter(function(photo) {
+    var fileId = getFileId(photo);
+    if (!fileId) return false;
+    var key = (photo.cityId || '') + ':' + (photo.type || 'travel') + ':' + fileId;
+    if (seen[key]) return false;
+    seen[key] = true;
+    return true;
+  });
+}
+
+function splitGroupSharePhotos(photos) {
+  var shareable = [];
+  var blocked = [];
+
+  (photos || []).forEach(function(photo) {
+    var fileId = getFileId(photo);
+    var status = typeof photo === 'string' ? 'verified' : (photo.status || 'verified');
+
+    if (status !== 'verified' && status !== 'local') {
+      blocked.push({
+        fileId: fileId,
+        reason: (photo && photo.message) || '照片安全校验尚未完成，暂时只保存到个人相册'
+      });
+      return;
+    }
+
+    if (fileId && fileId.indexOf('cloud://') === 0) {
+      shareable.push(fileId);
+      return;
+    }
+
+    blocked.push({
+      fileId: fileId,
+      reason: '照片尚未完成云端上传'
+    });
+  });
+
+  return { shareable: shareable, blocked: blocked };
+}
+
 module.exports = {
   getFileId: getFileId,
   toAlbumPhoto: toAlbumPhoto,
-  removeFromMap: removeFromMap
+  removeFromMap: removeFromMap,
+  uniquePhotos: uniquePhotos,
+  splitGroupSharePhotos: splitGroupSharePhotos
 };

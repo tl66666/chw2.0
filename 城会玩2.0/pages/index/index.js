@@ -5,6 +5,7 @@ var cities = citiesData.cities;
 var provinces = provincesData.provinces;
 var audioManager = require('../../utils/audio-manager.js').getAudioManager();
 var groupView = require('../../utils/group-view.js');
+var cloudImage = require('../../utils/cloudImage.js');
 
 // 省份真实经纬度坐标
 var provinceCoords = {
@@ -90,6 +91,15 @@ for (var i = 0; i < cities.length; i++) {
   cityToProvinceMap[cities[i].id] = cities[i].provinceId;
 }
 
+var provinceIdMap = {};
+for (var p = 0; p < provinces.length; p++) {
+  provinceIdMap[provinces[p].id] = true;
+}
+
+function getRecordProvinceId(recordId) {
+  return cityToProvinceMap[recordId] || (provinceIdMap[recordId] ? recordId : '');
+}
+
 // 预构建省份到城市列表的映射
 var provinceToCitiesMap = {};
 for (var i = 0; i < cities.length; i++) {
@@ -144,7 +154,7 @@ Page({
     // 计算已访问省份
     var visitedProvinceIds = [];
     for (var i = 0; i < visitedCities.length; i++) {
-      var provinceId = cityToProvinceMap[visitedCities[i]];
+      var provinceId = getRecordProvinceId(visitedCities[i]);
       if (provinceId && visitedProvinceIds.indexOf(provinceId) === -1) {
         visitedProvinceIds.push(provinceId);
       }
@@ -181,13 +191,21 @@ Page({
       
       // 计算省份下照片总数
       var provincePhotoCount = 0;
+      var countPhotosForRecord = function(recordId) {
+        var count = 0;
+        if (cityTravelPhotos[recordId]) count += cityTravelPhotos[recordId].length;
+        if (cityFoodPhotos[recordId]) count += cityFoodPhotos[recordId].length;
+        if (cityPhotos[recordId]) count += cityPhotos[recordId].length;
+        count += groupView.getAllPhotos().filter(function(photo) {
+          return photo.cityId === recordId;
+        }).length;
+        return count;
+      };
       for (var pc = 0; pc < provinceCityIds.length; pc++) {
         var cid = provinceCityIds[pc];
-        if (cityTravelPhotos[cid]) provincePhotoCount += cityTravelPhotos[cid].length;
-        if (cityFoodPhotos[cid]) provincePhotoCount += cityFoodPhotos[cid].length;
-        if (cityPhotos[cid]) provincePhotoCount += cityPhotos[cid].length;
+        provincePhotoCount += countPhotosForRecord(cid);
       }
-      provincePhotoCount += groupView.countPhotosForCities(provinceCityIds);
+      provincePhotoCount += countPhotosForRecord(province.id);
 
       var isHot = false;
       for (var h = 0; h < hotCities.length; h++) {
@@ -200,6 +218,7 @@ Page({
       var isVisited = visitedProvinceIds.indexOf(province.id) !== -1;
       
       // 计算该省已打卡城市数
+      var hasProvinceRecord = visitedCities.indexOf(province.id) !== -1;
       var visitedInProvince = 0;
       for (var vc = 0; vc < provinceCityIds.length; vc++) {
         if (visitedCities.indexOf(provinceCityIds[vc]) !== -1) {
@@ -214,7 +233,8 @@ Page({
         hot: isHot,
         photoCount: provincePhotoCount,
         totalCities: provinceCityIds.length,
-        visitedCities: visitedInProvince
+        visitedCities: visitedInProvince,
+        hasProvinceRecord: hasProvinceRecord
       });
 
       // 使用PNG格式标记（手机端兼容性更好）
@@ -231,7 +251,7 @@ Page({
         width: markerWidth,
         height: markerHeight,
         callout: {
-          content: province.name + (isVisited ? ' ✓' : '') + '\n' + visitedInProvince + '/' + provinceCityIds.length + ' 城',
+          content: province.name + (isVisited ? ' ✓' : '') + '\n' + (hasProvinceRecord ? '省份足迹' : visitedInProvince + '/' + provinceCityIds.length + ' 城'),
           color: isVisited ? '#E98296' : '#666666',
           fontSize: 11,
           borderRadius: 8,
@@ -250,7 +270,7 @@ Page({
     var maxItems = 5;
     for (var i = visitedCities.length - 1; i >= 0 && recentCities.length < maxItems; i--) {
       var cityId = visitedCities[i];
-      var pid = cityToProvinceMap[cityId];
+      var pid = getRecordProvinceId(cityId);
       if (!pid || seenProvinces[pid]) continue;  // 跳过已出现的省份，去重
       seenProvinces[pid] = true;
 
@@ -263,6 +283,9 @@ Page({
       // 省份下所有城市的照片汇总
       var provinceCityIds = provinceToCitiesMap[pid] || [];
       var allPhotos = [];
+      if (cityTravelPhotos[pid]) allPhotos = allPhotos.concat(cityTravelPhotos[pid]);
+      if (cityFoodPhotos[pid]) allPhotos = allPhotos.concat(cityFoodPhotos[pid]);
+      if (cityPhotos[pid]) allPhotos = allPhotos.concat(cityPhotos[pid]);
       for (var pc = 0; pc < provinceCityIds.length; pc++) {
         var cid2 = provinceCityIds[pc];
         if (cityTravelPhotos[cid2]) allPhotos = allPhotos.concat(cityTravelPhotos[cid2]);
@@ -270,7 +293,7 @@ Page({
         if (cityPhotos[cid2]) allPhotos = allPhotos.concat(cityPhotos[cid2]);
       }
       allPhotos = allPhotos.concat(groupView.getAllPhotos().filter(function(item) {
-        return provinceCityIds.indexOf(item.cityId) !== -1;
+        return item.cityId === pid || provinceCityIds.indexOf(item.cityId) !== -1;
       }));
 
       // 取该城市的打卡日期
@@ -324,17 +347,13 @@ Page({
     if (fileList.length === 0) return;
 
     var self = this;
-    wx.cloud.getTempFileURL({ fileList: fileList }).then(function(res) {
-      var map = {};
-      (res.fileList || []).forEach(function(item) {
-        if (item.fileID && item.tempFileURL) map[item.fileID] = item.tempFileURL;
-      });
+    cloudImage.resolveMany(fileList, function(map) {
       var nextCities = (self.data.recentCities || []).map(function(item) {
         if (item.photoUrl && map[item.photoUrl]) item.photoUrl = map[item.photoUrl];
         return item;
       });
       self.setData({ recentCities: nextCities });
-    }).catch(function() {});
+    });
   },
 
   formatDate: function(date) {

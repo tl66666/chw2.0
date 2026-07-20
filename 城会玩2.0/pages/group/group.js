@@ -71,7 +71,9 @@ Page({
     joinCode: '',
     groupTypeText: '',
     isCloudBacked: false,
-    copiedInviteCode: false
+    copiedInviteCode: false,
+    photoSyncError: '',
+    groupLoadError: ''
   },
 
   preventClose: function() {},
@@ -83,7 +85,6 @@ Page({
         joinCode: String(options.inviteCode || '').toUpperCase()
       });
     }
-    this.ensureLoginAndLoad();
   },
 
   onShow: function() {
@@ -140,6 +141,8 @@ Page({
       stats: payload.stats || this.data.stats,
       groupCities: payload.groupCities || [],
       sharedPhotos: payload.sharedPhotos || [],
+      photoSyncError: payload.photoSyncError || '',
+      groupLoadError: payload.groupLoadError || '',
       travelPlans: payload.travelPlans || [],
       recentActivities: payload.recentActivities || []
     };
@@ -198,6 +201,8 @@ Page({
       stats: data.stats,
       groupCities: data.groupCities,
       sharedPhotos: data.sharedPhotos,
+      photoSyncError: data.photoSyncError,
+      groupLoadError: data.groupLoadError,
       visibleSharedPhotos: photoViews.visibleSharedPhotos,
       photoArchives: photoViews.photoArchives,
       featuredPhotos: photoViews.featuredPhotos,
@@ -209,6 +214,44 @@ Page({
       loading: false
     });
     wx.setStorageSync('myGroup', JSON.stringify(data));
+  },
+
+  getSharedPhotoFeedError: function(result) {
+    var code = String((result && result.error) || '');
+    if (code === 'UNKNOWN_ACTION') return '群相册暂时不可用，请稍后再试。';
+    if (code === 'NOT_A_MEMBER') return '当前账号不是这个群的成员，请重新进入或加入群组。';
+    return '群相册暂时不可用，请稍后再试。';
+  },
+
+  verifySharedPhotoFeed: function(payload) {
+    var self = this;
+    var groupInfo = payload && payload.groupInfo;
+    if (!groupInfo || !groupInfo.id || !wx.cloud) return;
+
+    wx.cloud.callFunction({
+      name: 'group',
+      data: { action: 'getSharedPhotos', data: { groupId: groupInfo.id } },
+      timeout: 15000
+    }).then(function(response) {
+      var result = response.result || {};
+      var nextPayload = Object.assign({}, payload);
+      if (result.success) {
+        nextPayload.sharedPhotos = result.photos || [];
+        nextPayload.photoSyncError = '';
+      } else {
+        console.warn('[group-photo] getSharedPhotos rejected:', result.error || result.message || 'UNKNOWN');
+        nextPayload.sharedPhotos = [];
+        nextPayload.photoSyncError = self.getSharedPhotoFeedError(result);
+      }
+      self.applyGroupData(nextPayload, true);
+    }).catch(function(err) {
+      console.error('[group-photo] getSharedPhotos request failed:', err);
+      var nextPayload = Object.assign({}, payload, {
+        sharedPhotos: [],
+        photoSyncError: '群相册暂时不可用，请稍后再试。'
+      });
+      self.applyGroupData(nextPayload, true);
+    });
   },
 
   buildLocalGroupData: function(name, type, inviteCode, isCreator) {
@@ -252,7 +295,7 @@ Page({
 
   loadGroupInfo: function() {
     var self = this;
-    this.setData({ loading: true });
+    this.setData({ loading: true, groupLoadError: '' });
 
     try {
       var localGroup = parseJSON(wx.getStorageSync('myGroup'), null);
@@ -281,6 +324,18 @@ Page({
           result.recentActivities = localGroup.recentActivities;
         }
         self.applyGroupData(result, true);
+        if (result.photoSyncError) self.verifySharedPhotoFeed(result);
+        self.retryQueuedGroupPhotos(result.groupInfo);
+      } else if (result.success && !result.groupInfo && result.offline) {
+        if (localGroup && localGroup.groupInfo) {
+          self.applyGroupData(localGroup, false);
+        }
+        self.setData({
+          loading: false,
+          groupLoadError: '群组暂时无法连接，已保留本机内容，请稍后再试。'
+        });
+      } else if (result.success && !result.groupInfo && !result.offline) {
+        self.clearLocalGroup();
       } else if (!localGroup) {
         self.setData({ groupInfo: null, loading: false });
       } else {
@@ -288,7 +343,137 @@ Page({
       }
     }).catch(function(err) {
       console.error('[group] getMyGroup failed:', err);
-      self.setData({ loading: false });
+      if (localGroup && localGroup.groupInfo) {
+        self.applyGroupData(localGroup, false);
+      }
+      self.setData({
+        loading: false,
+        groupLoadError: '群组暂时无法连接，已保留本机内容，请稍后再试。'
+      });
+    });
+  },
+
+  retryQueuedGroupPhotos: function(groupInfo) {
+    if (this._retryingQueuedGroupPhotos || !groupInfo || !groupInfo.id || !wx.cloud ||
+        !app.getPendingGroupPhotoReviews || !app.removePendingGroupPhotoReview) return;
+
+    var pending = app.getPendingGroupPhotoReviews(groupInfo.id);
+    if (!pending || pending.length === 0) return;
+
+    var self = this;
+    var index = 0;
+    var synced = 0;
+    this._retryingQueuedGroupPhotos = true;
+
+    function finish() {
+      self._retryingQueuedGroupPhotos = false;
+      if (synced > 0 && app.refreshGroupCache) {
+        app.refreshGroupCache(function(updated, payload) {
+          if (updated && payload) self.applyGroupData(payload, true);
+        });
+      }
+    }
+
+    function next() {
+      if (index >= pending.length) {
+        finish();
+        return;
+      }
+
+      var item = pending[index++];
+      var fileId = item && item.fileId;
+      if (!fileId || fileId.indexOf('cloud://') !== 0) {
+        app.removePendingGroupPhotoReview(groupInfo.id, fileId);
+        next();
+        return;
+      }
+
+      self.shareQueuedGroupPhoto(groupInfo, item, function(didShare) {
+        if (didShare) synced += 1;
+        next();
+      });
+      return;
+
+      wx.cloud.callFunction({
+        name: 'contentSecurity',
+        data: { action: 'checkImage', fileID: fileId },
+        timeout: 20000
+      }).then(function(checkResponse) {
+        var check = checkResponse.result || {};
+        if (!check.pass) {
+          if (check.blocked) app.removePendingGroupPhotoReview(groupInfo.id, fileId);
+          else console.warn('[group-photo] automatic review deferred:', check.error || check.message || 'CHECK_PENDING');
+          next();
+          return;
+        }
+
+        return wx.cloud.callFunction({
+          name: 'group',
+          data: {
+            action: 'sharePhoto',
+            data: {
+              groupId: groupInfo.id,
+              fileId: fileId,
+              url: fileId,
+              cityId: item.cityId || '',
+              cityName: item.cityName || '',
+              provinceId: item.provinceId || '',
+              type: item.type || 'travel',
+              travelDate: item.travelDate || ''
+            }
+          },
+          timeout: 10000
+        }).then(function(shareResponse) {
+          var shared = shareResponse.result || {};
+          if (shared.success) {
+            synced += 1;
+            app.removePendingGroupPhotoReview(groupInfo.id, fileId);
+          } else if (shared.error === 'INVALID_FILE_ID') {
+            app.removePendingGroupPhotoReview(groupInfo.id, fileId);
+          } else {
+            console.warn('[group-photo] automatic share deferred:', shared.error || shared.message || 'SHARE_PENDING');
+          }
+          next();
+        });
+      }).catch(function(err) {
+        console.warn('[group-photo] automatic review request deferred:', err);
+        next();
+      });
+    }
+
+    next();
+  },
+
+  shareQueuedGroupPhoto: function(groupInfo, item, done) {
+    var fileId = item && item.fileId;
+    wx.cloud.callFunction({
+      name: 'group',
+      data: {
+        action: 'sharePhoto',
+        data: {
+          groupId: groupInfo.id,
+          fileId: fileId,
+          url: fileId,
+          cityId: item.cityId || '',
+          cityName: item.cityName || '',
+          provinceId: item.provinceId || '',
+          type: item.type || 'travel',
+          travelDate: item.travelDate || ''
+        }
+      },
+      timeout: 10000
+    }).then(function(response) {
+      var shared = response.result || {};
+      if (shared.success || shared.error === 'INVALID_FILE_ID') {
+        app.removePendingGroupPhotoReview(groupInfo.id, fileId);
+        done(!!shared.success);
+        return;
+      }
+      console.warn('[group-photo] queued share deferred:', shared.error || shared.message || 'SHARE_PENDING');
+      done(false);
+    }).catch(function(err) {
+      console.warn('[group-photo] queued share request deferred:', err);
+      done(false);
     });
   },
 
@@ -385,7 +570,7 @@ Page({
       self.setData({ showCreateModal: false });
       wx.showModal({
         title: '云端连接超时',
-        content: '群组已保存在本机。多人同步需要云函数 group 可用。',
+        content: '群组已保存在本机；网络恢复后可继续与同行同步。',
         showCancel: false
       });
     });
@@ -432,7 +617,7 @@ Page({
     if (!this.canUseGroupCloud()) {
       wx.showModal({
         title: '暂时无法加入群组',
-        content: '邀请码需要云端连接才能加入。请检查网络并确认 group 云函数已部署后重试。',
+        content: '邀请码暂时无法验证，请检查网络后再试。',
         showCancel: false
       });
       return;
@@ -477,7 +662,7 @@ Page({
       console.error('[group] join failed:', err);
       wx.showModal({
         title: '云端连接失败',
-        content: '请确认 group 云函数已上传部署，并检查网络后重试。',
+        content: '暂时无法完成操作，请检查网络后再试。',
         showCancel: false
       });
     });
@@ -764,7 +949,7 @@ Page({
     wx.previewImage({ current: photo.url, urls: [photo.url] });
   },
 
-  clearLocalGroup: function() {
+  clearLocalGroup: function(groupLoadError) {
     wx.removeStorageSync('myGroup');
     this.setData({
       groupInfo: null,
@@ -782,6 +967,9 @@ Page({
       photoCityFilter: 'all',
       travelPlans: [],
       isCloudBacked: false,
+      loading: false,
+      groupLoadError: groupLoadError || '',
+      photoSyncError: '',
       stats: { totalMembers: 0, totalCities: 0, totalProvinces: 0, totalPhotos: 0 }
     });
   },

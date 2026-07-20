@@ -1,3 +1,6 @@
+var photoRecords = require('./utils/photo-records.js');
+var groupPhotoReviewQueue = require('./utils/group-photo-review-queue.js');
+
 App({
   globalData: {
     userInfo: null,
@@ -10,6 +13,8 @@ App({
     cityPhotos: {},
     cityTravelPhotos: {},
     cityFoodPhotos: {},
+    deletedPhotoIds: {},
+    pendingGroupPhotoReviews: [],
     cityNotes: {},
     cityAvoidTips: {},
     cardCount: 0,
@@ -203,8 +208,8 @@ App({
       }
     }).catch(function(err) {
       console.error('同步失败:', err);
-      // 云函数未部署或超时，切换到本地模式
-      self.globalData.useCloud = false;
+      // A transient personal-data refresh must not downgrade later photo uploads to local paths.
+      self.globalData.lastCloudSyncError = Date.now();
     });
   },
 
@@ -228,8 +233,9 @@ App({
     if (cloudData.photos) {
       for (var j = 0; j < cloudData.photos.length; j++) {
         var photo = cloudData.photos[j];
-        var photoUrl = photo.url || photo.fileId;
-        if (!photoUrl) continue;
+        var photoUrl = photo.fileId || photo.url;
+        // Expired temporary URLs cannot be refreshed and used to create blank, 403 photo cards.
+        if (!photoUrl || photoUrl.indexOf('cloud://') !== 0 || (this.globalData.deletedPhotoIds || {})[photoUrl]) continue;
         var targetObj = photo.type === 'food' ? cloudFoodPhotos : cloudTravelPhotos;
         if (!targetObj[photo.cityId]) {
           targetObj[photo.cityId] = [];
@@ -358,17 +364,20 @@ App({
     }
 
     var photos = [];
+    var deletedPhotoIds = this.globalData.deletedPhotoIds || {};
     var travelKeys = Object.keys(this.globalData.cityTravelPhotos || {});
     for (var p = 0; p < travelKeys.length; p++) {
       var travelCityId = travelKeys[p];
       var travelPhotos = this.globalData.cityTravelPhotos[travelCityId] || [];
       for (var tp = 0; tp < travelPhotos.length; tp++) {
+        var travelFileId = photoRecords.getFileId(travelPhotos[tp]);
+        if (!travelFileId || deletedPhotoIds[travelFileId]) continue;
         photos.push({
           cityId: travelCityId,
           provinceId: this.getProvinceIdByCityId(travelCityId),
           type: 'travel',
-          fileId: travelPhotos[tp],
-          url: travelPhotos[tp]
+          fileId: travelFileId,
+          url: travelFileId
         });
       }
     }
@@ -378,12 +387,14 @@ App({
       var foodCityId = foodKeys[f];
       var foodPhotos = this.globalData.cityFoodPhotos[foodCityId] || [];
       for (var fp = 0; fp < foodPhotos.length; fp++) {
+        var foodFileId = photoRecords.getFileId(foodPhotos[fp]);
+        if (!foodFileId || deletedPhotoIds[foodFileId]) continue;
         photos.push({
           cityId: foodCityId,
           provinceId: this.getProvinceIdByCityId(foodCityId),
           type: 'food',
-          fileId: foodPhotos[fp],
-          url: foodPhotos[fp]
+          fileId: foodFileId,
+          url: foodFileId
         });
       }
     }
@@ -403,10 +414,17 @@ App({
   // 根据城市ID获取省份ID
   getProvinceIdByCityId: function(cityId) {
     var citiesData = require('./utils/cities.js');
+    var provincesData = require('./utils/provinces.js');
     var cities = citiesData.cities;
+    var provinces = provincesData.provinces;
     for (var i = 0; i < cities.length; i++) {
       if (cities[i].id === cityId) {
         return cities[i].provinceId;
+      }
+    }
+    for (var p = 0; p < provinces.length; p++) {
+      if (provinces[p].id === cityId) {
+        return cityId;
       }
     }
     return '';
@@ -420,6 +438,8 @@ App({
       var cityPhotos = wx.getStorageSync('cityPhotos');
       var cityTravelPhotos = wx.getStorageSync('cityTravelPhotos');
       var cityFoodPhotos = wx.getStorageSync('cityFoodPhotos');
+      var deletedPhotoIds = wx.getStorageSync('deletedPhotoIds');
+      var pendingGroupPhotoReviews = wx.getStorageSync('pendingGroupPhotoReviews');
       var cityNotes = wx.getStorageSync('cityNotes');
       var cityAvoidTips = wx.getStorageSync('cityAvoidTips');
       var settings = wx.getStorageSync('settings');
@@ -448,6 +468,13 @@ App({
       }
       if (cityFoodPhotos) {
         this.globalData.cityFoodPhotos = JSON.parse(cityFoodPhotos);
+      }
+      if (deletedPhotoIds) {
+        this.globalData.deletedPhotoIds = JSON.parse(deletedPhotoIds);
+      }
+      if (pendingGroupPhotoReviews) {
+        var parsedPhotoReviews = JSON.parse(pendingGroupPhotoReviews);
+        this.globalData.pendingGroupPhotoReviews = Array.isArray(parsedPhotoReviews) ? parsedPhotoReviews : [];
       }
       if (cityNotes) {
         this.globalData.cityNotes = JSON.parse(cityNotes);
@@ -492,6 +519,8 @@ App({
       wx.setStorageSync('cityPhotos', JSON.stringify(this.globalData.cityPhotos));
       wx.setStorageSync('cityTravelPhotos', JSON.stringify(this.globalData.cityTravelPhotos));
       wx.setStorageSync('cityFoodPhotos', JSON.stringify(this.globalData.cityFoodPhotos));
+      wx.setStorageSync('deletedPhotoIds', JSON.stringify(this.globalData.deletedPhotoIds || {}));
+      wx.setStorageSync('pendingGroupPhotoReviews', JSON.stringify(this.globalData.pendingGroupPhotoReviews || []));
       wx.setStorageSync('cityNotes', JSON.stringify(this.globalData.cityNotes));
       wx.setStorageSync('cityAvoidTips', JSON.stringify(this.globalData.cityAvoidTips));
       wx.setStorageSync('settings', JSON.stringify(this.globalData.settings));
@@ -523,6 +552,34 @@ App({
     this.saveData();
   },
 
+  markPhotoDeleted: function(fileId) {
+    if (!fileId) return;
+    this.globalData.deletedPhotoIds = this.globalData.deletedPhotoIds || {};
+    this.globalData.deletedPhotoIds[fileId] = true;
+    this.saveData();
+  },
+
+  queuePendingGroupPhotoReview: function(entry) {
+    this.globalData.pendingGroupPhotoReviews = groupPhotoReviewQueue.enqueue(
+      this.globalData.pendingGroupPhotoReviews,
+      entry
+    );
+    this.saveData();
+  },
+
+  getPendingGroupPhotoReviews: function(groupId) {
+    return groupPhotoReviewQueue.forGroup(this.globalData.pendingGroupPhotoReviews, groupId);
+  },
+
+  removePendingGroupPhotoReview: function(groupId, fileId) {
+    this.globalData.pendingGroupPhotoReviews = groupPhotoReviewQueue.remove(
+      this.globalData.pendingGroupPhotoReviews,
+      groupId,
+      fileId
+    );
+    this.saveData();
+  },
+
   getVisitedCityCount: function() {
     return this.globalData.visitedCities.length;
   },
@@ -536,6 +593,10 @@ App({
     var visitedProvinceIds = [];
     for (var i = 0; i < this.globalData.visitedCities.length; i++) {
       var cityId = this.globalData.visitedCities[i];
+      if (provinces.some(function(province) { return province.id === cityId; })) {
+        if (visitedProvinceIds.indexOf(cityId) === -1) visitedProvinceIds.push(cityId);
+        continue;
+      }
       for (var j = 0; j < cities.length; j++) {
         if (cities[j].id === cityId) {
           if (visitedProvinceIds.indexOf(cities[j].provinceId) === -1) {

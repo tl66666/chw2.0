@@ -1,20 +1,46 @@
 .group-page {
   min-height: 100vh;
   padding-bottom: 48rpx;
-  background: linear-gradient(180deg, #FFF7F0 0%, #FFFDF8 52%, #EAF4F0 100%);
+  background: linear-gradient(180deg, #FFF7F0 0%, #FFFDF8 52%, #FFF3E8 100%);
 }
 
 .hero {
-  min-height: 240rpx;
+  position: relative;
+  min-height: 196rpx;
   padding: 48rpx 32rpx 40rpx;
   display: flex;
   justify-content: space-between;
   gap: 24rpx;
   box-sizing: border-box;
-  color: #FFFFFF;
-  background:
-    radial-gradient(circle at 82% 12%, rgba(255,255,255,0.28), transparent 30%),
-    linear-gradient(135deg, #D66F58 0%, #C98A67 48%, #78B6A6 100%);
+  overflow: hidden;
+  color: #593D42;
+  background: #FFF3E0;
+}
+
+.hero-copy,
+.hero-stamp {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-background {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  width: 56%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center;
+}
+
+.hero-copy {
+  max-width: 470rpx;
+}
+
+.hero-stamp {
+  display: none;
 }
 
 .hero-kicker {
@@ -44,16 +70,16 @@
 .hero-stamp {
   width: 116rpx;
   height: 116rpx;
-  border-radius: 32rpx;
+  border-radius: 12rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: #FFFFFF;
+  color: #593D42;
   font-size: 46rpx;
   font-weight: 900;
-  background: rgba(255,255,255,0.22);
-  border: 1rpx solid rgba(255,255,255,0.38);
+  background: rgba(255, 250, 241, 0.72);
+  border: 1rpx solid rgba(89, 61, 66, 0.28);
 }
 
 .loading-section {
@@ -101,6 +127,119 @@
   color: #8A786E;
 }
 
+.group-photo-error {
+  margin: 0 0 18rpx;
+  padding: 18rpx 20rpx;
+  border-left: 5rpx solid #B65E4A;
+  background: #F8ECE7;
+  color: #75473D;
+  font-size: 24rpx;
+  line-height: 1.55;
+}
+
+.group-load-warning {
+  margin: 20rpx 24rpx 0;
+  padding: 16rpx 18rpx;
+  color: #75473D;
+  background: #F8ECE7;
+  border-left: 4rpx solid #B65E4A;
+  font-size: 23rpx;
+  line-height: 1.55;
+}
+
+.empty-warning {
+  align-self: stretch;
+  margin: 0 0 22rpx;
+  text-align: left;
+}
+
+/* 群组页收口为旅行档案纸张风格，避免横幅与功能区互相抢色。 */
+.group-page {
+  background: #F5F3EE;
+  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+}
+
+.hero {
+  min-height: 206rpx;
+  padding: 42rpx 28rpx 34rpx;
+  background: #F7F1E7;
+  border-bottom: 1rpx solid rgba(63, 55, 50, 0.12);
+}
+
+.hero-stamp {
+  display: none;
+}
+
+.hero-kicker {
+  color: #8B7368;
+  font-size: 19rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  opacity: 1;
+}
+
+.hero-title,
+.section-title,
+.group-name,
+.modal-title {
+  font-family: 'Songti SC', 'STSong', 'Noto Serif CJK SC', serif;
+  font-weight: 600;
+}
+
+.hero-title {
+  margin-top: 6rpx;
+  color: #3F3732;
+  font-size: 46rpx;
+}
+
+.hero-desc {
+  max-width: 420rpx;
+  color: #6E6159;
+  font-size: 23rpx;
+  opacity: 1;
+}
+
+.loading-section,
+.empty-section {
+  margin-top: 18rpx;
+  border: 1rpx solid rgba(63, 55, 50, 0.12);
+  border-radius: 10rpx;
+  box-shadow: none;
+}
+
+.loading-spinner {
+  width: 44rpx;
+  height: 44rpx;
+  border-color: #F1E2DA;
+  border-top-color: #B65E4A;
+}
+
+.loading-text {
+  color: #80746B;
+  font-size: 23rpx;
+}
+
+.group-card,
+.section-card,
+.squad-map-card,
+.action-section {
+  border: 1rpx solid rgba(63, 55, 50, 0.10);
+  border-radius: 10rpx;
+  box-shadow: none;
+}
+
+.group-card {
+  margin-top: -16rpx;
+  background: #FFFEFB;
+}
+
+.owner-badge,
+.owner-badge.member {
+  border-radius: 4rpx;
+  background: #B65E4A;
+  box-shadow: none;
+}
+
 .group-card,
 .section-card,
 .squad-map-card,
@@ -111,22 +250,22 @@
 }
 
 .group-card {
-  margin-top: -24rpx;
-  padding: 26rpx;
-  border-radius: 28rpx;
+  margin-top: -12rpx;
+  padding: 24rpx;
+  border-radius: 10rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20rpx;
-  background: rgba(255,255,255,0.94);
-  box-shadow: 0 14rpx 36rpx rgba(58,42,34,0.1);
+  background: #FFFEFB;
+  box-shadow: none;
 }
 
 .group-name {
   display: block;
   font-size: 38rpx;
   color: #3F3732;
-  font-weight: 900;
+  font-weight: 600;
 }
 
 .group-desc {
@@ -146,15 +285,15 @@
 .owner-badge {
   flex-shrink: 0;
   padding: 8rpx 16rpx;
-  border-radius: 999rpx;
+  border-radius: 4rpx;
   color: #FFFFFF;
   font-size: 22rpx;
   font-weight: 800;
-  background: linear-gradient(135deg, #D66F58, #B9574D);
+  background: #B65E4A;
 }
 
 .owner-badge.member {
-  background: linear-gradient(135deg, #78B6A6, #4C9B8A);
+  background: #7B98A6;
 }
 
 .squad-map-card {
@@ -165,7 +304,7 @@
   position: relative;
   background:
     radial-gradient(circle at 88% 12%, rgba(214,111,88,0.16), transparent 30%),
-    radial-gradient(circle at 12% 88%, rgba(120,182,166,0.22), transparent 34%),
+    radial-gradient(circle at 12% 88%, rgba(212,165,116,0.22), transparent 34%),
     #FFFFFF;
   box-shadow: 0 12rpx 34rpx rgba(58,42,34,0.08);
 }
@@ -202,7 +341,7 @@
   color: #FFFFFF;
   font-size: 40rpx;
   font-weight: 900;
-  background: linear-gradient(135deg, #D66F58, #78B6A6);
+  background: linear-gradient(135deg, #D66F58, #D99E78);
   box-shadow: 0 12rpx 26rpx rgba(214,111,88,0.22);
 }
 
@@ -283,6 +422,13 @@
   font-weight: 800;
 }
 
+.photo-header-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
 .city-scroll {
   width: 100%;
   white-space: nowrap;
@@ -297,7 +443,7 @@
   margin-right: 14rpx;
   padding: 0 20rpx;
   border-radius: 22rpx;
-  background: linear-gradient(135deg, #FFF0EA, #E8F3EF);
+  background: linear-gradient(135deg, #FFF0EA, #FFF6EE);
   border: 1rpx solid rgba(214,111,88,0.08);
 }
 
@@ -412,7 +558,7 @@
 }
 
 .featured-section {
-  background: linear-gradient(145deg, #FFF3E8, #FFFFFF 64%, #EDF7F3);
+  background: linear-gradient(145deg, #FFF3E8, #FFFFFF 64%, #FFF7EE);
 }
 
 .featured-count {
@@ -608,7 +754,7 @@
   width: 18rpx;
   height: 18rpx;
   border-radius: 50%;
-  background: #78B6A6;
+  background: #D99E78;
   flex-shrink: 0;
 }
 
@@ -1211,7 +1357,7 @@
 
 .type-option.active {
   color: #FFFFFF;
-  background: linear-gradient(135deg, #D66F58, #78B6A6);
+  background: linear-gradient(135deg, #D66F58, #D99E78);
 }
 
 .modal-actions {

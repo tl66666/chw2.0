@@ -1,37 +1,73 @@
 page {
-  --bg-primary: #F8F5F2;
-  --bg-card: #FFFFFF;
-  --pink-primary: #D4A574;
-  --pink-dark: #B8935F;
-  --pink-light: #E8D5C4;
-  --text-primary: #2C2C2C;
-  --text-secondary: #5A5A5A;
-  --text-muted: #8A8A8A;
-  --radius-sm: 8rpx;
-  --radius-md: 16rpx;
-  --radius-lg: 24rpx;
-  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  --bg-primary: #F5F3EE;
+  --bg-card: #FFFEFB;
+  --pink-primary: #B65E4A;
+  --pink-dark: #965345;
+  --pink-light: #F4E3DC;
+  --text-primary: #3F3732;
+  --text-secondary: #70675F;
+  --text-muted: #9A9189;
+  --radius-sm: 6rpx;
+  --radius-md: 10rpx;
+  --radius-lg: 14rpx;
+  --shadow-sm: none;
+  --shadow-md: none;
 }
 
 .container {
-  padding: 32rpx;
+  padding: 0 24rpx;
   padding-bottom: 48rpx;
   background: var(--bg-primary);
   min-height: 100vh;
+  color: var(--text-primary);
+  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
 }
 
 /* 欢迎区域 */
 .welcome-section {
-  margin-bottom: 32rpx;
-  padding-bottom: 16rpx;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+  position: relative;
+  height: 258rpx;
+  margin: 0 -24rpx 22rpx;
+  overflow: hidden;
+  background: #F7F1E7;
+  border-bottom: 1rpx solid rgba(63, 55, 50, 0.12);
+}
+
+.welcome-text {
+  position: relative;
+  z-index: 2;
+  padding: 66rpx 30rpx 0;
+  max-width: 510rpx;
+}
+
+.welcome-banner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center;
+}
+
+.welcome-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  background: linear-gradient(90deg, rgba(247, 241, 231, 0.96) 0%, rgba(247, 241, 231, 0.86) 35%, rgba(247, 241, 231, 0.28) 63%, rgba(247, 241, 231, 0) 100%);
 }
 
 .welcome-title {
   font-size: 44rpx;
+  font-family: 'Songti SC', 'STSong', 'Noto Serif CJK SC', serif;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #593D42;
   display: block;
   margin-bottom: 8rpx;
   letter-spacing: 2rpx;
@@ -39,7 +75,7 @@ page {
 
 .welcome-subtitle {
   font-size: 26rpx;
-  color: var(--text-muted);
+  color: #78675F;
   font-weight: 400;
 }
 
@@ -47,22 +83,23 @@ page {
 .stats-bar {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 32rpx;
-  gap: 16rpx;
+  margin-bottom: 28rpx;
+  gap: 8rpx;
 }
 
 .stat-card {
   flex: 1;
   background: var(--bg-card);
-  border-radius: var(--radius-md);
-  padding: 24rpx 16rpx;
+  border-radius: 8rpx;
+  padding: 20rpx 8rpx;
   text-align: center;
   box-shadow: var(--shadow-sm);
-  border: 1rpx solid rgba(0, 0, 0, 0.04);
+  border: 1rpx solid rgba(63, 55, 50, 0.1);
 }
 
 .stat-number {
   font-size: 40rpx;
+  font-family: 'Songti SC', 'STSong', 'Noto Serif CJK SC', serif;
   font-weight: 600;
   color: var(--pink-primary);
   display: block;
@@ -88,6 +125,7 @@ page {
 
 .section-title {
   font-size: 30rpx;
+  font-family: 'Songti SC', 'STSong', 'Noto Serif CJK SC', serif;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -124,10 +162,11 @@ page {
   display: flex;
   align-items: center;
   background: #fff;
-  border-radius: 40rpx;
+  border-radius: 8rpx;
   padding: 0 24rpx;
   height: 72rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+  box-shadow: none;
+  border: 1rpx solid rgba(63, 55, 50, 0.1);
   border: 1rpx solid rgba(0, 0, 0, 0.05);
 }
 
@@ -223,8 +262,8 @@ page {
 
 .result-visited-tag {
   font-size: 20rpx;
-  color: #4ECDC4;
-  background: rgba(78, 205, 196, 0.1);
+  color: #B87437;
+  background: rgba(212, 165, 116, 0.14);
   padding: 4rpx 12rpx;
   border-radius: 20rpx;
 }
@@ -496,22 +535,22 @@ page {
   align-items: center;
   gap: 6rpx;
   padding: 8rpx 20rpx;
-  background: rgba(102, 126, 234, 0.08);
-  border-radius: 24rpx;
+  background: var(--pink-light);
+  border-radius: 6rpx;
 }
 
 .recommend-refresh:active {
-  background: rgba(102, 126, 234, 0.15);
+  background: #EFD3CA;
 }
 
 .refresh-icon {
   font-size: 26rpx;
-  color: #667eea;
+  color: var(--pink-primary);
 }
 
 .refresh-text {
   font-size: 24rpx;
-  color: #667eea;
+  color: var(--pink-primary);
 }
 
 .recommend-card {
@@ -521,8 +560,8 @@ page {
   border-radius: var(--radius-md);
   padding: 24rpx;
   box-shadow: var(--shadow-sm);
-  border: 1rpx solid rgba(0, 0, 0, 0.04);
-  border-left: 6rpx solid #667eea;
+  border: 1rpx solid rgba(63, 55, 50, 0.1);
+  border-left: 4rpx solid var(--pink-primary);
 }
 
 .recommend-card:active {
@@ -566,7 +605,7 @@ page {
 
 .recommend-season {
   font-size: 22rpx;
-  color: #667eea;
+  color: var(--pink-primary);
   margin-top: 4rpx;
 }
 

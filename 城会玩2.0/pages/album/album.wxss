@@ -7,13 +7,34 @@
 
 /* 页面标题 */
 .album-header {
+  position: relative;
+  height: 216rpx;
+  margin: -32rpx -32rpx 24rpx;
+  overflow: hidden;
+  background: #FFF7EA;
+}
+
+.album-hero-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.album-header-copy {
+  position: relative;
+  z-index: 1;
+  padding: 52rpx 40rpx 0;
+}
+
+.album-header {
   margin-bottom: 24rpx;
 }
 
 .album-title {
   font-size: 44rpx;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #593D42;
   display: block;
   margin-bottom: 8rpx;
   letter-spacing: 0;
@@ -26,7 +47,7 @@
 
 .stats-text {
   font-size: 24rpx;
-  color: var(--text-muted);
+  color: #8A645D;
 }
 
 /* 统计卡片 */

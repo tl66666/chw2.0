@@ -4,6 +4,7 @@ var provincesData = require('../../../utils/provinces.js');
 var cities = citiesData.cities;
 var provinces = provincesData.provinces;
 var privacy = require('../../../utils/privacy.js');
+var photoRecords = require('../../../utils/photo-records.js');
 
 Page({
   data: {
@@ -197,7 +198,7 @@ Page({
           action: 'checkImage',
           fileID: uploadRes.fileID
         },
-        timeout: 8000
+        timeout: 20000
       }).then(function(checkRes) {
         if (checkRes.result && checkRes.result.pass === false) {
           wx.cloud.deleteFile({ fileList: [uploadRes.fileID] }).catch(function() {});
@@ -239,19 +240,16 @@ Page({
   getSecurityMessage: function(result, fallback) {
     result = result || {};
     if (result.blocked) {
-      return result.message || '内容未通过安全校验，请调整后再试';
+      return '内容未通过安全校验，请调整后再试';
     }
     if (result.retryable || result.checked === false) {
-      return result.message || '安全校验服务暂时不可用，请稍后重试';
+      return '图片暂时无法同步，请稍后再试';
     }
     var raw = String(result.errMsg || result.message || result.error || '');
     if (raw.indexOf('-504003') !== -1 || raw.indexOf('FUNCTIONS_TIME_LIMIT') !== -1 || raw.indexOf('timed out') !== -1) {
-      return '图片校验超时，请重新部署 contentSecurity 云函数后重试';
+      return '图片暂时无法同步，请稍后再试';
     }
-    if (raw.indexOf('cloud.callFunction') !== -1 || raw.length > 40) {
-      return fallback || '安全校验服务暂时不可用';
-    }
-    return raw || fallback || '安全校验失败';
+    return fallback || '图片暂时无法同步，请稍后再试';
   },
 
   saveFootprint: function(selectedCity, photos, note, visitDate) {
@@ -281,9 +279,22 @@ Page({
     app.saveData();
     app.syncToCloud();
     this.syncCityToGroup(selectedCity);
-    this.sharePhotosToGroup(selectedCity, this.getVerifiedPhotoUrls(photos), function() {
+    var groupShareCandidates = photoRecords.splitGroupSharePhotos(photos);
+    this.sharePhotosToGroup(selectedCity, groupShareCandidates.shareable, function(result) {
+      var failedPhotos = ((result && result.failed) || []).concat(groupShareCandidates.blocked || []);
+      self.queueFailedGroupPhotos(result && result.groupId, failedPhotos, selectedCity, visitDate);
+      var failed = failedPhotos.length > 0 ? failedPhotos[0] : null;
       var finish = function() {
         wx.hideLoading();
+        if (failed) {
+          wx.showModal({
+            title: '照片已保存到个人相册',
+            content: '群相册未同步：' + (failed.reason || '请稍后重试'),
+            showCancel: false,
+            success: function() { wx.navigateBack(); }
+          });
+          return;
+        }
         wx.showToast({
           title: '保存成功',
           icon: 'success',
@@ -300,63 +311,115 @@ Page({
     });
   },
 
+  queueFailedGroupPhotos: function(groupId, photos, selectedCity, visitDate) {
+    if (!groupId || !app.queuePendingGroupPhotoReview || !selectedCity) return;
+
+    (photos || []).forEach(function(photo) {
+      var fileId = photoRecords.getFileId(photo);
+      if (!fileId || fileId.indexOf('cloud://') !== 0) return;
+      app.queuePendingGroupPhotoReview({
+        groupId: groupId,
+        fileId: fileId,
+        cityId: selectedCity.id,
+        cityName: selectedCity.name || '',
+        provinceId: selectedCity.provinceId || '',
+        type: 'travel',
+        travelDate: visitDate || ''
+      });
+    });
+  },
+
   getPhotoUrl: function(photo) {
     if (!photo) return '';
     return typeof photo === 'string' ? photo : (photo.displayUrl || photo.url || photo.fileId || '');
   },
 
   getVerifiedPhotoUrls: function(photos) {
-    var self = this;
     return (photos || []).filter(function(item) {
       return typeof item === 'string' || item.status === 'verified' || item.status === 'local';
     }).map(function(item) {
-      return self.getPhotoUrl(item);
+      return typeof item === 'string' ? item : (item.fileId || item.url || item.displayUrl || '');
     }).filter(Boolean);
   },
 
-  sharePhotosToGroup: function(selectedCity, photos, done) {
-    var localGroup = wx.getStorageSync('myGroup');
-    if (!localGroup || !wx.cloud) {
-      done();
+  resolveCloudGroupForPhotoShare: function(done) {
+    if (!wx.cloud) {
+      done(null, '云开发未初始化，请重新进入小程序后再试');
       return;
     }
-
-    var groupData = null;
-    try {
-      groupData = JSON.parse(localGroup);
-    } catch (e) {}
-
-    if (!groupData || !groupData.groupInfo || !groupData.groupInfo.id) {
-      done();
-      return;
-    }
-
-    var index = 0;
-    function next() {
-      if (index >= photos.length) {
-        done();
+    wx.cloud.callFunction({
+      name: 'group',
+      data: { action: 'getMyGroup' },
+      timeout: 10000
+    }).then(function(res) {
+      var result = res.result || {};
+      if (result.success && result.groupInfo && result.groupInfo.id) {
+        wx.setStorageSync('myGroup', JSON.stringify(result));
+        done(result);
         return;
       }
-      var fileID = photos[index++];
-      wx.cloud.callFunction({
-        name: 'group',
-        data: {
-          action: 'sharePhoto',
-          data: {
-            groupId: groupData.groupInfo.id,
-            fileId: fileID,
-            url: fileID,
-            cityId: selectedCity.id,
-            cityName: selectedCity.name,
-            provinceId: selectedCity.provinceId || '',
-            type: 'travel'
-          }
-        },
-        timeout: 10000
-      }).then(next).catch(next);
-    }
+      done(null, '暂时无法获取群组信息，请稍后再试');
+    }).catch(function(err) {
+      done(null, '暂时无法获取群组信息，请稍后再试');
+    });
+  },
 
-    next();
+  getGroupShareFailureReason: function(result) {
+    var code = String((result && result.error) || '');
+    if (code === 'UNKNOWN_ACTION') return '群相册暂时不可用，请稍后再试';
+    if (code === 'NOT_A_MEMBER') return '当前微信账号不是这个群的成员，请重新进入群组';
+    if (code === 'INVALID_FILE_ID') return '照片尚未完成云端上传，请稍后重新同步';
+    return '群相册暂时未同步，请稍后再试';
+  },
+
+  sharePhotosToGroup: function(selectedCity, photos, done) {
+    var self = this;
+    this.resolveCloudGroupForPhotoShare(function(groupData, failureReason) {
+      if (!groupData || !groupData.groupInfo || !groupData.groupInfo.id) {
+        done({ synced: 0, failed: [{ fileId: '', reason: failureReason || '未识别到当前云端群组' }] });
+        return;
+      }
+      var index = 0;
+      var synced = 0;
+      var failed = [];
+      function next() {
+        if (index >= photos.length) {
+          done({ synced: synced, failed: failed, groupId: groupData.groupInfo.id });
+          return;
+        }
+        var fileID = photos[index++];
+        if (!fileID || fileID.indexOf('cloud://') !== 0) {
+          failed.push({ fileId: fileID || '', reason: '照片尚未完成云端上传' });
+          next();
+          return;
+        }
+        wx.cloud.callFunction({
+          name: 'group',
+          data: {
+            action: 'sharePhoto',
+            data: {
+              groupId: groupData.groupInfo.id,
+              fileId: fileID,
+              url: fileID,
+              cityId: selectedCity.id,
+              cityName: selectedCity.name,
+              provinceId: selectedCity.provinceId || '',
+              type: 'travel'
+            }
+          },
+          timeout: 10000
+        }).then(function(res) {
+          var result = res.result || {};
+          if (result.success) synced += 1;
+          else failed.push({ fileId: fileID, reason: self.getGroupShareFailureReason(result) });
+          next();
+        }).catch(function(err) {
+          failed.push({ fileId: fileID, reason: (err && (err.errMsg || err.message)) || '群相册网络请求失败' });
+          next();
+        });
+      }
+      next();
+    });
   },
 
   syncCityToGroup: function(selectedCity) {

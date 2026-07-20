@@ -1,9 +1,10 @@
-<view class="group-page">
+  <view class="group-page">
   <view class="hero">
+    <image class="hero-background" src="/images/headers/group-hero-final-v2.png" mode="aspectFill"/>
     <view class="hero-copy">
-      <text class="hero-kicker">Travel Squad</text>
-      <text class="hero-title">我的群组</text>
-      <text class="hero-desc">一个人点亮，全队地图同步。这里汇总成员在城市详情里上传的旅行与美食照片。</text>
+      <text class="hero-kicker">同行小队</text>
+      <text class="hero-title">同行档案</text>
+      <text class="hero-desc">把每一次共同抵达，留成可以回看的旅程。</text>
     </view>
     <view class="hero-stamp">队</view>
   </view>
@@ -14,6 +15,7 @@
   </view>
 
   <block wx:if="{{groupInfo && !loading}}">
+    <view class="group-load-warning" wx:if="{{groupLoadError}}">{{groupLoadError}}</view>
     <view class="group-card">
       <view class="group-main">
         <text class="group-name">{{groupInfo.name}}</text>
@@ -116,10 +118,13 @@
       <view class="section-header">
         <view>
           <text class="section-title">城市照片流</text>
-          <text class="section-subtitle">只收录城市详情页上传的旅行/美食照片，和点亮城市绑定。</text>
+          <text class="section-subtitle">加入群组后，新上传的美景与美食会自动同步到这里。</text>
         </view>
-        <view class="section-more" bindtap="showPhotoWall" wx:if="{{sharedPhotos.length > 0}}">查看全部</view>
+        <view class="photo-header-actions">
+          <view class="section-more" bindtap="showPhotoWall" wx:if="{{sharedPhotos.length > 0}}">查看全部</view>
+        </view>
       </view>
+      <view class="group-photo-error" wx:if="{{photoSyncError}}">{{photoSyncError}}</view>
       <scroll-view class="photo-city-scroll" scroll-x wx:if="{{photoCityFilters.length > 1}}">
         <view class="photo-city-filters">
           <view class="photo-city-filter {{photoCityFilter === item.id ? 'active' : ''}}" wx:for="{{photoCityFilters}}" wx:key="id" bindtap="selectPhotoCity" data-city="{{item.id}}">{{item.name}}</view>
@@ -195,6 +200,7 @@
   </block>
 
   <view class="empty-section" wx:if="{{!groupInfo && !loading}}">
+    <text class="group-load-warning empty-warning" wx:if="{{groupLoadError}}">{{groupLoadError}}</text>
     <image class="empty-illustration" src="/images/ui/empty-group.jpg" mode="aspectFit"/>
     <text class="empty-title">还没有旅行小队</text>
     <text class="empty-desc">创建或加入群组后，成员点亮的城市和城市详情里的照片会汇成一张全队足迹地图。</text>

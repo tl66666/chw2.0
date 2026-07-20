@@ -439,6 +439,9 @@ Page({
     for (var i = 0; i < cities.length; i++) {
       if (cities[i].id === cityId) return cities[i].provinceId;
     }
+    for (var p = 0; p < provinces.length; p++) {
+      if (provinces[p].id === cityId) return cityId;
+    }
     return '';
   },
 
@@ -462,6 +465,9 @@ Page({
       if (cities[i].id === cityId) {
         return cities[i].name;
       }
+    }
+    for (var p = 0; p < provinces.length; p++) {
+      if (provinces[p].id === cityId) return provinces[p].name;
     }
     // 如果找不到，尝试作为城市名称字符串直接返回
     return cityId;
@@ -495,6 +501,65 @@ Page({
     });
   },
 
+  clearPersonalTravelState: function() {
+    app.globalData.visitedCities = [];
+    app.globalData.visitedProvinces = [];
+    app.globalData.manualProvinceRecords = false;
+    app.globalData.visitDates = {};
+    app.globalData.cityDisplayNames = {};
+    app.globalData.cityPhotos = {};
+    app.globalData.cityTravelPhotos = {};
+    app.globalData.cityFoodPhotos = {};
+    app.globalData.cityNotes = {};
+    app.globalData.cityAvoidTips = {};
+    app.globalData.deletedPhotoIds = {};
+    app.globalData.cardCount = 0;
+    app.globalData.ssrCount = 0;
+    app.globalData.urCount = 0;
+    app.globalData.nightVisit = 0;
+    app.globalData.earlyVisit = 0;
+    app.globalData.shareCount = 0;
+    app.globalData.noteCount = 0;
+    app.globalData.dailyVisit = 0;
+    app.globalData.todayVisits = 0;
+    app.globalData.unlockedAchievements = [];
+    app.saveData();
+
+    var removeKeys = ['visitedCities', 'visitedProvinces', 'manualProvinceRecords', 'visitDates', 'cityDisplayNames', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'cityAvoidTips', 'deletedPhotoIds', 'cardCount', 'ssrCount', 'urCount', 'nightVisit', 'earlyVisit', 'shareCount', 'noteCount', 'dailyVisit', 'todayVisits', 'unlockedAchievements'];
+    for (var i = 0; i < removeKeys.length; i++) {
+      try { wx.removeStorageSync(removeKeys[i]); } catch (e) {}
+    }
+    this.loadStats();
+    this.loadRecentActivities();
+  },
+
+  verifyCloudTravelDataCleared: function(done) {
+    wx.cloud.callFunction({
+      name: 'syncData',
+      data: { action: 'getAllData' },
+      timeout: 15000
+    }).then(function(response) {
+      var result = response.result || {};
+      var data = result.data || {};
+      var remaining = [];
+      if (!result.success) {
+        done(false, '暂时无法确认数据是否已清除，请稍后再试。');
+        return;
+      }
+      if ((data.cityRecords || []).length > 0) remaining.push('打卡记录');
+      if ((data.photos || []).length > 0) remaining.push('照片');
+      if ((data.notes || []).length > 0) remaining.push('笔记');
+      if ((data.avoidTips || []).length > 0) remaining.push('避坑指南');
+      if (remaining.length > 0) {
+        done(false, '云端仍有旅行数据：' + remaining.join('、') + '。请稍后重试。');
+        return;
+      }
+      done(true);
+    }).catch(function(err) {
+      done(false, (err && (err.errMsg || err.message)) || '无法核验云端清除结果，请检查网络');
+    });
+  },
+
   clearData: function() {
     var self = this;
     wx.showModal({
@@ -502,58 +567,36 @@ Page({
       content: '确定要清除个人旅行记录吗？此操作不可恢复，云端数据也会一并清除。你仍会保留当前群组成员身份，群组内已经共享的内容不会受影响。',
       confirmColor: '#F87171',
       success: function(res) {
-        if (res.confirm) {
-          // 清除所有旅行相关数据
-          app.globalData.visitedCities = [];
-          app.globalData.visitedProvinces = [];
-          app.globalData.manualProvinceRecords = false;
-          app.globalData.visitDates = {};
-          app.globalData.cityDisplayNames = {};
-          app.globalData.cityPhotos = {};
-          app.globalData.cityTravelPhotos = {};
-          app.globalData.cityFoodPhotos = {};
-          app.globalData.cityNotes = {};
-          app.globalData.cityAvoidTips = {};
-          app.globalData.cardCount = 0;
-          app.globalData.ssrCount = 0;
-          app.globalData.urCount = 0;
-          app.globalData.nightVisit = 0;
-          app.globalData.earlyVisit = 0;
-          app.globalData.shareCount = 0;
-          app.globalData.noteCount = 0;
-          app.globalData.dailyVisit = 0;
-          app.globalData.todayVisits = 0;
-          app.globalData.unlockedAchievements = [];
-          app.saveData();
-
-          // 同步清除本地存储中的旅行数据
-          var removeKeys = ['visitedCities', 'visitedProvinces', 'manualProvinceRecords', 'visitDates', 'cityDisplayNames', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'cityAvoidTips', 'cardCount', 'ssrCount', 'urCount', 'nightVisit', 'earlyVisit', 'shareCount', 'noteCount', 'dailyVisit', 'todayVisits', 'unlockedAchievements'];
-          for (var i = 0; i < removeKeys.length; i++) {
-            try { wx.removeStorageSync(removeKeys[i]); } catch (e) {}
-          }
-
-          // 清除云端数据（防止syncFromCloud把数据同步回来）
-          if (wx.cloud && app.globalData.isLogin) {
-            wx.cloud.callFunction({
-              name: 'syncData',
-              data: { action: 'clearAllData' },
-              timeout: 8000
-            }).then(function(res) {
-              console.log('[clearData] 云端数据已清除', res.result);
-            }).catch(function(err) {
-              console.warn('[clearData] 云端清除失败，仅清除本地:', err);
-            });
-          }
-
-          // 更新UI
-          self.loadStats();
-          self.loadRecentActivities();
-
-          wx.showToast({
-            title: '个人数据已清除',
-            icon: 'success'
-          });
+        if (!res.confirm) return;
+        if (!wx.cloud || !app.globalData.isLogin) {
+          wx.showModal({ title: '尚未完成清除', content: '请先登录并连接云开发后再清除，避免旧数据重新同步回来。', showCancel: false });
+          return;
         }
+        wx.showLoading({ title: '正在清除云端数据' });
+        wx.cloud.callFunction({
+          name: 'syncData',
+          data: { action: 'clearAllData' },
+          timeout: 15000
+        }).then(function(response) {
+          var result = response.result || {};
+          if (!result.success) {
+            wx.hideLoading();
+            wx.showModal({ title: '暂时无法清除', content: '请检查网络后稍后重试。', showCancel: false });
+            return;
+          }
+          self.verifyCloudTravelDataCleared(function(verified, message) {
+            wx.hideLoading();
+            if (!verified) {
+              wx.showModal({ title: '尚未完成清除', content: message, showCancel: false });
+              return;
+            }
+            self.clearPersonalTravelState();
+            wx.showToast({ title: '个人数据已清除', icon: 'success' });
+          });
+        }).catch(function(err) {
+          wx.hideLoading();
+          wx.showModal({ title: '暂时无法清除', content: '请检查网络后稍后重试。', showCancel: false });
+        });
       }
     });
   },

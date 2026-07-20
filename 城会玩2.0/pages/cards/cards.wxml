@@ -1,13 +1,17 @@
 <view class="container cards-page">
   <view class="cards-hero">
-    <view>
-      <text class="eyebrow">Travel Companions</text>
+    <image class="cards-hero-art" src="/images/headers/cards-hero-final-v3.png" mode="aspectFill"/>
+    <view class="cards-hero-copy">
+      <text class="eyebrow">旅行图鉴</text>
       <text class="cards-title">我的角色卡</text>
-      <text class="cards-desc">点亮城市后自动收集省份守护角色，云端卡面加载失败时也会显示旅行卡面。</text>
+      <text class="cards-desc">每点亮一处省份，就收下一张属于这段旅程的角色卡。</text>
     </view>
     <view class="hero-counter">
-      <text class="counter-main">{{collectedCount}}</text>
-      <text class="counter-sub">/{{totalCount}}</text>
+      <text class="counter-label">已收集</text>
+      <view class="counter-values">
+        <text class="counter-main">{{collectedCount}}</text>
+        <text class="counter-sub">/{{totalCount}}</text>
+      </view>
     </view>
   </view>
 
@@ -56,6 +60,7 @@
           class="card-image {{item.isCollected ? '' : 'grayscale'}}"
           src="{{item.imagePath}}"
           mode="aspectFill"
+          lazy-load
           data-id="{{item.provinceId}}"
           binderror="onCardImageError"
         />

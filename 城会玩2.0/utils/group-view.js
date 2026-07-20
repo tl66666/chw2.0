@@ -14,6 +14,10 @@ function uniq(list) {
   return result;
 }
 
+function isCurrentGroupPhoto(photo, groupId) {
+  return !!photo && !!groupId && photo.groupId === groupId;
+}
+
 function getGroupData() {
   var group = parseGroup();
   if (!group || !group.groupInfo) {
@@ -27,12 +31,13 @@ function getGroupData() {
     };
   }
 
+  var photos = (group.sharedPhotos || []).filter(function(photo) { return isCurrentGroupPhoto(photo, group.groupInfo.id); });
   var cityIds = [];
   (group.groupCities || []).forEach(function(item) {
     var cityId = item.cityId || item.id;
     if (cityId) cityIds.push(cityId);
   });
-  (group.sharedPhotos || []).forEach(function(item) {
+  photos.forEach(function(item) {
     if (item && item.cityId) cityIds.push(item.cityId);
   });
 
@@ -40,7 +45,7 @@ function getGroupData() {
     hasGroup: true,
     groupInfo: group.groupInfo,
     cityIds: uniq(cityIds),
-    photos: group.sharedPhotos || [],
+    photos: photos,
     activities: group.recentActivities || [],
     members: group.members || [],
     stats: group.stats || {}

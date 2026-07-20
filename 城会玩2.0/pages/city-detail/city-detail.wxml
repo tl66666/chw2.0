@@ -56,7 +56,10 @@
   <!-- 地标推荐 -->
   <view class="landmark-card" wx:if="{{landmark}}">
     <view class="landmark-header">
-      <text class="landmark-title">必打卡地标</text>
+      <view>
+        <text class="landmark-title">旅行必去</text>
+        <text class="landmark-subtitle" wx:if="{{isProvinceEntry}}">为这片土地挑出的三处风景</text>
+      </view>
     </view>
     <view class="landmark-tags">
       <text class="landmark-tag" wx:for="{{landmarkList}}" wx:key="index">{{item}}</text>
@@ -113,6 +116,11 @@
       </view>
     </view>
 
+    <view class="group-share-alert" wx:if="{{groupShareError}}">
+      <text class="group-share-alert-text">{{groupShareError}}</text>
+      <view class="group-share-retry" wx:if="{{pendingGroupPhotoShare}}" bindtap="retryGroupPhotoShare">{{syncingGroupPhotos ? '同步中...' : '重新同步'}}</view>
+    </view>
+
     <view class="group-footprint-note" wx:if="{{groupSharedPhotos.length === 0 && groupVisitors.length > 0}}">
       <text>这座城市已有群友点亮，公开照片会出现在这里。</text>
     </view>
@@ -120,11 +128,11 @@
 
   <view class="photo-tabs">
     <view class="photo-tab {{activeTab === 'travel' ? 'active' : ''}}" bindtap="switchTab" data-tab="travel">
-      <text class="tab-text">城市记录</text>
+      <text class="tab-text">美景</text>
       <text class="tab-count" wx:if="{{travelPhotos.length > 0}}">{{travelPhotos.length}}</text>
     </view>
     <view class="photo-tab {{activeTab === 'food' ? 'active' : ''}}" bindtap="switchTab" data-tab="food">
-      <text class="tab-text">美食记录</text>
+      <text class="tab-text">美食</text>
       <text class="tab-count" wx:if="{{foodPhotos.length > 0}}">{{foodPhotos.length}}</text>
     </view>
   </view>
@@ -141,13 +149,13 @@
     <view class="add-photo-icon-wrap">
       <text class="add-photo-icon">+</text>
     </view>
-    <text class="add-photo-text">添加{{activeTab === 'travel' ? '旅行' : '美食'}}照片</text>
+    <text class="add-photo-text">添加{{activeTab === 'travel' ? '美景' : '美食'}}照片</text>
   </view>
 
   <!-- 照片网格 -->
   <view class="photos-card" wx:if="{{activeTab === 'travel' && travelPhotos.length > 0}}">
     <view class="photos-header">
-      <text class="photos-title">旅行回忆</text>
+      <text class="photos-title">美景回忆</text>
       <text class="photos-count">{{travelPhotos.length}} 张</text>
     </view>
     <view class="photos-grid">
@@ -182,7 +190,7 @@
   <!-- 空状态 -->
   <view class="empty-card" wx:if="{{(activeTab === 'travel' && travelPhotos.length === 0) || (activeTab === 'food' && foodPhotos.length === 0)}}">
     <view class="empty-content">
-      <text class="empty-text">{{activeTab === 'travel' ? '还没有旅行照片' : '还没有美食照片'}}</text>
+      <text class="empty-text">{{activeTab === 'travel' ? '还没有美景照片' : '还没有美食照片'}}</text>
       <text class="empty-hint">点击上方按钮添加</text>
     </view>
   </view>
