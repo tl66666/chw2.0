@@ -46,3 +46,17 @@ test('album cards provide a stable key and long-press deletion handler', () => {
   assert.match(template, /wx:key="photoKey"/);
   assert.match(template, /bindlongpress="requestDeletePhoto"/);
 });
+
+test('character detail preserves the full card image', () => {
+  const template = fs.readFileSync(
+    path.join(__dirname, '../城会玩2.0/package-cards/pages/card-detail/card-detail.wxml'),
+    'utf8'
+  );
+  const styles = fs.readFileSync(
+    path.join(__dirname, '../城会玩2.0/package-cards/pages/card-detail/card-detail.wxss'),
+    'utf8'
+  );
+
+  assert.match(template, /mode="aspectFit"/);
+  assert.match(styles, /aspect-ratio:\s*3\s*\/\s*4/);
+});

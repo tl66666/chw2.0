@@ -8,7 +8,8 @@
 /* ===== 图片区域 ===== */
 .card-stage {
   position: relative;
-  height: 680rpx;
+  aspect-ratio: 3 / 4;
+  min-height: 680rpx;
   border-radius: 32rpx;
   overflow: hidden;
   background: #F3E9DF;
@@ -23,7 +24,11 @@
   height: 100%;
 }
 
-.card-image { z-index: 2; }
+.card-image {
+  z-index: 2;
+  padding: 18rpx;
+  box-sizing: border-box;
+}
 
 .poster-fallback {
   z-index: 1;

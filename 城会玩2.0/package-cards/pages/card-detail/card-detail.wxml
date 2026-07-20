@@ -14,7 +14,7 @@
       wx:if="{{cardImage}}"
       class="card-image"
       src="{{cardImage}}"
-      mode="aspectFill"
+      mode="aspectFit"
       binderror="onCardImageError"
     />
     <view class="locked-cover" wx:if="{{!isUnlocked}}">
