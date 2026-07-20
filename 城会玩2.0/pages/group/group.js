@@ -37,7 +37,8 @@ Page({
     newGroupName: '',
     newGroupType: 'friends',
     joinCode: '',
-    groupTypeText: ''
+    groupTypeText: '',
+    isCloudBacked: false
   },
 
   preventClose: function() {},
@@ -172,7 +173,7 @@ Page({
     };
   },
 
-  applyGroupData: function(payload) {
+  applyGroupData: function(payload, isCloudBacked) {
     var data = this.normalizeGroupPayload(payload);
     this.setData({
       groupInfo: data.groupInfo,
@@ -185,6 +186,7 @@ Page({
       groupCities: data.groupCities,
       sharedPhotos: data.sharedPhotos,
       recentActivities: data.recentActivities,
+      isCloudBacked: !!isCloudBacked,
       loading: false
     });
     wx.setStorageSync('myGroup', JSON.stringify(data));
@@ -272,7 +274,7 @@ Page({
           localGroup.recentActivities = freshActivities;
           wx.setStorageSync('myGroup', JSON.stringify(localGroup));
         }
-        this.applyGroupData(localGroup);
+        this.applyGroupData(localGroup, false);
       }
     } catch (e) {
       console.error('[group] loadGroupInfo local data error:', e);
@@ -295,7 +297,7 @@ Page({
             localGroup && localGroup.recentActivities && localGroup.recentActivities.length > 0) {
           result.recentActivities = localGroup.recentActivities;
         }
-        self.applyGroupData(result);
+        self.applyGroupData(result, true);
       } else if (!localGroup) {
         self.setData({ groupInfo: null, loading: false });
       } else {
@@ -352,7 +354,7 @@ Page({
 
     if (!this.canUseGroupCloud()) {
       wx.hideLoading();
-      this.applyGroupData(localData);
+      this.applyGroupData(localData, false);
       this.setData({ showCreateModal: false });
       wx.showToast({ title: '已创建本地小队', icon: 'success' });
       return;
@@ -381,13 +383,13 @@ Page({
       wx.hideLoading();
       var result = res.result || {};
       if (result.success) {
-        self.applyGroupData(result);
+        self.applyGroupData(result, true);
         self.setData({ showCreateModal: false });
         self.syncMyStats();
         self.syncMyPhotosToGroup(result.groupInfo && result.groupInfo.id);
         wx.showToast({ title: '创建成功', icon: 'success' });
       } else {
-        self.applyGroupData(localData);
+        self.applyGroupData(localData, false);
         self.setData({ showCreateModal: false });
         wx.showModal({
           title: '云端同步失败',
@@ -398,7 +400,7 @@ Page({
     }).catch(function(err) {
       wx.hideLoading();
       console.error('[group] create failed:', err);
-      self.applyGroupData(localData);
+      self.applyGroupData(localData, false);
       self.setData({ showCreateModal: false });
       wx.showModal({
         title: '云端连接超时',
@@ -445,6 +447,12 @@ Page({
       return;
     }
     if (!this.canUseGroupCloud()) {
+      wx.showModal({
+        title: '暂时无法加入群组',
+        content: '邀请码需要云端连接才能加入。请检查网络并确认 group 云函数已部署后重试。',
+        showCancel: false
+      });
+      return;
       var localData = this.buildLocalGroupData('我的旅行小队', 'friends', code, false);
       this.applyGroupData(localData);
       this.setData({ showJoinModal: false, joinCode: '' });
@@ -476,7 +484,7 @@ Page({
       wx.hideLoading();
       var result = res.result || {};
       if (result.success) {
-        self.applyGroupData(result);
+        self.applyGroupData(result, true);
         self.setData({ showJoinModal: false, joinCode: '' });
         self.syncMyStats();
         self.syncMyPhotosToGroup(result.groupInfo && result.groupInfo.id);
@@ -499,7 +507,7 @@ Page({
     });
   },
 
-  leaveGroup: function() {
+  leaveGroupUnsafe: function() {
     var self = this;
     wx.showModal({
       title: '退出群组',
@@ -537,6 +545,93 @@ Page({
         wx.showToast({ title: '已退出', icon: 'success' });
       }
     });
+  },
+
+  clearLocalGroup: function() {
+    wx.removeStorageSync('myGroup');
+    this.setData({
+      groupInfo: null,
+      isCreator: false,
+      isAdmin: false,
+      inviteCode: '',
+      members: [],
+      groupCities: [],
+      recentActivities: [],
+      sharedPhotos: [],
+      isCloudBacked: false,
+      stats: { totalMembers: 0, totalCities: 0, totalProvinces: 0, totalPhotos: 0 }
+    });
+  },
+
+  confirmLeaveGroup: function() {
+    var self = this;
+    wx.showModal({
+      title: '退出群组',
+      content: '退出后将不再同步这个群组的共同足迹，确定退出吗？',
+      confirmText: '退出',
+      confirmColor: '#D66F58',
+      success: function(res) {
+        if (!res.confirm) return;
+        if (!self.data.isCloudBacked) {
+          self.clearLocalGroup();
+          wx.showToast({ title: '已删除本机草稿', icon: 'success' });
+          return;
+        }
+        wx.showLoading({ title: '正在退出' });
+        wx.cloud.callFunction({ name: 'group', data: { action: 'leaveGroup' }, timeout: 10000 })
+          .then(function(result) {
+            wx.hideLoading();
+            var payload = result.result || {};
+            if (!payload.success) {
+              wx.showModal({ title: '退出失败', content: payload.message || '群组数据未发生变化，请稍后重试。', showCancel: false });
+              return;
+            }
+            self.clearLocalGroup();
+            wx.showToast({ title: '已退出群组', icon: 'success' });
+          })
+          .catch(function() {
+            wx.hideLoading();
+            wx.showModal({ title: '网络连接失败', content: '未退出群组，请检查网络后重试。', showCancel: false });
+          });
+      }
+    });
+  },
+
+  transferOwnershipAndLeave: function(target) {
+    var self = this;
+    wx.showLoading({ title: '正在转让群主' });
+    wx.cloud.callFunction({
+      name: 'group',
+      data: { action: 'transferOwnership', data: { targetOpenid: target.openid } },
+      timeout: 10000
+    }).then(function(result) {
+      wx.hideLoading();
+      var payload = result.result || {};
+      if (!payload.success) {
+        wx.showModal({ title: '转让失败', content: payload.message || '群主没有变化，请稍后重试。', showCancel: false });
+        return;
+      }
+      self.applyGroupData(payload, true);
+      self.confirmLeaveGroup();
+    }).catch(function() {
+      wx.hideLoading();
+      wx.showModal({ title: '网络连接失败', content: '未转让群主，请检查网络后重试。', showCancel: false });
+    });
+  },
+
+  leaveGroup: function() {
+    var self = this;
+    var targets = (this.data.members || []).filter(function(member) {
+      return member.openid && member.openid !== (app.globalData.openid || wx.getStorageSync('openid'));
+    });
+    if (this.data.isCreator && this.data.isCloudBacked && targets.length > 0) {
+      wx.showActionSheet({
+        itemList: targets.map(function(member) { return '转让给 ' + (member.nickName || '成员'); }),
+        success: function(res) { self.transferOwnershipAndLeave(targets[res.tapIndex]); }
+      });
+      return;
+    }
+    this.confirmLeaveGroup();
   },
 
   syncMyStats: function() {

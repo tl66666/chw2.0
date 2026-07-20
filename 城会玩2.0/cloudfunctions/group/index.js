@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk');
+const permissions = require('./permissions');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
@@ -116,6 +117,7 @@ async function getSharedPhotos(groupId, limit) {
       id: p._id,
       url: p.url || p.fileId,
       fileId: p.fileId || '',
+      openid: p.openid,
       userId: p.openid,
       userName: p.nickName || '成员',
       userAvatar: p.avatarUrl || '/images/avatar.jpg',
@@ -404,7 +406,7 @@ async function joinGroup(data, openid) {
   }
 }
 
-async function leaveGroup(openid) {
+async function leaveGroupUnsafe(openid) {
   try {
     await db.collection('group_members').where({ openid }).remove();
     try {
@@ -420,6 +422,101 @@ async function leaveGroup(openid) {
     return { success: true };
   } catch (err) {
     return { success: true, offline: true, error: err.message };
+  }
+}
+
+async function removeSharedPhoto(data, openid) {
+  const fileId = data && data.fileId;
+  if (!fileId) return { success: false, error: 'MISSING_FILE_ID' };
+
+  try {
+    const memberRes = await db.collection('group_members').where({ openid }).limit(1).get();
+    const member = memberRes.data && memberRes.data[0];
+    if (!member) return { success: false, error: 'NOT_A_MEMBER' };
+
+    const photoRes = await db.collection('group_photos').where({
+      groupId: member.groupId,
+      fileId: fileId
+    }).limit(1).get();
+    const photo = photoRes.data && photoRes.data[0];
+    if (!permissions.canRemoveSharedPhoto(photo, openid)) {
+      return { success: false, error: 'NOT_PHOTO_OWNER' };
+    }
+
+    await db.collection('group_photos').doc(photo._id).remove();
+    await refreshMemberPhotoCount(member.groupId, openid);
+    return { success: true };
+  } catch (err) {
+    console.error('[group] removeSharedPhoto failed:', err);
+    return { success: false, error: 'REMOVE_FAILED', message: err.message };
+  }
+}
+
+async function leaveGroup(openid) {
+  try {
+    const memberRes = await db.collection('group_members').where({ openid }).limit(1).get();
+    const member = memberRes.data && memberRes.data[0];
+    if (!member) return { success: true };
+
+    const groupRes = await db.collection('groups').doc(member.groupId).get();
+    const groupInfo = groupRes.data;
+    const membersRes = await db.collection('group_members').where({ groupId: member.groupId }).get();
+    const members = membersRes.data || [];
+    if (!permissions.canLeaveGroup(groupInfo, openid, members.length)) {
+      return { success: false, error: 'TRANSFER_REQUIRED' };
+    }
+
+    await db.collection('group_members').where({ groupId: member.groupId, openid: openid }).remove();
+    try {
+      await db.collection('group_city_records').where({ groupId: member.groupId, openid: openid }).remove();
+    } catch (e) {
+      console.warn('[group] leaveGroup: group_city_records remove skipped:', e.message);
+    }
+    try {
+      await db.collection('group_photos').where({ groupId: member.groupId, openid: openid }).remove();
+    } catch (e) {
+      console.warn('[group] leaveGroup: group_photos remove skipped:', e.message);
+    }
+
+    if (members.length <= 1 && groupInfo) {
+      await db.collection('groups').doc(member.groupId).remove();
+    }
+    return { success: true };
+  } catch (err) {
+    console.error('[group] leaveGroup failed:', err);
+    return { success: false, error: 'LEAVE_FAILED', message: err.message };
+  }
+}
+
+async function transferOwnership(data, openid) {
+  const targetOpenid = data && data.targetOpenid;
+  try {
+    const ownerMemberRes = await db.collection('group_members').where({ openid }).limit(1).get();
+    const ownerMember = ownerMemberRes.data && ownerMemberRes.data[0];
+    if (!ownerMember) return { success: false, error: 'NOT_A_MEMBER' };
+
+    const groupRes = await db.collection('groups').doc(ownerMember.groupId).get();
+    const groupInfo = groupRes.data;
+    const membersRes = await db.collection('group_members').where({ groupId: ownerMember.groupId }).get();
+    const members = membersRes.data || [];
+    const memberOpenids = members.map(function(item) { return item.openid; });
+    if (!groupInfo || groupInfo.creatorOpenid !== openid || !permissions.canTransferOwnership(openid, targetOpenid, memberOpenids)) {
+      return { success: false, error: 'TRANSFER_NOT_ALLOWED' };
+    }
+
+    await db.collection('groups').doc(ownerMember.groupId).update({
+      data: { creatorOpenid: targetOpenid, updateTime: now() }
+    });
+    await db.collection('group_members').where({ groupId: ownerMember.groupId, openid: openid }).update({
+      data: { isCreator: false, role: 'member' }
+    });
+    await db.collection('group_members').where({ groupId: ownerMember.groupId, openid: targetOpenid }).update({
+      data: { isCreator: true, role: 'admin' }
+    });
+    return getMyGroup(openid);
+  } catch (err) {
+    console.error('[group] transferOwnership failed:', err);
+    return { success: false, error: 'TRANSFER_FAILED', message: err.message };
   }
 }
 
@@ -593,9 +690,11 @@ exports.main = async (event) => {
   if (action === 'createGroup') return createGroup(data, openid);
   if (action === 'joinGroup') return joinGroup(data, openid);
   if (action === 'leaveGroup') return leaveGroup(openid);
+  if (action === 'transferOwnership') return transferOwnership(data, openid);
   if (action === 'syncMemberStats') return syncMemberStats(data, openid);
   if (action === 'syncCityRecord') return syncSingleCity(data, openid);
   if (action === 'sharePhoto') return shareGroupPhoto(data, openid);
+  if (action === 'removeSharedPhoto') return removeSharedPhoto(data, openid);
   if (action === 'getCityFootprint') return getCityFootprint(data, openid);
   if (action === 'getSharedPhotos') {
     const photos = await getSharedPhotos(data.groupId, 50);

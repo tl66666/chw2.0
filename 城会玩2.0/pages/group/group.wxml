@@ -18,6 +18,7 @@
       <view class="group-main">
         <text class="group-name">{{groupInfo.name}}</text>
         <text class="group-desc">{{groupTypeText}}小队 · 邀请码 {{inviteCode}}</text>
+        <text class="group-sync-state" wx:if="{{!isCloudBacked}}">仅本机保存，联网后才能邀请好友同步</text>
       </view>
       <view class="owner-badge" wx:if="{{isCreator}}">创建者</view>
       <view class="owner-badge member" wx:elif="{{isAdmin}}">管理员</view>

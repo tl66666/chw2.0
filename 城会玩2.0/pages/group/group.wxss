@@ -136,6 +136,13 @@
   color: #8A786E;
 }
 
+.group-sync-state {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 21rpx;
+  color: #C85D4C;
+}
+
 .owner-badge {
   flex-shrink: 0;
   padding: 8rpx 16rpx;
