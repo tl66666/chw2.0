@@ -60,6 +60,9 @@ test('map province entry has one independent province check-in and card path', (
   assert.match(template, /bindtap="toggleProvinceVisit"/);
   assert.match(source, /isProvinceVisited/);
   assert.match(source, /visitedProvinces/);
+  assert.match(template, /必打卡地标/);
+  assert.match(template, /旅行指南/);
+  assert.match(source, /openUnlockCard/);
   assert.doesNotMatch(template, /city-atlas-card/);
 });
 

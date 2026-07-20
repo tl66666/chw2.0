@@ -4,26 +4,30 @@
     <view class="province-cover-fallback" wx:else><text class="cover-abbr">{{provinceAbbr}}</text></view>
     <view class="cover-shade"></view>
     <view class="cover-copy">
-      <text class="cover-kicker">地图足迹</text>
+      <text class="cover-kicker">省份旅行档案</text>
       <text class="cover-title">{{provinceName}}</text>
-      <text class="cover-summary">{{isProvinceVisited ? '这片地图已经点亮' : '点亮这片地图，收下对应角色卡'}}</text>
+      <text class="cover-summary">{{isProvinceVisited ? '已点亮，角色卡已收录' : '点亮地图，抽取对应角色卡'}}</text>
     </view>
   </view>
 
-  <view class="province-status">
-    <view class="status-mark {{isProvinceVisited ? 'is-visited' : ''}}"><text>{{isProvinceVisited ? '✓' : '○'}}</text></view>
-    <view class="status-copy"><text class="status-title">{{isProvinceVisited ? '已点亮省份' : '还未点亮'}}</text><text class="status-desc">省份打卡不会新增或改变下属城市记录</text></view>
-  </view>
-
   <view class="province-action {{isProvinceVisited ? 'is-visited' : ''}}" bindtap="toggleProvinceVisit">
-    <view><text class="action-kicker">PROVINCE CHECK-IN</text><text class="action-title">{{isProvinceVisited ? '取消点亮 ' + provinceName : '点亮 ' + provinceName}}</text></view>
-    <text class="action-icon">{{isProvinceVisited ? '✓' : '+'}}</text>
+    <view class="action-icon-wrap"><text class="action-icon">{{isProvinceVisited ? '✓' : '✦'}}</text></view>
+    <view class="action-copy"><text class="action-kicker">{{isProvinceVisited ? 'PROVINCE CARD' : 'PROVINCE CHECK-IN'}}</text><text class="action-title">{{isProvinceVisited ? '查看 ' + provinceName + ' 角色卡' : '点亮 ' + provinceName + ' 并抽卡'}}</text><text class="action-desc">{{isProvinceVisited ? '角色卡与这片地图对应' : '不会改动任何城市打卡记录'}}</text></view>
+    <text class="action-arrow">›</text>
   </view>
 
-  <view class="province-card-entry" bindtap="openCard">
-    <view><text class="entry-kicker">PROVINCE CARD</text><text class="entry-title">查看对应角色卡</text><text class="entry-desc">{{provinceName}} 专属角色资料</text></view>
-    <text class="entry-arrow">›</text>
+  <view class="content-card landmark-card" wx:if="{{landmarks.length}}">
+    <view class="card-heading"><text class="card-title">必打卡地标</text><text class="card-caption">省份精选</text></view>
+    <view class="landmark-list"><view class="landmark-item" wx:for="{{landmarks}}" wx:key="index"><text class="landmark-index">0{{index + 1}}</text><text class="landmark-name">{{item}}</text></view></view>
   </view>
 
-  <view class="province-note"><text>想记录具体城市时，请通过首页搜索进入该城市打卡。</text></view>
+  <view class="content-card guide-card" wx:if="{{provinceGuide}}">
+    <view class="card-heading"><text class="card-title">旅行指南</text><text class="card-caption">从 {{guideStartName}} 出发</text></view>
+    <text class="guide-intro">{{provinceGuide.intro}}</text>
+    <view class="guide-row" wx:if="{{provinceGuide.bestSeason}}"><text class="guide-label">适合季节</text><text class="guide-value">{{provinceGuide.bestSeason}}</text></view>
+    <view class="guide-row" wx:if="{{provinceGuide.transport}}"><text class="guide-label">出行建议</text><text class="guide-value">{{provinceGuide.transport}}</text></view>
+    <view class="guide-tip" wx:if="{{provinceGuide.tips}}"><text class="guide-tip-label">旅行提示</text><text class="guide-tip-text">{{provinceGuide.tips}}</text></view>
+  </view>
+
+  <view class="province-note"><text>搜索具体城市可记录城市足迹、照片和笔记；不会影响本省点亮状态。</text></view>
 </view>

@@ -15,6 +15,7 @@ const syncDataFunction = fs.readFileSync(
 test('clearing personal travel data keeps the current group membership', () => {
   assert.doesNotMatch(profileScript, /data:\s*\{\s*action:\s*'leaveGroup'\s*\}/);
   assert.doesNotMatch(profileScript, /'myGroup'/);
+  assert.doesNotMatch(profileScript, /groupView\.getGroupData\(\)\.activities/);
 });
 
 test('cloud data reset does not erase the current group reference', () => {

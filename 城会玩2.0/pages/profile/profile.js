@@ -237,7 +237,7 @@ Page({
   },
 
   loadStats: function() {
-    var visitedCities = groupView.mergeCityIds(app.globalData.visitedCities || []);
+    var visitedCities = app.globalData.visitedCities || [];
     var cityTravelPhotos = app.globalData.cityTravelPhotos || {};
     var cityFoodPhotos = app.globalData.cityFoodPhotos || {};
     var cityPhotos = app.globalData.cityPhotos || {};
@@ -264,11 +264,6 @@ Page({
     var foodKeys = Object.keys(cityFoodPhotos);
     for (var n = 0; n < foodKeys.length; n++) {
       foodPhotoCount += cityFoodPhotos[foodKeys[n]].length;
-    }
-    var groupPhotos = groupView.getAllPhotos();
-    for (var gp = 0; gp < groupPhotos.length; gp++) {
-      if (groupPhotos[gp].type === 'food') foodPhotoCount++;
-      else travelPhotoCount++;
     }
 
     // 计算完成率
@@ -323,7 +318,7 @@ Page({
   loadRecentActivities: function() {
     try {
     var activities = [];
-    var visitedCities = groupView.mergeCityIds(app.globalData.visitedCities || []);
+    var visitedCities = app.globalData.visitedCities || [];
     var cityTravelPhotos = app.globalData.cityTravelPhotos || {};
     var cityFoodPhotos = app.globalData.cityFoodPhotos || {};
     var cityNotes = app.globalData.cityNotes || {};
@@ -411,20 +406,6 @@ Page({
           sortKey: 4000 + o * 100 + r
         });
       }
-    }
-
-    var groupActivities = groupView.getGroupData().activities || [];
-    for (var ga = 0; ga < groupActivities.length; ga++) {
-      var act = groupActivities[ga];
-      var isPhoto = act.type === 'photo';
-      var placeName = this.getPlaceNameById(act.cityId || act.cityName) || act.cityName || '城市';
-      allActivities.push({
-        type: isPhoto ? 'photo' : 'city',
-        iconText: isPhoto ? ACTIVITY_ICON_TEXT.photo : ACTIVITY_ICON_TEXT.city,
-        text: '小队成员 ' + (act.userName || '群友') + (isPhoto ? ' 在 ' : ' 点亮了 ') + placeName + (isPhoto ? ' 上传了照片' : ''),
-        time: act.displayTime || '小队动态',
-        sortKey: 6000 + ga
-      });
     }
 
     // 取最近5条，倒序排列（最新的在前面）
@@ -525,6 +506,7 @@ Page({
           // 清除所有旅行相关数据
           app.globalData.visitedCities = [];
           app.globalData.visitedProvinces = [];
+          app.globalData.manualProvinceRecords = false;
           app.globalData.visitDates = {};
           app.globalData.cityDisplayNames = {};
           app.globalData.cityPhotos = {};
@@ -545,7 +527,7 @@ Page({
           app.saveData();
 
           // 同步清除本地存储中的旅行数据
-          var removeKeys = ['visitedCities', 'visitedProvinces', 'visitDates', 'cityDisplayNames', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'cityAvoidTips', 'cardCount', 'ssrCount', 'urCount', 'nightVisit', 'earlyVisit', 'shareCount', 'noteCount', 'dailyVisit', 'todayVisits', 'unlockedAchievements'];
+          var removeKeys = ['visitedCities', 'visitedProvinces', 'manualProvinceRecords', 'visitDates', 'cityDisplayNames', 'cityPhotos', 'cityTravelPhotos', 'cityFoodPhotos', 'cityNotes', 'cityAvoidTips', 'cardCount', 'ssrCount', 'urCount', 'nightVisit', 'earlyVisit', 'shareCount', 'noteCount', 'dailyVisit', 'todayVisits', 'unlockedAchievements'];
           for (var i = 0; i < removeKeys.length; i++) {
             try { wx.removeStorageSync(removeKeys[i]); } catch (e) {}
           }

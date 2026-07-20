@@ -282,6 +282,9 @@ Page({
     if (visitedProvinces.indexOf(provinceId) === -1) {
       visitedProvinces.push(provinceId);
       app.globalData.visitedProvinces = visitedProvinces;
+      app.globalData.manualProvinceRecords = true;
+      app.saveData();
+      app.syncProvinceRecords();
       try {
         wx.setStorageSync('visitedProvinces', JSON.stringify(visitedProvinces));
       } catch (e) {}

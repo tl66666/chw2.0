@@ -1,6 +1,7 @@
 var app = getApp();
 var provinces = require('../../utils/provinces.js').provinces;
 var cloudImage = require('../../utils/cloudImage.js');
+var provinceGuides = require('../../utils/province-guides.js');
 
 var CLOUD_BASE = 'cloud://cloud1-d9gshoz5s40d02b42.636c-cloud1-d9gshoz5s40d02b42-1442414269';
 
@@ -14,7 +15,10 @@ Page({
     provinceName: '',
     provinceAbbr: '',
     provinceCover: '',
-    isProvinceVisited: false
+    isProvinceVisited: false,
+    landmarks: [],
+    provinceGuide: null,
+    guideStartName: ''
   },
 
   onLoad: function(options) {
@@ -28,13 +32,17 @@ Page({
   loadProvince: function(provinceId) {
     var province = provinces.filter(function(item) { return item.id === provinceId; })[0];
     if (!province) return;
+    var guideData = provinceGuides.getProvinceGuide(province.id);
 
     this.setData({
       provinceId: province.id,
       provinceName: province.name,
       provinceAbbr: province.abbr || province.name.slice(0, 1),
       provinceCover: '',
-      isProvinceVisited: (app.globalData.visitedProvinces || []).indexOf(province.id) !== -1
+      isProvinceVisited: (app.globalData.visitedProvinces || []).indexOf(province.id) !== -1,
+      landmarks: provinceGuides.getProvinceLandmarks(province.id),
+      provinceGuide: guideData.guide,
+      guideStartName: guideData.startName
     });
 
     var self = this;
@@ -54,20 +62,17 @@ Page({
     var provinceId = this.data.provinceId;
     if (!provinceId) return;
 
-    var visitedProvinces = (app.globalData.visitedProvinces || []).slice();
-    var index = visitedProvinces.indexOf(provinceId);
-    if (index === -1) {
-      visitedProvinces.push(provinceId);
-    } else {
-      visitedProvinces.splice(index, 1);
+    if (this.data.isProvinceVisited) {
+      this.openCard();
+      return;
     }
+    this.openUnlockCard();
+  },
 
-    app.globalData.visitedProvinces = visitedProvinces;
-    app.globalData.manualProvinceRecords = true;
-    app.saveData();
-    app.syncProvinceRecords();
-    this.refreshProvinceState();
-    wx.showToast({ title: index === -1 ? '省份已点亮' : '已取消点亮', icon: 'success' });
+  openUnlockCard: function() {
+    if (this.data.provinceId) {
+      wx.navigateTo({ url: '/package-cards/pages/unlock-card/unlock-card?provinceId=' + this.data.provinceId + '&fromMap=true' });
+    }
   },
 
   openCard: function() {
