@@ -109,7 +109,6 @@ async function getSharedPhotos(groupId, limit) {
   try {
     const photosRes = await db.collection('group_photos')
       .where({ groupId })
-      .orderBy('createTime', 'desc')
       .limit(limit || 50)
       .get();
 
@@ -124,13 +123,164 @@ async function getSharedPhotos(groupId, limit) {
       cityId: p.cityId || '',
       cityName: p.cityName || '',
       type: p.type || 'travel',
+      isFeatured: !!p.isFeatured,
+      featuredAt: p.featuredAt || '',
       createTime: p.createTime,
       displayTime: displayTime(p.createTime)
-    }));
+    })).sort((a, b) => {
+      if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
+      return String(b.featuredAt || b.createTime || '').localeCompare(String(a.featuredAt || a.createTime || ''));
+    });
   } catch (err) {
     console.warn('[group] getSharedPhotos: collection not ready, returning empty:', err.message);
     return [];
   }
+}
+
+async function getMembership(groupId, openid) {
+  const res = await db.collection('group_members').where({ groupId, openid }).limit(1).get();
+  return res.data && res.data[0];
+}
+
+async function getSharedPhotosForMember(data, openid) {
+  const groupId = data && data.groupId;
+  if (!groupId) return { success: false, error: 'MISSING_GROUP' };
+  const member = await getMembership(groupId, openid);
+  if (!member) return { success: false, error: 'NOT_A_MEMBER' };
+  return { success: true, photos: await getSharedPhotos(groupId, 50) };
+}
+
+async function getTravelPlans(groupId, openid) {
+  try {
+    const planRes = await db.collection('group_trip_plans').where({ groupId }).limit(50).get();
+    const voteRes = await db.collection('group_plan_votes').where({ groupId }).limit(500).get();
+    const votesByPlan = {};
+    (voteRes.data || []).forEach(function(vote) {
+      if (!votesByPlan[vote.planId]) votesByPlan[vote.planId] = [];
+      votesByPlan[vote.planId].push(vote.openid);
+    });
+
+    return (planRes.data || []).map(function(plan) {
+      const voters = uniq(votesByPlan[plan._id] || []);
+      return {
+        id: plan._id,
+        title: plan.title || '未命名计划',
+        cityName: plan.cityName || '',
+        startDate: plan.startDate || '',
+        endDate: plan.endDate || '',
+        note: plan.note || '',
+        creatorOpenid: plan.creatorOpenid,
+        creatorName: plan.creatorName || '成员',
+        isMine: plan.creatorOpenid === openid,
+        voteCount: voters.length,
+        hasVoted: voters.indexOf(openid) !== -1,
+        createTime: plan.createTime || ''
+      };
+    }).sort(function(a, b) {
+      return String(b.createTime).localeCompare(String(a.createTime));
+    });
+  } catch (err) {
+    console.warn('[group] getTravelPlans: collection not ready, returning empty:', err.message);
+    return [];
+  }
+}
+
+async function createTravelPlan(data, openid) {
+  const groupId = data && data.groupId;
+  const title = String((data && data.title) || '').trim();
+  const startDate = String((data && data.startDate) || '');
+  const endDate = String((data && data.endDate) || '');
+  if (!groupId || title.length < 2 || title.length > 30) {
+    return { success: false, error: 'INVALID_PLAN', message: '计划名称需要 2 到 30 个字' };
+  }
+  if (startDate && endDate && startDate > endDate) {
+    return { success: false, error: 'START_AFTER_END', message: '返程日期不能早于出发日期' };
+  }
+  const member = await getMembership(groupId, openid);
+  if (!member) return { success: false, error: 'NOT_A_MEMBER' };
+
+  await db.collection('group_trip_plans').add({
+    data: {
+      groupId,
+      title,
+      cityName: String((data && data.cityName) || '').trim().slice(0, 20),
+      startDate,
+      endDate,
+      note: String((data && data.note) || '').trim().slice(0, 120),
+      creatorOpenid: openid,
+      creatorName: member.nickName || '成员',
+      createTime: now(),
+      createdAt: db.serverDate()
+    }
+  });
+  return { success: true, plans: await getTravelPlans(groupId, openid) };
+}
+
+async function toggleTravelPlanVote(data, openid) {
+  const groupId = data && data.groupId;
+  const planId = data && data.planId;
+  if (!groupId || !planId) return { success: false, error: 'MISSING_PLAN' };
+  const member = await getMembership(groupId, openid);
+  if (!member) return { success: false, error: 'NOT_A_MEMBER' };
+  const planRes = await db.collection('group_trip_plans').doc(planId).get();
+  if (!planRes.data || planRes.data.groupId !== groupId) return { success: false, error: 'PLAN_NOT_FOUND' };
+
+  const voteRes = await db.collection('group_plan_votes').where({ groupId, planId, openid }).limit(1).get();
+  if (voteRes.data && voteRes.data[0]) {
+    await db.collection('group_plan_votes').doc(voteRes.data[0]._id).remove();
+  } else {
+    await db.collection('group_plan_votes').add({
+      data: { groupId, planId, openid, createTime: now(), createdAt: db.serverDate() }
+    });
+  }
+  return { success: true, plans: await getTravelPlans(groupId, openid) };
+}
+
+async function deleteTravelPlan(data, openid) {
+  const groupId = data && data.groupId;
+  const planId = data && data.planId;
+  if (!groupId || !planId) return { success: false, error: 'MISSING_PLAN' };
+  const member = await getMembership(groupId, openid);
+  if (!member) return { success: false, error: 'NOT_A_MEMBER' };
+  const planRes = await db.collection('group_trip_plans').doc(planId).get();
+  const plan = planRes.data;
+  const groupRes = await db.collection('groups').doc(groupId).get();
+  if (!plan || plan.groupId !== groupId || !permissions.canManageTravelPlan(plan, groupRes.data, openid)) {
+    return { success: false, error: 'PLAN_DELETE_NOT_ALLOWED' };
+  }
+  await db.collection('group_trip_plans').doc(planId).remove();
+  await db.collection('group_plan_votes').where({ groupId, planId }).remove();
+  return { success: true, plans: await getTravelPlans(groupId, openid) };
+}
+
+async function setFeaturedPhoto(data, openid) {
+  const groupId = data && data.groupId;
+  const photoId = data && data.photoId;
+  const featured = !!(data && data.featured);
+  if (!groupId || !photoId) return { success: false, error: 'MISSING_PHOTO' };
+  const member = await getMembership(groupId, openid);
+  if (!member) return { success: false, error: 'NOT_A_MEMBER' };
+  const groupRes = await db.collection('groups').doc(groupId).get();
+  if (!permissions.canFeatureSharedPhoto(groupRes.data, openid)) {
+    return { success: false, error: 'FEATURE_NOT_ALLOWED' };
+  }
+  const photoRes = await db.collection('group_photos').doc(photoId).get();
+  const photo = photoRes.data;
+  if (!photo || photo.groupId !== groupId) return { success: false, error: 'PHOTO_NOT_FOUND' };
+  if (featured) {
+    const featuredCount = await db.collection('group_photos').where({ groupId, isFeatured: true }).count();
+    if (featuredCount.total >= 6 && !photo.isFeatured) {
+      return { success: false, error: 'FEATURE_LIMIT', message: '精选相册最多置顶 6 张照片' };
+    }
+  }
+  await db.collection('group_photos').doc(photoId).update({
+    data: {
+      isFeatured: featured,
+      featuredAt: featured ? now() : '',
+      featuredBy: featured ? openid : ''
+    }
+  });
+  return { success: true, photos: await getSharedPhotos(groupId, 50) };
 }
 
 async function getCityFootprint(data, openid) {
@@ -267,6 +417,7 @@ async function getMyGroup(openid) {
 
     const groupCities = await getGroupCities(member.groupId);
     const sharedPhotos = await getSharedPhotos(member.groupId, 50);
+    const travelPlans = await getTravelPlans(member.groupId, openid);
     const recentActivities = await buildRecentActivities(member.groupId, groupCities, sharedPhotos);
 
     return {
@@ -286,6 +437,7 @@ async function getMyGroup(openid) {
       stats: buildStats(members, groupCities, sharedPhotos),
       groupCities,
       sharedPhotos,
+      travelPlans,
       recentActivities
     };
   } catch (err) {
@@ -461,6 +613,8 @@ async function leaveGroup(openid) {
 
     if (members.length <= 1 && groupInfo) {
       await db.collection('groups').doc(member.groupId).remove();
+      await db.collection('group_trip_plans').where({ groupId: member.groupId }).remove();
+      await db.collection('group_plan_votes').where({ groupId: member.groupId }).remove();
     }
     return { success: true };
   } catch (err) {
@@ -683,11 +837,12 @@ exports.main = async (event) => {
   if (action === 'syncCityRecord') return syncSingleCity(data, openid);
   if (action === 'sharePhoto') return shareGroupPhoto(data, openid);
   if (action === 'removeSharedPhoto') return removeSharedPhoto(data, openid);
+  if (action === 'createTravelPlan') return createTravelPlan(data, openid);
+  if (action === 'toggleTravelPlanVote') return toggleTravelPlanVote(data, openid);
+  if (action === 'deleteTravelPlan') return deleteTravelPlan(data, openid);
+  if (action === 'setFeaturedPhoto') return setFeaturedPhoto(data, openid);
   if (action === 'getCityFootprint') return getCityFootprint(data, openid);
-  if (action === 'getSharedPhotos') {
-    const photos = await getSharedPhotos(data.groupId, 50);
-    return { success: true, photos };
-  }
+  if (action === 'getSharedPhotos') return getSharedPhotosForMember(data, openid);
 
   return { success: false, error: 'UNKNOWN_ACTION' };
 };

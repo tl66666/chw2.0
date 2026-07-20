@@ -27,15 +27,26 @@ Page({
     },
     groupCities: [],
     sharedPhotos: [],
+    visibleSharedPhotos: [],
+    featuredPhotos: [],
+    photoCityFilters: [],
+    photoCityFilter: 'all',
+    travelPlans: [],
     recentActivities: [],
     loading: true,
     showCreateModal: false,
     showInviteModal: false,
     showJoinModal: false,
+    showPlanModal: false,
     showPhotosModal: false,
     currentPhotoIndex: 0,
     newGroupName: '',
     newGroupType: 'friends',
+    newPlanTitle: '',
+    newPlanCity: '',
+    newPlanStartDate: '',
+    newPlanEndDate: '',
+    newPlanNote: '',
     joinCode: '',
     groupTypeText: '',
     isCloudBacked: false,
@@ -108,12 +119,37 @@ Page({
       stats: payload.stats || this.data.stats,
       groupCities: payload.groupCities || [],
       sharedPhotos: payload.sharedPhotos || [],
+      travelPlans: payload.travelPlans || [],
       recentActivities: payload.recentActivities || []
+    };
+  },
+
+  buildPhotoViews: function(photos, selectedCity) {
+    var allPhotos = photos || [];
+    var filters = [{ id: 'all', name: '全部' }];
+    var seen = {};
+    allPhotos.forEach(function(photo) {
+      var id = photo.cityId || photo.cityName || '';
+      if (id && !seen[id]) {
+        seen[id] = true;
+        filters.push({ id: id, name: photo.cityName || '城市' });
+      }
+    });
+    var active = selectedCity || 'all';
+    if (active !== 'all' && !seen[active]) active = 'all';
+    return {
+      photoCityFilter: active,
+      photoCityFilters: filters,
+      visibleSharedPhotos: allPhotos.filter(function(photo) {
+        return active === 'all' || (photo.cityId || photo.cityName) === active;
+      }),
+      featuredPhotos: allPhotos.filter(function(photo) { return photo.isFeatured; })
     };
   },
 
   applyGroupData: function(payload, isCloudBacked) {
     var data = this.normalizeGroupPayload(payload);
+    var photoViews = this.buildPhotoViews(data.sharedPhotos, this.data.photoCityFilter);
     this.setData({
       groupInfo: data.groupInfo,
       groupTypeText: data.groupInfo ? this.getGroupTypeText(data.groupInfo.type) : '',
@@ -124,6 +160,11 @@ Page({
       stats: data.stats,
       groupCities: data.groupCities,
       sharedPhotos: data.sharedPhotos,
+      visibleSharedPhotos: photoViews.visibleSharedPhotos,
+      featuredPhotos: photoViews.featuredPhotos,
+      photoCityFilters: photoViews.photoCityFilters,
+      photoCityFilter: photoViews.photoCityFilter,
+      travelPlans: data.travelPlans,
       recentActivities: data.recentActivities,
       isCloudBacked: !!isCloudBacked,
       loading: false
@@ -165,6 +206,7 @@ Page({
       },
       groupCities: [],
       sharedPhotos: [],
+      travelPlans: [],
       recentActivities: []
     };
   },
@@ -402,6 +444,162 @@ Page({
     });
   },
 
+  showPlanModal: function() {
+    if (!this.data.isCloudBacked) {
+      wx.showToast({ title: '旅行计划需要云端群组', icon: 'none' });
+      return;
+    }
+    this.setData({
+      showPlanModal: true,
+      newPlanTitle: '',
+      newPlanCity: '',
+      newPlanStartDate: '',
+      newPlanEndDate: '',
+      newPlanNote: ''
+    });
+  },
+
+  hidePlanModal: function() {
+    this.setData({ showPlanModal: false });
+  },
+
+  onPlanTitleInput: function(e) {
+    this.setData({ newPlanTitle: e.detail.value || '' });
+  },
+
+  onPlanCityInput: function(e) {
+    this.setData({ newPlanCity: e.detail.value || '' });
+  },
+
+  onPlanNoteInput: function(e) {
+    this.setData({ newPlanNote: e.detail.value || '' });
+  },
+
+  onPlanStartDateChange: function(e) {
+    this.setData({ newPlanStartDate: e.detail.value || '' });
+  },
+
+  onPlanEndDateChange: function(e) {
+    this.setData({ newPlanEndDate: e.detail.value || '' });
+  },
+
+  updateTravelPlans: function(result) {
+    if (result && result.success && result.plans) {
+      this.setData({ travelPlans: result.plans });
+      return true;
+    }
+    wx.showToast({ title: (result && result.message) || '操作失败，请稍后重试', icon: 'none' });
+    return false;
+  },
+
+  createTravelPlan: function() {
+    var self = this;
+    var title = (this.data.newPlanTitle || '').trim();
+    if (title.length < 2) {
+      wx.showToast({ title: '计划名称至少 2 个字', icon: 'none' });
+      return;
+    }
+    wx.showLoading({ title: '创建计划中' });
+    wx.cloud.callFunction({
+      name: 'group',
+      data: {
+        action: 'createTravelPlan',
+        data: {
+          groupId: this.data.groupInfo.id,
+          title: title,
+          cityName: this.data.newPlanCity,
+          startDate: this.data.newPlanStartDate,
+          endDate: this.data.newPlanEndDate,
+          note: this.data.newPlanNote
+        }
+      },
+      timeout: 10000
+    }).then(function(res) {
+      wx.hideLoading();
+      if (self.updateTravelPlans(res.result || {})) {
+        self.setData({ showPlanModal: false });
+        wx.showToast({ title: '旅行计划已创建', icon: 'success' });
+      }
+    }).catch(function() {
+      wx.hideLoading();
+      wx.showToast({ title: '云端连接失败', icon: 'none' });
+    });
+  },
+
+  togglePlanVote: function(e) {
+    var self = this;
+    var planId = e.currentTarget.dataset.id;
+    if (!planId || !this.data.isCloudBacked) return;
+    wx.cloud.callFunction({
+      name: 'group',
+      data: { action: 'toggleTravelPlanVote', data: { groupId: this.data.groupInfo.id, planId: planId } },
+      timeout: 10000
+    }).then(function(res) {
+      self.updateTravelPlans(res.result || {});
+    }).catch(function() {
+      wx.showToast({ title: '投票失败，请重试', icon: 'none' });
+    });
+  },
+
+  deleteTravelPlan: function(e) {
+    var self = this;
+    var planId = e.currentTarget.dataset.id;
+    wx.showModal({
+      title: '删除旅行计划',
+      content: '删除后投票也会一并移除，确定继续吗？',
+      confirmText: '删除',
+      confirmColor: '#D66F58',
+      success: function(res) {
+        if (!res.confirm) return;
+        wx.cloud.callFunction({
+          name: 'group',
+          data: { action: 'deleteTravelPlan', data: { groupId: self.data.groupInfo.id, planId: planId } },
+          timeout: 10000
+        }).then(function(result) {
+          self.updateTravelPlans(result.result || {});
+        }).catch(function() {
+          wx.showToast({ title: '删除失败，请重试', icon: 'none' });
+        });
+      }
+    });
+  },
+
+  selectPhotoCity: function(e) {
+    var views = this.buildPhotoViews(this.data.sharedPhotos, e.currentTarget.dataset.city);
+    this.setData(views);
+  },
+
+  toggleFeaturedPhoto: function(e) {
+    var self = this;
+    var photoId = e.currentTarget.dataset.id;
+    var featured = e.currentTarget.dataset.featured !== true && e.currentTarget.dataset.featured !== 'true';
+    if (!this.data.isCreator || !photoId) return;
+    wx.cloud.callFunction({
+      name: 'group',
+      data: {
+        action: 'setFeaturedPhoto',
+        data: { groupId: this.data.groupInfo.id, photoId: photoId, featured: featured }
+      },
+      timeout: 10000
+    }).then(function(res) {
+      var result = res.result || {};
+      if (!result.success) {
+        wx.showToast({ title: result.message || '设置精选失败', icon: 'none' });
+        return;
+      }
+      var views = self.buildPhotoViews(result.photos || [], self.data.photoCityFilter);
+      self.setData({
+        sharedPhotos: result.photos || [],
+        visibleSharedPhotos: views.visibleSharedPhotos,
+        featuredPhotos: views.featuredPhotos,
+        photoCityFilters: views.photoCityFilters,
+        photoCityFilter: views.photoCityFilter
+      });
+    }).catch(function() {
+      wx.showToast({ title: '云端连接失败', icon: 'none' });
+    });
+  },
+
   clearLocalGroup: function() {
     wx.removeStorageSync('myGroup');
     this.setData({
@@ -413,6 +611,11 @@ Page({
       groupCities: [],
       recentActivities: [],
       sharedPhotos: [],
+      visibleSharedPhotos: [],
+      featuredPhotos: [],
+      photoCityFilters: [],
+      photoCityFilter: 'all',
+      travelPlans: [],
       isCloudBacked: false,
       stats: { totalMembers: 0, totalCities: 0, totalProvinces: 0, totalPhotos: 0 }
     });

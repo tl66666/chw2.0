@@ -20,29 +20,30 @@
     </view>
   </view>
 
-  <!-- 快捷操作栏：打卡 + 角色卡 -->
+  <!-- 快捷操作：固定两项主操作，避免未点亮时留下空白栏位 -->
   <view class="quick-actions">
-    <view class="action-item {{isVisited ? 'visited' : ''}}" bindtap="toggleVisit">
-      <view class="action-icon">
+    <view class="quick-action-main {{isVisited ? 'visited' : ''}}" bindtap="toggleVisit">
+      <view class="quick-action-icon">
         <view class="icon-pin"></view>
       </view>
-      <text class="action-label">{{isVisited ? '已打卡' : '点亮城市'}}</text>
+      <view class="quick-action-copy">
+        <text class="quick-action-kicker">旅行足迹</text>
+        <text class="quick-action-label">{{isVisited ? '已点亮城市' : '点亮城市'}}</text>
+        <text class="quick-action-hint">{{isVisited ? '已加入你的旅行地图' : '解锁城市专属角色'}}</text>
+      </view>
     </view>
-    <view class="action-divider"></view>
-    <view class="action-item" bindtap="goToCard">
-      <view class="action-icon icon-card">
+    <view class="quick-action-card" bindtap="goToCard">
+      <view class="quick-action-icon icon-card">
         <view class="icon-card-inner"></view>
       </view>
-      <text class="action-label">角色卡</text>
-    </view>
-    <view class="action-divider"></view>
-    <view class="action-item action-danger" wx:if="{{isVisited}}" bindtap="removeCity">
-      <view class="action-icon">
-        <text class="icon-remove-text">删</text>
+      <view class="quick-action-copy">
+        <text class="quick-action-kicker">省份图鉴</text>
+        <text class="quick-action-label">查看角色卡</text>
+        <text class="quick-action-hint">了解这张旅行角色</text>
       </view>
-      <text class="action-label">移除记录</text>
     </view>
   </view>
+  <view class="quick-action-danger" wx:if="{{isVisited}}" bindtap="removeCity">移除这座城市的个人记录</view>
 
   <!-- 城市简介 -->
   <view class="intro-card" wx:if="{{cityIntro}}">

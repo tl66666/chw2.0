@@ -178,9 +178,9 @@
 
 .card-image {
   z-index: 2;
-  top: 16rpx;
+  top: 18rpx;
   bottom: auto;
-  height: calc(100% - 16rpx);
+  height: 100%;
 }
 
 .card-image.grayscale {

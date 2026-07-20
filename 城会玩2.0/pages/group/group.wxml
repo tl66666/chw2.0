@@ -68,6 +68,50 @@
       <view class="empty-inline" wx:else>还没有群组足迹。任意成员去首页地图点亮城市后，会自动出现在这里。</view>
     </view>
 
+    <view class="section-card plan-section">
+      <view class="section-header">
+        <view>
+          <text class="section-title">旅行计划</text>
+          <text class="section-subtitle">把想去的地方放进清单，成员用投票决定下一站。</text>
+        </view>
+        <view class="section-more" bindtap="showPlanModal">新建计划</view>
+      </view>
+      <view class="plan-list" wx:if="{{travelPlans.length > 0}}">
+        <view class="plan-item" wx:for="{{travelPlans}}" wx:key="id">
+          <view class="plan-copy">
+            <text class="plan-title">{{item.title}}</text>
+            <text class="plan-meta" wx:if="{{item.cityName || item.startDate || item.endDate}}">{{item.cityName}}{{item.cityName && (item.startDate || item.endDate) ? ' · ' : ''}}{{item.startDate || '日期待定'}}{{item.endDate ? ' 至 ' + item.endDate : ''}}</text>
+            <text class="plan-note" wx:if="{{item.note}}">{{item.note}}</text>
+            <text class="plan-author">发起人：{{item.creatorName}}</text>
+          </view>
+          <view class="plan-actions">
+            <view class="plan-vote {{item.hasVoted ? 'voted' : ''}}" bindtap="togglePlanVote" data-id="{{item.id}}">
+              <text>{{item.hasVoted ? '已投' : '投票'}}</text>
+              <text class="plan-vote-count">{{item.voteCount}}</text>
+            </view>
+            <view class="plan-delete" wx:if="{{isCreator || item.isMine}}" bindtap="deleteTravelPlan" data-id="{{item.id}}">删除</view>
+          </view>
+        </view>
+      </view>
+      <view class="empty-inline" wx:else>还没有出行计划。先写下一个目的地，让大家投票决定。</view>
+    </view>
+
+    <view class="section-card featured-section" wx:if="{{featuredPhotos.length > 0}}">
+      <view class="section-header">
+        <view>
+          <text class="section-title">精选相册</text>
+          <text class="section-subtitle">群主从共同回忆中挑选的照片</text>
+        </view>
+        <text class="featured-count">{{featuredPhotos.length}} / 6</text>
+      </view>
+      <view class="featured-grid">
+        <view class="featured-photo" wx:for="{{featuredPhotos}}" wx:key="id" bindtap="previewImage" data-url="{{item.url}}">
+          <image class="featured-photo-img" src="{{item.url}}" mode="aspectFill" lazy-load/>
+          <view class="featured-photo-caption">{{item.cityName || '城市足迹'}}</view>
+        </view>
+      </view>
+    </view>
+
     <view class="section-card">
       <view class="section-header">
         <view>
@@ -76,14 +120,22 @@
         </view>
         <view class="section-more" bindtap="showPhotoWall" wx:if="{{sharedPhotos.length > 0}}">查看全部</view>
       </view>
-      <view class="photos-grid" wx:if="{{sharedPhotos.length > 0}}">
-        <view class="photo-item" wx:for="{{sharedPhotos}}" wx:key="id" bindtap="previewImage" data-url="{{item.url}}">
+      <scroll-view class="photo-city-scroll" scroll-x wx:if="{{photoCityFilters.length > 1}}">
+        <view class="photo-city-filters">
+          <view class="photo-city-filter {{photoCityFilter === item.id ? 'active' : ''}}" wx:for="{{photoCityFilters}}" wx:key="id" bindtap="selectPhotoCity" data-city="{{item.id}}">{{item.name}}</view>
+        </view>
+      </scroll-view>
+      <view class="photos-grid" wx:if="{{visibleSharedPhotos.length > 0}}">
+        <view class="photo-item" wx:for="{{visibleSharedPhotos}}" wx:key="id" bindtap="previewImage" data-url="{{item.url}}">
           <image class="photo-img" src="{{item.url}}" mode="aspectFill" lazy-load/>
+          <view class="featured-badge" wx:if="{{item.isFeatured}}">精选</view>
+          <view class="feature-toggle" wx:if="{{isCreator}}" catchtap="toggleFeaturedPhoto" data-id="{{item.id}}" data-featured="{{item.isFeatured}}">{{item.isFeatured ? '取消精选' : '设为精选'}}</view>
           <view class="photo-caption">
             <text>{{item.cityName || '城市足迹'}}</text>
           </view>
         </view>
       </view>
+      <view class="empty-inline" wx:elif="{{sharedPhotos.length > 0}}">这座城市还没有群组照片，换一个城市看看。</view>
       <view class="empty-inline" wx:else>还没有照片。成员在城市详情页上传照片后，会按城市同步到这里。</view>
     </view>
 
@@ -205,6 +257,31 @@
       <view class="modal-actions">
         <view class="modal-btn cancel" bindtap="hideJoinModal">取消</view>
         <view class="modal-btn confirm" bindtap="joinGroup">加入</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="modal" wx:if="{{showPlanModal}}" catchtap="hidePlanModal">
+    <view class="modal-content" catchtap="preventClose">
+      <view class="modal-header">
+        <text class="modal-title">新建旅行计划</text>
+        <view class="modal-close" bindtap="hidePlanModal"></view>
+      </view>
+      <view class="modal-body">
+        <text class="form-label">计划名称</text>
+        <input class="form-input" placeholder="例如：五一去重庆吃火锅" value="{{newPlanTitle}}" bindinput="onPlanTitleInput" maxlength="30" focus="{{showPlanModal}}"/>
+        <text class="form-label">目的地</text>
+        <input class="form-input" placeholder="例如：重庆" value="{{newPlanCity}}" bindinput="onPlanCityInput" maxlength="20"/>
+        <view class="plan-date-row">
+          <picker mode="date" value="{{newPlanStartDate}}" bindchange="onPlanStartDateChange"><view class="plan-date-input">{{newPlanStartDate || '出发日期待定'}}</view></picker>
+          <picker mode="date" value="{{newPlanEndDate}}" bindchange="onPlanEndDateChange"><view class="plan-date-input">{{newPlanEndDate || '返程日期待定'}}</view></picker>
+        </view>
+        <text class="form-label">补充说明</text>
+        <textarea class="plan-note-input" placeholder="写下路线、预算或想一起完成的事" value="{{newPlanNote}}" bindinput="onPlanNoteInput" maxlength="120"/>
+      </view>
+      <view class="modal-actions">
+        <view class="modal-btn cancel" bindtap="hidePlanModal">取消</view>
+        <view class="modal-btn confirm" bindtap="createTravelPlan">创建计划</view>
       </view>
     </view>
   </view>

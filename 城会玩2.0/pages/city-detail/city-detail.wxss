@@ -110,39 +110,52 @@ page {
 
 /* 快捷操作栏 */
 .quick-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
+  gap: 14rpx;
   background: var(--bg-card);
   border-radius: var(--radius-lg);
-  padding: 14rpx 16rpx;
+  padding: 14rpx;
   margin-bottom: 16rpx;
   box-shadow: var(--shadow-sm);
   border: 1rpx solid rgba(0, 0, 0, 0.04);
 }
 
-.action-item {
+.quick-action-main,
+.quick-action-card {
   display: flex;
-  flex-direction: column;
+  min-width: 0;
   align-items: center;
-  gap: 8rpx;
-  padding: 8rpx 16rpx;
+  gap: 14rpx;
+  min-height: 112rpx;
+  padding: 16rpx;
+  border-radius: 18rpx;
+  box-sizing: border-box;
   transition: all 0.3s ease;
 }
 
-.action-item:active {
+.quick-action-main {
+  background: linear-gradient(135deg, #FFF0EA, #FFF8F1);
+}
+
+.quick-action-card {
+  background: linear-gradient(135deg, #EAF4F0, #F7FBF8);
+}
+
+.quick-action-main:active,
+.quick-action-card:active {
   transform: scale(0.95);
 }
 
-.action-item.visited .action-icon {
+.quick-action-main.visited .quick-action-icon {
   background: linear-gradient(135deg, #27AE60, #2ECC71);
 }
 
-.action-item.visited .action-label {
+.quick-action-main.visited .quick-action-label {
   color: #27AE60;
 }
 
-.action-icon {
+.quick-action-icon {
   width: 60rpx;
   height: 60rpx;
   border-radius: 50%;
@@ -151,6 +164,52 @@ page {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4rpx 12rpx rgba(212, 165, 116, 0.3);
+}
+
+.quick-action-card .quick-action-icon {
+  background: linear-gradient(135deg, #78B6A6, #4C9B8A);
+  box-shadow: 0 4rpx 12rpx rgba(76, 155, 138, 0.24);
+}
+
+.quick-action-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.quick-action-kicker,
+.quick-action-label,
+.quick-action-hint {
+  display: block;
+}
+
+.quick-action-kicker {
+  color: #9B8E86;
+  font-size: 20rpx;
+}
+
+.quick-action-label {
+  margin-top: 4rpx;
+  color: #3F3732;
+  font-size: 27rpx;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.quick-action-hint {
+  margin-top: 5rpx;
+  color: #9B8E86;
+  font-size: 19rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quick-action-danger {
+  margin: -2rpx 10rpx 18rpx;
+  padding: 8rpx 10rpx;
+  text-align: right;
+  color: #B7675B;
+  font-size: 21rpx;
 }
 
 /* 定位图标 */

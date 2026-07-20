@@ -61,13 +61,13 @@ test('character detail preserves the full card image', () => {
   assert.match(styles, /aspect-ratio:\s*3\s*\/\s*4/);
 });
 
-test('character card grid preserves the full portrait artwork', () => {
+test('character card grid fills the artwork frame without side gutters', () => {
   const template = fs.readFileSync(
     path.join(__dirname, '../城会玩2.0/pages/cards/cards.wxml'),
     'utf8'
   );
 
-  assert.match(template, /class="card-image[\s\S]*?mode="aspectFit"/);
+  assert.match(template, /class="card-image[\s\S]*?mode="aspectFill"/);
 });
 
 test('character card grid reserves a top safe area for portrait faces', () => {
@@ -76,5 +76,5 @@ test('character card grid reserves a top safe area for portrait faces', () => {
     'utf8'
   );
 
-  assert.match(styles, /\.card-image\s*\{[\s\S]*?top:\s*16rpx;[\s\S]*?height:\s*calc\(100%\s*-\s*16rpx\)/);
+  assert.match(styles, /\.card-image\s*\{[\s\S]*?top:\s*18rpx;[\s\S]*?height:\s*100%/);
 });

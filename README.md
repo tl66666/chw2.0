@@ -309,6 +309,8 @@
 | `group_members` | 群组成员 | groupId, openid, nickName, role, cityCount, cityIds |
 | `group_city_records` | 群组城市打卡记录 | groupId, openid, cityId, cityName, provinceId |
 | `group_photos` | 群组共享照片 | groupId, openid, fileId, cityId, type |
+| `group_trip_plans` | 群组旅行计划 | groupId, title, cityName, startDate, endDate, creatorOpenid |
+| `group_plan_votes` | 群组计划投票 | groupId, planId, openid |
 
 > 部署时需要在云开发控制台手动创建以上集合，并设置为“所有用户不可读写”。小程序通过云函数访问数据库，云函数与控制台不受该客户端规则影响。详细说明见 [云数据库集合管理指南](docs/云数据库集合管理指南.md)。
 
@@ -334,6 +336,7 @@ git clone https://github.com/tl66666/chw2.0.git
 4. 在云开发控制台创建以下数据库集合：
    - `users`、`cityRecords`、`photos`、`notes`、`avoidTips`
    - `groups`、`group_members`、`group_city_records`、`group_photos`
+   - `group_trip_plans`、`group_plan_votes`
 5. 右键 `cloudfunctions/` 下每个云函数文件夹 → "上传并部署：云端安装依赖"。
 6. 编译运行小程序，进入首页后即可体验完整功能。
 

@@ -34,3 +34,25 @@ test('a city sync requires membership in the target group', () => {
   assert.match(syncSingleCity, /where\(\{\s*openid,\s*groupId:\s*data\.groupId\s*\}\)/);
   assert.match(syncSingleCity, /if \(!member\) return \{ success: false, error: 'NOT_A_MEMBER' \}/);
 });
+
+test('only the group owner can curate featured group photos', () => {
+  assert.equal(permissions.canFeatureSharedPhoto({ creatorOpenid: 'owner' }, 'owner'), true);
+  assert.equal(permissions.canFeatureSharedPhoto({ creatorOpenid: 'owner' }, 'member'), false);
+});
+
+test('a plan can be deleted by its creator or the group owner', () => {
+  const group = { creatorOpenid: 'owner' };
+  assert.equal(permissions.canManageTravelPlan({ creatorOpenid: 'planner' }, group, 'planner'), true);
+  assert.equal(permissions.canManageTravelPlan({ creatorOpenid: 'planner' }, group, 'owner'), true);
+  assert.equal(permissions.canManageTravelPlan({ creatorOpenid: 'planner' }, group, 'member'), false);
+});
+
+test('shared photo retrieval is routed through a membership check', () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, '../城会玩2.0/cloudfunctions/group/index.js'),
+    'utf8'
+  );
+
+  assert.match(source, /async function getSharedPhotosForMember/);
+  assert.match(source, /action === 'getSharedPhotos'\) return getSharedPhotosForMember\(data, openid\)/);
+});

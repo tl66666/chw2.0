@@ -55,7 +55,7 @@
           wx:if="{{item.imagePath}}"
           class="card-image {{item.isCollected ? '' : 'grayscale'}}"
           src="{{item.imagePath}}"
-          mode="aspectFit"
+          mode="aspectFill"
           data-id="{{item.provinceId}}"
           binderror="onCardImageError"
         />
