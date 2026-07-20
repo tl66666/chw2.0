@@ -24,10 +24,18 @@ function canManageTravelPlan(plan, groupInfo, openid) {
   );
 }
 
+function canRemovePhotoComment(comment, groupInfo, openid) {
+  return !!comment && !!openid && (
+    comment.openid === openid ||
+    (groupInfo && groupInfo.creatorOpenid === openid)
+  );
+}
+
 module.exports = {
   canRemoveSharedPhoto: canRemoveSharedPhoto,
   canLeaveGroup: canLeaveGroup,
   canTransferOwnership: canTransferOwnership,
   canFeatureSharedPhoto: canFeatureSharedPhoto,
-  canManageTravelPlan: canManageTravelPlan
+  canManageTravelPlan: canManageTravelPlan,
+  canRemovePhotoComment: canRemovePhotoComment
 };

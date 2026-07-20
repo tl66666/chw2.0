@@ -212,6 +212,31 @@ page {
   font-size: 21rpx;
 }
 
+.photo-date-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14rpx 0;
+  padding: 14rpx 18rpx;
+  border-radius: 14rpx;
+  background: #FFF8F1;
+}
+
+.photo-date-label {
+  color: #8A786E;
+  font-size: 23rpx;
+}
+
+.photo-date-value {
+  min-width: 174rpx;
+  padding: 6rpx 12rpx;
+  color: #B7675B;
+  font-size: 23rpx;
+  font-weight: 800;
+  text-align: right;
+  box-sizing: border-box;
+}
+
 /* 定位图标 */
 .icon-pin {
   width: 20rpx;

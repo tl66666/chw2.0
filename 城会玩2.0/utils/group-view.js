@@ -68,7 +68,8 @@ function getPhotosByCity(cityId, type) {
       type: item.type || 'travel',
       userName: item.userName || item.nickName || '群友',
       userAvatar: item.userAvatar || item.avatarUrl || '/images/avatar.jpg',
-      createTime: item.createTime || Date.now()
+      createTime: item.createTime || Date.now(),
+      travelDate: item.travelDate || ''
     };
   });
 }
@@ -90,7 +91,8 @@ function getAllPhotos() {
       ownerOpenid: item.openid || item._openid || '',
       photoKey: 'group:' + (item.type || 'travel') + ':' + (item.cityId || '') + ':' + fileId,
       userName: item.userName || item.nickName || '群友',
-      date: item.displayTime || ''
+      travelDate: item.travelDate || '',
+      date: item.travelDate || item.displayTime || ''
     };
   });
 }

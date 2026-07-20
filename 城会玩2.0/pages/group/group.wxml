@@ -105,7 +105,7 @@
         <text class="featured-count">{{featuredPhotos.length}} / 6</text>
       </view>
       <view class="featured-grid">
-        <view class="featured-photo" wx:for="{{featuredPhotos}}" wx:key="id" bindtap="previewImage" data-url="{{item.url}}">
+        <view class="featured-photo" wx:for="{{featuredPhotos}}" wx:key="id" bindtap="openPhotoDiscussion" data-id="{{item.id}}">
           <image class="featured-photo-img" src="{{item.url}}" mode="aspectFill" lazy-load/>
           <view class="featured-photo-caption">{{item.cityName || '城市足迹'}}</view>
         </view>
@@ -125,13 +125,22 @@
           <view class="photo-city-filter {{photoCityFilter === item.id ? 'active' : ''}}" wx:for="{{photoCityFilters}}" wx:key="id" bindtap="selectPhotoCity" data-city="{{item.id}}">{{item.name}}</view>
         </view>
       </scroll-view>
-      <view class="photos-grid" wx:if="{{visibleSharedPhotos.length > 0}}">
-        <view class="photo-item" wx:for="{{visibleSharedPhotos}}" wx:key="id" bindtap="previewImage" data-url="{{item.url}}">
-          <image class="photo-img" src="{{item.url}}" mode="aspectFill" lazy-load/>
-          <view class="featured-badge" wx:if="{{item.isFeatured}}">精选</view>
-          <view class="feature-toggle" wx:if="{{isCreator}}" catchtap="toggleFeaturedPhoto" data-id="{{item.id}}" data-featured="{{item.isFeatured}}">{{item.isFeatured ? '取消精选' : '设为精选'}}</view>
-          <view class="photo-caption">
-            <text>{{item.cityName || '城市足迹'}}</text>
+      <view class="photo-archives" wx:if="{{photoArchives.length > 0}}">
+        <view class="photo-archive" wx:for="{{photoArchives}}" wx:for-item="archive" wx:key="key">
+          <view class="archive-header">
+            <text class="archive-date">{{archive.label}}</text>
+            <text class="archive-count">{{archive.count}} 张记录</text>
+          </view>
+          <view class="photos-grid">
+            <view class="photo-item" wx:for="{{archive.photos}}" wx:for-item="photo" wx:key="id" bindtap="openPhotoDiscussion" data-id="{{photo.id}}">
+              <image class="photo-img" src="{{photo.url}}" mode="aspectFill" lazy-load/>
+              <view class="featured-badge" wx:if="{{photo.isFeatured}}">精选</view>
+              <view class="feature-toggle" wx:if="{{isCreator}}" catchtap="toggleFeaturedPhoto" data-id="{{photo.id}}" data-featured="{{photo.isFeatured}}">{{photo.isFeatured ? '取消精选' : '设为精选'}}</view>
+              <view class="photo-comment-count">{{photo.commentCount || 0}} 条留言</view>
+              <view class="photo-caption">
+                <text>{{photo.cityName || '城市足迹'}}</text>
+              </view>
+            </view>
           </view>
         </view>
       </view>
@@ -283,6 +292,37 @@
         <view class="modal-btn cancel" bindtap="hidePlanModal">取消</view>
         <view class="modal-btn confirm" bindtap="createTravelPlan">创建计划</view>
       </view>
+    </view>
+  </view>
+
+  <view class="discussion-mask" wx:if="{{showPhotoDiscussion}}" catchtap="closePhotoDiscussion">
+    <view class="discussion-panel" catchtap="preventClose">
+      <view class="discussion-header">
+        <view>
+          <text class="discussion-title">照片留言</text>
+          <text class="discussion-subtitle">{{activePhoto.cityName || '共同回忆'}} · {{activePhoto.travelDate || activePhoto.displayTime}}</text>
+        </view>
+        <view class="discussion-close" bindtap="closePhotoDiscussion"></view>
+      </view>
+      <image class="discussion-image" src="{{activePhoto.url}}" mode="aspectFill" bindtap="previewActivePhoto"/>
+      <view class="discussion-composer">
+        <textarea class="discussion-input" placeholder="说点什么，让这张照片更有记忆..." value="{{newPhotoComment}}" bindinput="onPhotoCommentInput" maxlength="150" auto-height/>
+        <view class="discussion-submit" bindtap="submitPhotoComment">发布</view>
+      </view>
+      <scroll-view class="discussion-comments" scroll-y>
+        <view class="comment-empty" wx:if="{{activePhotoComments.length === 0}}">第一句留言，留给你。</view>
+        <view class="comment-item" wx:for="{{activePhotoComments}}" wx:key="id">
+          <image class="comment-avatar" src="{{item.userAvatar}}" mode="aspectFill"/>
+          <view class="comment-copy">
+            <view class="comment-meta">
+              <text class="comment-name">{{item.userName}}</text>
+              <text class="comment-time">{{item.displayTime}}</text>
+            </view>
+            <text class="comment-content">{{item.content}}</text>
+          </view>
+          <view class="comment-delete" wx:if="{{item.canRemove}}" bindtap="deletePhotoComment" data-id="{{item.id}}">删除</view>
+        </view>
+      </scroll-view>
     </view>
   </view>
 

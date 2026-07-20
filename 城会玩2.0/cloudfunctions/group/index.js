@@ -52,6 +52,16 @@ function displayTime(value) {
   }
 }
 
+function archiveDate(value) {
+  const raw = String(value || '');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
 function uniq(list) {
   return Array.from(new Set((list || []).filter(Boolean)));
 }
@@ -125,11 +135,12 @@ async function getSharedPhotos(groupId, limit) {
       type: p.type || 'travel',
       isFeatured: !!p.isFeatured,
       featuredAt: p.featuredAt || '',
+      travelDate: archiveDate(p.travelDate || p.createTime),
+      commentCount: Number(p.commentCount) || 0,
       createTime: p.createTime,
       displayTime: displayTime(p.createTime)
     })).sort((a, b) => {
-      if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
-      return String(b.featuredAt || b.createTime || '').localeCompare(String(a.featuredAt || a.createTime || ''));
+      return String(b.travelDate || b.createTime || '').localeCompare(String(a.travelDate || a.createTime || ''));
     });
   } catch (err) {
     console.warn('[group] getSharedPhotos: collection not ready, returning empty:', err.message);
@@ -148,6 +159,113 @@ async function getSharedPhotosForMember(data, openid) {
   const member = await getMembership(groupId, openid);
   if (!member) return { success: false, error: 'NOT_A_MEMBER' };
   return { success: true, photos: await getSharedPhotos(groupId, 50) };
+}
+
+async function getPhotoComments(data, openid) {
+  const groupId = data && data.groupId;
+  const photoId = data && data.photoId;
+  if (!groupId || !photoId) return { success: false, error: 'MISSING_PHOTO' };
+  const member = await getMembership(groupId, openid);
+  if (!member) return { success: false, error: 'NOT_A_MEMBER' };
+  const photoRes = await db.collection('group_photos').doc(photoId).get();
+  if (!photoRes.data || photoRes.data.groupId !== groupId) return { success: false, error: 'PHOTO_NOT_FOUND' };
+  const groupRes = await db.collection('groups').doc(groupId).get();
+  const commentRes = await db.collection('group_photo_comments')
+    .where({ groupId, photoId })
+    .orderBy('createTime', 'desc')
+    .limit(50)
+    .get();
+  return {
+    success: true,
+    commentCount: Number(photoRes.data.commentCount) || 0,
+    comments: (commentRes.data || []).map(function(comment) {
+      return {
+        id: comment._id,
+        content: comment.content || '',
+        userName: comment.nickName || '成员',
+        userAvatar: comment.avatarUrl || '/images/avatar.jpg',
+        displayTime: displayTime(comment.createTime),
+        canRemove: permissions.canRemovePhotoComment(comment, groupRes.data, openid)
+      };
+    })
+  };
+}
+
+async function refreshPhotoCommentCount(groupId, photoId) {
+  const countRes = await db.collection('group_photo_comments').where({ groupId, photoId }).count();
+  await db.collection('group_photos').doc(photoId).update({ data: { commentCount: countRes.total || 0 } });
+  return countRes.total || 0;
+}
+
+async function removeMemberPhotoComments(groupId, openid) {
+  const commentRes = await db.collection('group_photo_comments').where({ groupId, openid }).limit(500).get();
+  const photoIds = uniq((commentRes.data || []).map(function(comment) { return comment.photoId; }));
+  if (photoIds.length === 0) return;
+  await db.collection('group_photo_comments').where({ groupId, openid }).remove();
+  for (let i = 0; i < photoIds.length; i++) {
+    try {
+      await refreshPhotoCommentCount(groupId, photoIds[i]);
+    } catch (err) {
+      console.warn('[group] removeMemberPhotoComments: refresh skipped:', err.message);
+    }
+  }
+}
+
+async function addPhotoComment(data, openid) {
+  const groupId = data && data.groupId;
+  const photoId = data && data.photoId;
+  const content = String((data && data.content) || '').trim();
+  if (!groupId || !photoId) return { success: false, error: 'MISSING_PHOTO' };
+  if (!content || content.length > 150) return { success: false, error: 'INVALID_COMMENT', message: '留言需要 1 到 150 个字' };
+  const member = await getMembership(groupId, openid);
+  if (!member) return { success: false, error: 'NOT_A_MEMBER' };
+  const photoRes = await db.collection('group_photos').doc(photoId).get();
+  if (!photoRes.data || photoRes.data.groupId !== groupId) return { success: false, error: 'PHOTO_NOT_FOUND' };
+
+  try {
+    await cloud.openapi.security.msgSecCheck({ content });
+  } catch (err) {
+    const raw = String((err && (err.errMsg || err.message)) || '');
+    const code = String((err && (err.errCode || err.errcode || err.code)) || '');
+    if (code === '87014' || raw.indexOf('87014') !== -1) {
+      return { success: false, error: 'COMMENT_REJECTED', message: '留言包含不适合发布的信息，请修改后再试' };
+    }
+    return { success: false, error: 'COMMENT_CHECK_FAILED', message: '留言安全校验暂时不可用，请稍后重试' };
+  }
+
+  await db.collection('group_photo_comments').add({
+    data: {
+      groupId,
+      photoId,
+      openid,
+      nickName: member.nickName || '成员',
+      avatarUrl: member.avatarUrl || '/images/avatar.jpg',
+      content,
+      createTime: now(),
+      createdAt: db.serverDate()
+    }
+  });
+  await refreshPhotoCommentCount(groupId, photoId);
+  return getPhotoComments({ groupId, photoId }, openid);
+}
+
+async function removePhotoComment(data, openid) {
+  const groupId = data && data.groupId;
+  const photoId = data && data.photoId;
+  const commentId = data && data.commentId;
+  if (!groupId || !photoId || !commentId) return { success: false, error: 'MISSING_COMMENT' };
+  const member = await getMembership(groupId, openid);
+  if (!member) return { success: false, error: 'NOT_A_MEMBER' };
+  const commentRes = await db.collection('group_photo_comments').doc(commentId).get();
+  const comment = commentRes.data;
+  if (!comment || comment.groupId !== groupId || comment.photoId !== photoId) return { success: false, error: 'COMMENT_NOT_FOUND' };
+  const groupRes = await db.collection('groups').doc(groupId).get();
+  if (!permissions.canRemovePhotoComment(comment, groupRes.data, openid)) {
+    return { success: false, error: 'COMMENT_REMOVE_NOT_ALLOWED' };
+  }
+  await db.collection('group_photo_comments').doc(commentId).remove();
+  await refreshPhotoCommentCount(groupId, photoId);
+  return getPhotoComments({ groupId, photoId }, openid);
 }
 
 async function getTravelPlans(groupId, openid) {
@@ -333,6 +451,7 @@ async function getCityFootprint(data, openid) {
       cityId: p.cityId || '',
       cityName: p.cityName || cityId,
       type: p.type || 'travel',
+      travelDate: archiveDate(p.travelDate || p.createTime),
       createTime: p.createTime,
       displayTime: displayTime(p.createTime)
     }));
@@ -577,6 +696,7 @@ async function removeSharedPhoto(data, openid) {
     }
 
     await db.collection('group_photos').doc(photo._id).remove();
+    await db.collection('group_photo_comments').where({ groupId: member.groupId, photoId: photo._id }).remove();
     await refreshMemberPhotoCount(member.groupId, openid);
     return { success: true };
   } catch (err) {
@@ -606,6 +726,11 @@ async function leaveGroup(openid) {
       console.warn('[group] leaveGroup: group_city_records remove skipped:', e.message);
     }
     try {
+      await removeMemberPhotoComments(member.groupId, openid);
+    } catch (e) {
+      console.warn('[group] leaveGroup: group_photo_comments remove skipped:', e.message);
+    }
+    try {
       await db.collection('group_photos').where({ groupId: member.groupId, openid: openid }).remove();
     } catch (e) {
       console.warn('[group] leaveGroup: group_photos remove skipped:', e.message);
@@ -615,6 +740,7 @@ async function leaveGroup(openid) {
       await db.collection('groups').doc(member.groupId).remove();
       await db.collection('group_trip_plans').where({ groupId: member.groupId }).remove();
       await db.collection('group_plan_votes').where({ groupId: member.groupId }).remove();
+      await db.collection('group_photo_comments').where({ groupId: member.groupId }).remove();
     }
     return { success: true };
   } catch (err) {
@@ -792,6 +918,7 @@ async function shareGroupPhoto(data, openid) {
       cityName: data.cityName || '',
       provinceId: data.provinceId || '',
       type: data.type || 'travel',
+      travelDate: archiveDate(data.travelDate || now()),
       createTime: db.serverDate()
     };
 
@@ -841,6 +968,9 @@ exports.main = async (event) => {
   if (action === 'toggleTravelPlanVote') return toggleTravelPlanVote(data, openid);
   if (action === 'deleteTravelPlan') return deleteTravelPlan(data, openid);
   if (action === 'setFeaturedPhoto') return setFeaturedPhoto(data, openid);
+  if (action === 'getPhotoComments') return getPhotoComments(data, openid);
+  if (action === 'addPhotoComment') return addPhotoComment(data, openid);
+  if (action === 'removePhotoComment') return removePhotoComment(data, openid);
   if (action === 'getCityFootprint') return getCityFootprint(data, openid);
   if (action === 'getSharedPhotos') return getSharedPhotosForMember(data, openid);
 

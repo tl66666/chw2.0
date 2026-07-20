@@ -3,6 +3,7 @@
     "pages/launch/launch",
     "pages/index/index",
     "pages/city-detail/city-detail",
+    "pages/province-detail/province-detail",
     "pages/cards/cards",
     "pages/group/group",
     "pages/album/album",

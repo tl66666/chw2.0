@@ -229,6 +229,14 @@ page {
   border-radius: 20rpx;
 }
 
+.result-type-tag {
+  padding: 3rpx 10rpx;
+  color: #7A675A;
+  font-size: 19rpx;
+  border-radius: 999rpx;
+  background: #F3E9E0;
+}
+
 /* 原生地图组件 */
 .map-component {
   width: 100%;

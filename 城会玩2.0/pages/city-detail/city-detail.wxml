@@ -129,6 +129,13 @@
     </view>
   </view>
 
+  <view class="photo-date-picker" wx:if="{{!isProvinceEntry}}">
+    <text class="photo-date-label">记录日期</text>
+    <picker mode="date" value="{{photoTravelDate}}" bindchange="onPhotoTravelDateChange">
+      <view class="photo-date-value">{{photoTravelDate}}</view>
+    </picker>
+  </view>
+
   <!-- 添加照片按钮（整合到标签下方，更醒目） -->
   <view class="add-photo-btn" bindtap="addPhoto">
     <view class="add-photo-icon-wrap">

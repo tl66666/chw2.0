@@ -9,6 +9,11 @@ var achievementsModule = require('../../utils/achievements.js');
 var privacy = require('../../utils/privacy.js');
 var groupView = require('../../utils/group-view.js');
 
+function todayString() {
+  var date = new Date();
+  return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+}
+
 // 城市介绍数据
 var cityIntros = {
   beijing: '中国的首都，三千多年历史的古都。故宫、长城、天坛等世界文化遗产汇聚于此，胡同文化与现代都市在这里完美融合。',
@@ -117,6 +122,7 @@ Page({
     note: null,
     isVisited: false,
     activeTab: 'travel',
+    photoTravelDate: '',
     groupFootprint: null,
     groupVisitors: [],
     groupSharedPhotos: [],
@@ -133,6 +139,7 @@ Page({
     
 
     
+    this.setData({ photoTravelDate: todayString() });
     if (cityId) {
       this.setData({ isProvinceEntry: false });
       this.loadCityData(cityId);
@@ -897,6 +904,10 @@ Page({
     }).filter(Boolean);
   },
 
+  onPhotoTravelDateChange: function(e) {
+    this.setData({ photoTravelDate: e.detail.value || todayString() });
+  },
+
   sharePhotosToCurrentGroup: function(cityId, activeTab, photos, done) {
     var localGroup = wx.getStorageSync('myGroup');
     if (!localGroup || !wx.cloud) {
@@ -916,6 +927,7 @@ Page({
 
     var cityName = this.data.cityName || '';
     var provinceId = this.data.provinceId || '';
+    var travelDate = this.data.photoTravelDate || todayString();
     var index = 0;
     function next() {
       if (index >= photos.length) {
@@ -935,7 +947,8 @@ Page({
             cityId: cityId,
             cityName: cityName,
             provinceId: provinceId,
-            type: activeTab
+            type: activeTab,
+            travelDate: travelDate
           }
         },
         timeout: 10000

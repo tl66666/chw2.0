@@ -1,0 +1,33 @@
+<view class="province-page">
+  <view class="province-hero">
+    <text class="hero-kicker">PROVINCE OVERVIEW</text>
+    <text class="hero-title">{{provinceName}}</text>
+    <text class="hero-desc">省份进度由城市足迹汇总，城市记录和小队足迹都能在这里找到。</text>
+    <view class="hero-stats">
+      <view><text class="hero-number">{{visitedCities}}</text><text class="hero-label">已记录城市</text></view>
+      <view><text class="hero-number">{{totalCities}}</text><text class="hero-label">收录城市</text></view>
+      <view><text class="hero-number">{{photoCount}}</text><text class="hero-label">照片</text></view>
+    </view>
+  </view>
+
+  <view class="province-progress">
+    <view class="progress-row"><text>城市探索进度</text><text>{{visitedCities}} / {{totalCities}}</text></view>
+    <view class="progress-track"><view class="progress-fill" style="width: {{completionRate}}%"></view></view>
+  </view>
+
+  <view class="province-card-entry" bindtap="openCard">
+    <view><text class="entry-kicker">省份图鉴</text><text class="entry-title">查看 {{provinceName}} 角色卡</text></view>
+    <text class="entry-arrow">›</text>
+  </view>
+
+  <view class="city-section">
+    <view class="section-header"><text class="section-title">城市记录</text><text class="section-subtitle">点城市进入详情与打卡</text></view>
+    <view class="city-list">
+      <view class="city-row" wx:for="{{cities}}" wx:key="id" bindtap="openCity" data-cityid="{{item.id}}">
+        <view class="city-status {{item.recorded ? 'recorded' : ''}}"></view>
+        <view class="city-copy"><text class="city-name">{{item.name}}</text><text class="city-landmark">{{item.landmark}}</text></view>
+        <view class="city-meta"><text class="city-source">{{item.sourceText}}</text><text class="city-photo" wx:if="{{item.photoCount > 0}}">{{item.photoCount}} 张</text></view>
+      </view>
+    </view>
+  </view>
+</view>

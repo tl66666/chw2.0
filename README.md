@@ -309,6 +309,7 @@
 | `group_members` | 群组成员 | groupId, openid, nickName, role, cityCount, cityIds |
 | `group_city_records` | 群组城市打卡记录 | groupId, openid, cityId, cityName, provinceId |
 | `group_photos` | 群组共享照片 | groupId, openid, fileId, cityId, type |
+| `group_photo_comments` | 群照片留言 | groupId, photoId, openid, content |
 | `group_trip_plans` | 群组旅行计划 | groupId, title, cityName, startDate, endDate, creatorOpenid |
 | `group_plan_votes` | 群组计划投票 | groupId, planId, openid |
 
@@ -335,7 +336,7 @@ git clone https://github.com/tl66666/chw2.0.git
 3. 开通微信云开发环境（工具栏 → 云开发 → 开通）。
 4. 在云开发控制台创建以下数据库集合：
    - `users`、`cityRecords`、`photos`、`notes`、`avoidTips`
-   - `groups`、`group_members`、`group_city_records`、`group_photos`
+   - `groups`、`group_members`、`group_city_records`、`group_photos`、`group_photo_comments`
    - `group_trip_plans`、`group_plan_votes`
 5. 右键 `cloudfunctions/` 下每个云函数文件夹 → "上传并部署：云端安装依赖"。
 6. 编译运行小程序，进入首页后即可体验完整功能。

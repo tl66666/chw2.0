@@ -12,6 +12,22 @@ function parseJSON(value, fallback) {
   }
 }
 
+function getArchiveDateKey(value) {
+  var raw = String(value || '');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  var date = new Date(value);
+  if (isNaN(date.getTime())) return '未标记日期';
+  return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+}
+
+function getArchiveDateLabel(key) {
+  if (key === '未标记日期') return key;
+  var today = getArchiveDateKey(new Date());
+  if (key === today) return '今天';
+  var date = new Date(key + 'T00:00:00');
+  return date.getFullYear() + '年' + (date.getMonth() + 1) + '月' + date.getDate() + '日';
+}
+
 Page({
   data: {
     groupInfo: null,
@@ -28,6 +44,7 @@ Page({
     groupCities: [],
     sharedPhotos: [],
     visibleSharedPhotos: [],
+    photoArchives: [],
     featuredPhotos: [],
     photoCityFilters: [],
     photoCityFilter: 'all',
@@ -39,7 +56,11 @@ Page({
     showJoinModal: false,
     showPlanModal: false,
     showPhotosModal: false,
+    showPhotoDiscussion: false,
     currentPhotoIndex: 0,
+    activePhoto: null,
+    activePhotoComments: [],
+    newPhotoComment: '',
     newGroupName: '',
     newGroupType: 'friends',
     newPlanTitle: '',
@@ -137,12 +158,29 @@ Page({
     });
     var active = selectedCity || 'all';
     if (active !== 'all' && !seen[active]) active = 'all';
+    var visiblePhotos = allPhotos.filter(function(photo) {
+      return active === 'all' || (photo.cityId || photo.cityName) === active;
+    });
+    var archivesByDate = {};
+    visiblePhotos.forEach(function(photo) {
+      var dateKey = getArchiveDateKey(photo.travelDate || photo.createTime);
+      if (!archivesByDate[dateKey]) {
+        archivesByDate[dateKey] = { key: dateKey, label: getArchiveDateLabel(dateKey), photos: [] };
+      }
+      archivesByDate[dateKey].photos.push(photo);
+    });
+    var photoArchives = Object.keys(archivesByDate).sort(function(a, b) {
+      return b.localeCompare(a);
+    }).map(function(key) {
+      var archive = archivesByDate[key];
+      archive.count = archive.photos.length;
+      return archive;
+    });
     return {
       photoCityFilter: active,
       photoCityFilters: filters,
-      visibleSharedPhotos: allPhotos.filter(function(photo) {
-        return active === 'all' || (photo.cityId || photo.cityName) === active;
-      }),
+      visibleSharedPhotos: visiblePhotos,
+      photoArchives: photoArchives,
       featuredPhotos: allPhotos.filter(function(photo) { return photo.isFeatured; })
     };
   },
@@ -161,6 +199,7 @@ Page({
       groupCities: data.groupCities,
       sharedPhotos: data.sharedPhotos,
       visibleSharedPhotos: photoViews.visibleSharedPhotos,
+      photoArchives: photoViews.photoArchives,
       featuredPhotos: photoViews.featuredPhotos,
       photoCityFilters: photoViews.photoCityFilters,
       photoCityFilter: photoViews.photoCityFilter,
@@ -591,6 +630,7 @@ Page({
       self.setData({
         sharedPhotos: result.photos || [],
         visibleSharedPhotos: views.visibleSharedPhotos,
+        photoArchives: views.photoArchives,
         featuredPhotos: views.featuredPhotos,
         photoCityFilters: views.photoCityFilters,
         photoCityFilter: views.photoCityFilter
@@ -598,6 +638,130 @@ Page({
     }).catch(function() {
       wx.showToast({ title: '云端连接失败', icon: 'none' });
     });
+  },
+
+  openPhotoDiscussion: function(e) {
+    var photoId = e.currentTarget.dataset.id;
+    var photos = this.data.sharedPhotos || [];
+    var photo = null;
+    for (var i = 0; i < photos.length; i++) {
+      if (photos[i].id === photoId) {
+        photo = photos[i];
+        break;
+      }
+    }
+    if (!photo || !this.data.isCloudBacked) return;
+    this.setData({
+      showPhotoDiscussion: true,
+      activePhoto: photo,
+      activePhotoComments: [],
+      newPhotoComment: ''
+    });
+    this.loadPhotoComments(photoId);
+  },
+
+  closePhotoDiscussion: function() {
+    this.setData({ showPhotoDiscussion: false, activePhoto: null, activePhotoComments: [], newPhotoComment: '' });
+  },
+
+  loadPhotoComments: function(photoId) {
+    var self = this;
+    var activePhoto = this.data.activePhoto;
+    if (!photoId || !activePhoto || !this.data.groupInfo) return;
+    wx.cloud.callFunction({
+      name: 'group',
+      data: { action: 'getPhotoComments', data: { groupId: this.data.groupInfo.id, photoId: photoId } },
+      timeout: 10000
+    }).then(function(res) {
+      self.applyPhotoCommentResult(res.result || {}, photoId);
+    }).catch(function() {
+      wx.showToast({ title: '评论加载失败，请重试', icon: 'none' });
+    });
+  },
+
+  applyPhotoCommentResult: function(result, photoId) {
+    if (!result || !result.success) {
+      wx.showToast({ title: (result && result.message) || '评论操作失败，请重试', icon: 'none' });
+      return false;
+    }
+    var nextPhotos = (this.data.sharedPhotos || []).map(function(photo) {
+      if (photo.id !== photoId) return photo;
+      var next = Object.assign({}, photo);
+      next.commentCount = result.commentCount || 0;
+      return next;
+    });
+    var views = this.buildPhotoViews(nextPhotos, this.data.photoCityFilter);
+    var active = this.data.activePhoto && this.data.activePhoto.id === photoId
+      ? Object.assign({}, this.data.activePhoto, { commentCount: result.commentCount || 0 })
+      : this.data.activePhoto;
+    this.setData({
+      sharedPhotos: nextPhotos,
+      visibleSharedPhotos: views.visibleSharedPhotos,
+      photoArchives: views.photoArchives,
+      featuredPhotos: views.featuredPhotos,
+      activePhoto: active,
+      activePhotoComments: result.comments || []
+    });
+    return true;
+  },
+
+  onPhotoCommentInput: function(e) {
+    this.setData({ newPhotoComment: e.detail.value || '' });
+  },
+
+  submitPhotoComment: function() {
+    var self = this;
+    var content = (this.data.newPhotoComment || '').trim();
+    var photo = this.data.activePhoto;
+    if (!photo || !content) {
+      wx.showToast({ title: '先写下一句留言', icon: 'none' });
+      return;
+    }
+    wx.showLoading({ title: '发布中' });
+    wx.cloud.callFunction({
+      name: 'group',
+      data: { action: 'addPhotoComment', data: { groupId: this.data.groupInfo.id, photoId: photo.id, content: content } },
+      timeout: 10000
+    }).then(function(res) {
+      wx.hideLoading();
+      if (self.applyPhotoCommentResult(res.result || {}, photo.id)) {
+        self.setData({ newPhotoComment: '' });
+      }
+    }).catch(function() {
+      wx.hideLoading();
+      wx.showToast({ title: '云端连接失败', icon: 'none' });
+    });
+  },
+
+  deletePhotoComment: function(e) {
+    var self = this;
+    var commentId = e.currentTarget.dataset.id;
+    var photo = this.data.activePhoto;
+    if (!photo || !commentId) return;
+    wx.showModal({
+      title: '删除留言',
+      content: '删除后无法恢复，确定继续吗？',
+      confirmText: '删除',
+      confirmColor: '#D66F58',
+      success: function(res) {
+        if (!res.confirm) return;
+        wx.cloud.callFunction({
+          name: 'group',
+          data: { action: 'removePhotoComment', data: { groupId: self.data.groupInfo.id, photoId: photo.id, commentId: commentId } },
+          timeout: 10000
+        }).then(function(result) {
+          self.applyPhotoCommentResult(result.result || {}, photo.id);
+        }).catch(function() {
+          wx.showToast({ title: '删除失败，请重试', icon: 'none' });
+        });
+      }
+    });
+  },
+
+  previewActivePhoto: function() {
+    var photo = this.data.activePhoto;
+    if (!photo || !photo.url) return;
+    wx.previewImage({ current: photo.url, urls: [photo.url] });
   },
 
   clearLocalGroup: function() {
@@ -612,6 +776,7 @@ Page({
       recentActivities: [],
       sharedPhotos: [],
       visibleSharedPhotos: [],
+      photoArchives: [],
       featuredPhotos: [],
       photoCityFilters: [],
       photoCityFilter: 'all',

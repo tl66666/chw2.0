@@ -1,0 +1,36 @@
+page { background: #FFF9F4; }
+.province-page { min-height: 100vh; padding-bottom: 40rpx; background: #FFF9F4; }
+.province-hero { padding: 46rpx 32rpx 36rpx; color: #FFFFFF; background: #8A6E5A; }
+.hero-kicker, .hero-title, .hero-desc { display: block; }
+.hero-kicker { font-size: 21rpx; opacity: 0.75; }
+.hero-title { margin-top: 8rpx; font-size: 52rpx; font-weight: 900; }
+.hero-desc { margin-top: 12rpx; font-size: 24rpx; line-height: 1.5; opacity: 0.9; }
+.hero-stats { display: flex; gap: 20rpx; margin-top: 30rpx; }
+.hero-stats view { flex: 1; min-width: 0; }
+.hero-number, .hero-label { display: block; }
+.hero-number { font-size: 34rpx; font-weight: 900; }
+.hero-label { margin-top: 4rpx; font-size: 20rpx; opacity: 0.78; }
+.province-progress, .province-card-entry, .city-section { margin: 22rpx 24rpx 0; padding: 22rpx; background: #FFFFFF; border-radius: 8rpx; }
+.progress-row, .province-card-entry, .city-row { display: flex; align-items: center; justify-content: space-between; gap: 14rpx; }
+.progress-row { color: #6B5B51; font-size: 23rpx; }
+.progress-track { height: 10rpx; margin-top: 14rpx; overflow: hidden; border-radius: 8rpx; background: #F0E6DE; }
+.progress-fill { height: 100%; border-radius: 8rpx; background: #D66F58; }
+.province-card-entry { color: #FFFFFF; background: #4C9B8A; }
+.entry-kicker, .entry-title { display: block; }
+.entry-kicker { font-size: 19rpx; opacity: 0.78; }
+.entry-title { margin-top: 4rpx; font-size: 27rpx; font-weight: 800; }
+.entry-arrow { font-size: 46rpx; }
+.section-header { display: flex; align-items: baseline; justify-content: space-between; gap: 16rpx; margin-bottom: 12rpx; }
+.section-title { color: #3F3732; font-size: 29rpx; font-weight: 900; }
+.section-subtitle { color: #9B8E86; font-size: 20rpx; }
+.city-list { display: flex; flex-direction: column; }
+.city-row { padding: 18rpx 0; border-top: 1rpx solid #F0E8E1; }
+.city-status { width: 14rpx; height: 14rpx; flex-shrink: 0; border-radius: 50%; background: #D6CBC2; }
+.city-status.recorded { background: #D66F58; }
+.city-copy { flex: 1; min-width: 0; }
+.city-name, .city-landmark { display: block; }
+.city-name { color: #4A403A; font-size: 26rpx; font-weight: 800; }
+.city-landmark { margin-top: 4rpx; overflow: hidden; color: #9B8E86; font-size: 20rpx; text-overflow: ellipsis; white-space: nowrap; }
+.city-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4rpx; flex-shrink: 0; }
+.city-source { color: #B7675B; font-size: 20rpx; }
+.city-photo { color: #9B8E86; font-size: 19rpx; }
