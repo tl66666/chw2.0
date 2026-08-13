@@ -111,7 +111,7 @@ Page({
             app.globalData.unlockedAchievements = [];
           }
           // 清除云端数据
-          if (wx.cloud && app.globalData.isLogin) {
+          if (app.globalData.useCloud && wx.cloud && app.globalData.isLogin) {
             wx.cloud.callFunction({
               name: 'syncData',
               data: { action: 'clearAllData' },

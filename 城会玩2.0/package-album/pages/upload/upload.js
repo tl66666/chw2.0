@@ -339,7 +339,7 @@ Page({
   },
 
   resolveCloudGroupForPhotoShare: function(done) {
-    if (!wx.cloud) {
+    if (!app.globalData.useCloud || !wx.cloud) {
       done(null, '云开发未初始化，请重新进入小程序后再试');
       return;
     }
@@ -420,7 +420,7 @@ Page({
 
   syncCityToGroup: function(selectedCity) {
     var localGroup = wx.getStorageSync('myGroup');
-    if (!selectedCity || !localGroup || !wx.cloud) return;
+    if (!selectedCity || !localGroup || !app.globalData.useCloud || !wx.cloud) return;
 
     var groupData = null;
     try {

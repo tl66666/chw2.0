@@ -498,7 +498,8 @@ Page({
     app.saveData();
 
     // 删除云端记录（防止syncFromCloud恢复数据）
-    if (wx.cloud && app.globalData.isLogin) {
+    // 本地模式（useCloud=false）跳过云端删除，避免云函数超时卡顿
+    if (app.globalData.useCloud && wx.cloud && app.globalData.isLogin) {
       wx.cloud.callFunction({
         name: 'syncData',
         data: {
@@ -1431,7 +1432,8 @@ Page({
           app.saveData();
 
           // 删除云端照片记录（防止syncFromCloud恢复数据）
-          if (wx.cloud && app.globalData.isLogin && deletedFileId) {
+          // 本地模式（useCloud=false）跳过云端删除，避免云函数超时卡顿
+          if (app.globalData.useCloud && wx.cloud && app.globalData.isLogin && deletedFileId) {
             wx.cloud.callFunction({
               name: 'syncData',
               data: {
@@ -1541,7 +1543,8 @@ Page({
           app.saveData();
 
           // 删除云端笔记
-          if (wx.cloud && app.globalData.isLogin) {
+          // 本地模式（useCloud=false）跳过云端删除，避免云函数超时卡顿
+          if (app.globalData.useCloud && wx.cloud && app.globalData.isLogin) {
             wx.cloud.callFunction({
               name: 'syncData',
               data: {
@@ -1641,7 +1644,8 @@ Page({
           app.saveData();
 
           // 删除云端
-          if (wx.cloud && app.globalData.isLogin) {
+          // 本地模式（useCloud=false）跳过云端删除，避免云函数超时卡顿
+          if (app.globalData.useCloud && wx.cloud && app.globalData.isLogin) {
             wx.cloud.callFunction({
               name: 'syncData',
               data: {
@@ -1731,7 +1735,8 @@ Page({
           app.saveData();
 
           // 删除云端记录（防止syncFromCloud恢复数据）
-          if (wx.cloud && app.globalData.isLogin) {
+          // 本地模式（useCloud=false）跳过云端删除，避免云函数超时卡顿
+          if (app.globalData.useCloud && wx.cloud && app.globalData.isLogin) {
             wx.cloud.callFunction({
               name: 'syncData',
               data: {

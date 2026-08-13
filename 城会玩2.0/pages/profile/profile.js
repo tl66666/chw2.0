@@ -535,6 +535,10 @@ Page({
   },
 
   verifyCloudTravelDataCleared: function(done) {
+    if (!app.globalData.useCloud) {
+      done(true);
+      return;
+    }
     wx.cloud.callFunction({
       name: 'syncData',
       data: { action: 'getAllData' },
@@ -569,7 +573,7 @@ Page({
       confirmColor: '#F87171',
       success: function(res) {
         if (!res.confirm) return;
-        if (!wx.cloud || !app.globalData.isLogin) {
+        if (!app.globalData.useCloud || !wx.cloud || !app.globalData.isLogin) {
           wx.showModal({ title: '尚未完成清除', content: '请先登录并连接云开发后再清除，避免旧数据重新同步回来。', showCancel: false });
           return;
         }

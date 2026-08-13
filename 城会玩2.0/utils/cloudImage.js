@@ -1,5 +1,15 @@
 var cache = {};
 
+// 检查云服务是否可用
+function isCloudEnabled() {
+  try {
+    var app = getApp();
+    return !!(app && app.globalData && app.globalData.useCloud && wx.cloud);
+  } catch(e) {
+    return false;
+  }
+}
+
 function isCloudFile(fileID) {
   return typeof fileID === 'string' && fileID.indexOf('cloud://') === 0;
 }
@@ -35,6 +45,12 @@ function pickTempUrl(item) {
 function resolve(fileID, callback) {
   if (!isCloudFile(fileID)) {
     done(callback, fileID);
+    return;
+  }
+
+  // 云服务不可用时，cloud:// URL 直接返回空（避免超时）
+  if (!isCloudEnabled()) {
+    done(callback, '');
     return;
   }
 
@@ -136,6 +152,12 @@ function resolveMany(fileIDs, callback) {
   }
 
   if (!uniqueCloudFiles.length) {
+    callback(result);
+    return;
+  }
+
+  // 云服务不可用时，cloud:// URL 直接跳过（避免超时）
+  if (!isCloudEnabled()) {
     callback(result);
     return;
   }

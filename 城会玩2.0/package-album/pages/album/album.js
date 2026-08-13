@@ -306,7 +306,7 @@ Page({
   },
 
   removePhotoFromCloud: function(photo) {
-    if (!app.globalData.isLogin || !wx.cloud || !photo.fileId) return Promise.resolve(true);
+    if (!app.globalData.isLogin || !app.globalData.useCloud || !wx.cloud || !photo.fileId) return Promise.resolve(true);
     var self = this;
     var removeRecord = wx.cloud.callFunction({
       name: 'syncData',
@@ -361,7 +361,7 @@ Page({
   },
 
   flushPendingPhotoRemovals: function() {
-    if (!app.globalData.isLogin || !wx.cloud) return;
+    if (!app.globalData.isLogin || !app.globalData.useCloud || !wx.cloud) return;
     var self = this;
     this.getPendingPhotoRemovals().forEach(function(photo) {
       self.removePhotoFromCloud(photo);
