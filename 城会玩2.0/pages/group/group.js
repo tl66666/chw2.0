@@ -112,6 +112,7 @@ Page({
   },
 
   canUseGroupCloud: function() {
+    // 群组功能保留云连接尝试，连不上时自动降级到本地模式
     return !!(wx.cloud && (app.globalData.openid || wx.getStorageSync('openid')));
   },
 
@@ -348,7 +349,7 @@ Page({
       }
       self.setData({
         loading: false,
-        groupLoadError: '群组暂时无法连接，已保留本机内容，请稍后再试。'
+        groupLoadError: '云服务未连接，已切换到本地模式。可创建群组查看自己的打卡数据，邀请好友加入和照片共享功能需要云服务支持。'
       });
     });
   },
@@ -661,8 +662,8 @@ Page({
       wx.hideLoading();
       console.error('[group] join failed:', err);
       wx.showModal({
-        title: '云端连接失败',
-        content: '暂时无法完成操作，请检查网络后再试。',
+        title: '云服务未连接',
+        content: '加入群组需要云服务支持，当前云服务未连接。可创建本地群组查看自己的数据。',
         showCancel: false
       });
     });

@@ -205,15 +205,16 @@ Page({
   },
 
   persistProfileAvatar: function(filePath, done) {
-    if (!filePath || filePath.indexOf('/images/') === 0 || filePath.indexOf('cloud://') === 0 || filePath.indexOf('http') === 0) {
-      done(filePath);
-      return;
-    }
     var userDataPath = '';
     try {
       userDataPath = wx.env.USER_DATA_PATH;
     } catch (e) {}
-    if (!userDataPath || filePath.indexOf(userDataPath) === 0) {
+    // 已经是持久化路径（占位图、云端路径、网络URL、本地已保存路径）则直接返回
+    if (!filePath || filePath.indexOf('/images/') === 0 || filePath.indexOf('cloud://') === 0 || filePath.indexOf('http') === 0 || (userDataPath && filePath.indexOf(userDataPath) === 0)) {
+      done(filePath);
+      return;
+    }
+    if (!userDataPath) {
       done(filePath);
       return;
     }
@@ -637,85 +638,35 @@ Page({
   saveAvatar: function(filePath) {
     var self = this;
 
-    if (app.globalData.useCloud && wx.cloud) {
-      wx.showLoading({ title: '校验头像中...' });
-      var extMatch = filePath.match(/\.[^.]+$/);
-      wx.cloud.uploadFile({
-        cloudPath: 'avatars/' + (app.globalData.openid || 'guest') + '_' + Date.now() + (extMatch ? extMatch[0] : '.jpg'),
-        filePath: filePath
-      }).then(function(uploadRes) {
-        return wx.cloud.callFunction({
-          name: 'contentSecurity',
-          data: {
-            action: 'checkImage',
-            fileID: uploadRes.fileID
-          },
-          timeout: 15000
-        }).then(function(checkRes) {
-          if (checkRes.result && checkRes.result.pass === false) {
-            wx.cloud.deleteFile({ fileList: [uploadRes.fileID] }).catch(function() {});
-            wx.hideLoading();
-            wx.showToast({
-              title: '头像未通过安全校验',
-              icon: 'none'
-            });
-            return;
-          }
-
-          wx.hideLoading();
-          if (!app.globalData.userInfo) {
-            app.globalData.userInfo = {};
-          }
-          app.globalData.userInfo.avatarUrl = uploadRes.fileID;
-          wx.setStorageSync('userInfo', JSON.stringify(app.globalData.userInfo));
-          self.setData({
-            userInfo: app.globalData.userInfo,
-            isWechatUser: !!(app.globalData.isLogin && app.globalData.openid)
-          });
-          wx.showToast({
-            title: '头像更新成功',
-            icon: 'success'
-          });
-        });
-      }).catch(function() {
-        wx.hideLoading();
-        wx.showToast({
-          title: '头像上传失败',
-          icon: 'none'
-        });
-      });
-      return;
-    }
-
-    // 将图片保存到本地文件系统
+    wx.showLoading({ title: '保存头像中...' });
+    var extMatch = filePath.match(/\.[^.]+$/);
     var fs = wx.getFileSystemManager();
-    var savedPath = wx.env.USER_DATA_PATH + '/avatar_' + Date.now() + '.png';
+    var savePath = wx.env.USER_DATA_PATH + '/avatar_' + Date.now() + (extMatch ? extMatch[0] : '.jpg');
 
-    fs.copyFile({
-      srcPath: filePath,
-      destPath: savedPath,
-      success: function() {
-        // 更新全局数据
+    fs.saveFile({
+      tempFilePath: filePath,
+      filePath: savePath,
+      success: function(res) {
+        var avatarUrl = res.savedFilePath;
+        wx.hideLoading();
         if (!app.globalData.userInfo) {
           app.globalData.userInfo = {};
         }
-        app.globalData.userInfo.avatarUrl = savedPath;
-
-        // 保存到本地存储
+        app.globalData.userInfo.avatarUrl = avatarUrl;
         wx.setStorageSync('userInfo', JSON.stringify(app.globalData.userInfo));
-
-        // 更新页面数据
         self.setData({
-          userInfo: app.globalData.userInfo
+          userInfo: app.globalData.userInfo,
+          isWechatUser: !!(app.globalData.isLogin && app.globalData.openid)
         });
-
         wx.showToast({
           title: '头像更新成功',
           icon: 'success'
         });
       },
-      fail: function() {
-        // 如果复制失败，尝试使用base64
+      fail: function(err) {
+        console.error('头像保存失败:', err);
+        wx.hideLoading();
+        // 保存失败，尝试使用base64
         self.saveAvatarAsBase64(filePath);
       }
     });

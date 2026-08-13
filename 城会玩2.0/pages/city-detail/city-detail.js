@@ -3,6 +3,7 @@ var citiesData = require('../../utils/cities.js');
 var provincesData = require('../../utils/provinces.js');
 var cities = citiesData.cities;
 var provinces = provincesData.provinces;
+var imageConfig = require('../../utils/image-config.js');
 var cloudImage = require('../../utils/cloudImage.js');
 var audioManager = require('../../utils/audio-manager.js').getAudioManager();
 var achievementsModule = require('../../utils/achievements.js');
@@ -92,19 +93,9 @@ var provinceToImageFile = {
   macau: 'macau.png'
 };
 
-// 云存储基础路径 - 使用当前环境
-// 注意：正确的格式是 cloud://环境ID/文件路径
-var CLOUD_BASE = 'cloud://cloud1-d9gshoz5s40d02b42.636c-cloud1-d9gshoz5s40d02b42-1442414269';
-
-// 获取省份对应的云存储图片路径
+// 获取省份对应的CDN图片路径
 function getProvinceImagePath(provinceId) {
-  var fileName = provinceToImageFile[provinceId];
-  return fileName ? CLOUD_BASE + '/cities/' + fileName : '';
-}
-
-// 获取云存储图片 - 下载到本地临时文件
-function getCloudImageUrl(cloudPath, callback) {
-  cloudImage.resolve(cloudPath, callback);
+  return imageConfig.getCityImage(provinceId);
 }
 
 Page({
@@ -196,17 +187,10 @@ Page({
         cityIntro: cityIntros[cityId] || ''
       });
 
-      // 异步获取云存储图片临时链接
+      // 直接使用CDN图片URL
       if (cloudPath) {
-        getCloudImageUrl(cloudPath, function(imageUrl) {
-          // 确保获取到的是临时文件路径，而不是 cloud:// 路径
-          if (imageUrl && imageUrl.indexOf('cloud://') !== 0) {
-            self.setData({
-              cityImage: imageUrl
-            });
-          } else {
-            console.error('Failed to get valid image URL:', imageUrl);
-          }
+        self.setData({
+          cityImage: cloudPath
         });
       }
     }
@@ -263,17 +247,10 @@ Page({
       cityGuide: guide
     });
 
-    // 异步获取云存储图片临时链接
+    // 直接使用CDN图片URL
     if (imagePath) {
-      getCloudImageUrl(imagePath, function(imageUrl) {
-        // 确保获取到的是临时文件路径，而不是 cloud:// 路径
-        if (imageUrl && imageUrl.indexOf('cloud://') !== 0) {
-          self.setData({
-            cityImage: imageUrl
-          });
-        } else {
-          console.error('Failed to get valid image URL:', imageUrl);
-        }
+      self.setData({
+        cityImage: imagePath
       });
     }
   },
@@ -809,66 +786,29 @@ Page({
 
     var filePath = files[index];
     var extMatch = filePath.match(/\.[^.]+$/);
-    var cloudPath = 'city-checkins/' + this.data.cityId + '/' + Date.now() + '_' + index + (extMatch ? extMatch[0] : '.jpg');
+    var fs = wx.getFileSystemManager();
+    var savePath = wx.env.USER_DATA_PATH + '/checkin_' + this.data.cityId + '_' + Date.now() + '_' + index + (extMatch ? extMatch[0] : '.jpg');
 
-    wx.cloud.uploadFile({
-      cloudPath: cloudPath,
-      filePath: filePath
-    }).then(function(uploadRes) {
-      safePhotos.push(self.buildPhotoItem(uploadRes.fileID, 'verified', '', filePath));
-      self.reviewUploadedPhotoInBackground(uploadRes.fileID, self.data.cityId, self.data.activeTab);
-      self.uploadAndCheckPhotos(files, index + 1, safePhotos, callback);
-      return;
-
-      return wx.cloud.callFunction({
-        name: 'contentSecurity',
-        data: {
-          action: 'checkImage',
-          fileID: uploadRes.fileID
-        },
-        timeout: 20000
-      }).then(function(checkRes) {
-        if (checkRes.result && checkRes.result.pass === false) {
-          wx.cloud.deleteFile({ fileList: [uploadRes.fileID] }).catch(function() {});
-          self.setData({
-            securityErrorMessage: self.getSecurityMessage(checkRes.result, '图片安全校验失败')
-          });
-          callback(false, safePhotos);
-          return;
-        }
-
-        safePhotos.push(self.buildPhotoItem(uploadRes.fileID, 'verified', '', filePath));
+    fs.saveFile({
+      tempFilePath: filePath,
+      filePath: savePath,
+      success: function(res) {
+        safePhotos.push(self.buildPhotoItem(res.savedFilePath, 'verified', '', filePath));
         self.uploadAndCheckPhotos(files, index + 1, safePhotos, callback);
-      }).catch(function(err) {
-        safePhotos.push(self.buildPhotoItem(uploadRes.fileID, 'private', self.getSecurityMessage(err, '仅自己可见'), filePath));
+      },
+      fail: function(err) {
+        console.error('本地保存失败:', err);
         self.setData({
-          securityErrorMessage: self.getSecurityMessage(err, '图片校验超时，请稍后重试')
+          securityErrorMessage: '图片保存失败'
         });
-        self.uploadAndCheckPhotos(files, index + 1, safePhotos, callback);
-      });
-    }).catch(function(err) {
-      self.setData({
-        securityErrorMessage: self.getSecurityMessage(err, '图片上传或安全校验失败')
-      });
-      callback(false, safePhotos);
+        callback(false, safePhotos);
+      }
     });
   },
 
   reviewUploadedPhotoInBackground: function(fileID, cityId, activeTab) {
-    var self = this;
-    if (!fileID || !wx.cloud) return;
-
-    wx.cloud.callFunction({
-      name: 'contentSecurity',
-      data: { action: 'checkImage', fileID: fileID },
-      timeout: 20000
-    }).then(function(res) {
-      var result = res.result || {};
-      if (!result.blocked) return;
-      self.removeBlockedPhoto(fileID, cityId, activeTab);
-    }).catch(function(err) {
-      console.warn('[photo-review] background review deferred:', err);
-    });
+    // 本地模式无需云端审核
+    return;
   },
 
   removeBlockedPhoto: function(fileID, cityId, activeTab) {

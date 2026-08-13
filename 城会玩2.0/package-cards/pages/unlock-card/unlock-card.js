@@ -1,7 +1,7 @@
 var achievementsModule = require('../../../utils/achievements.js');
 var provincesData = require('../../../utils/provinces.js');
 var charactersData = require('../../../utils/characters.js');
-var cloudImage = require('../../../utils/cloudImage.js');
+var imageConfig = require('../../../utils/image-config.js');
 var audioManager = require('../../../utils/audio-manager.js').getAudioManager();
 
 Page({
@@ -46,13 +46,9 @@ Page({
       rarityColor: charactersData.getRarityColor(character.rarity)
     });
 
-    cloudImage.resolve(
-      'cloud://cloud1-d9gshoz5s40d02b42.636c-cloud1-d9gshoz5s40d02b42-1442414269/cards/' + provinceId + '.png',
-      function(imageUrl) {
-        self.setData({ cardImage: imageUrl || '' });
-        self.startUnlockSequence();
-      }
-    );
+    var cardUrl = imageConfig.getCardImage(provinceId);
+    self.setData({ cardImage: cardUrl });
+    self.startUnlockSequence();
   },
 
   getProvinceShort: function(province) {

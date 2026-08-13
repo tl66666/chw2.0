@@ -1,6 +1,6 @@
 var provincesData = require('../../../utils/provinces.js');
 var charactersData = require('../../../utils/characters.js');
-var cloudImage = require('../../../utils/cloudImage.js');
+var imageConfig = require('../../../utils/image-config.js');
 
 Page({
   data: {
@@ -29,8 +29,7 @@ Page({
     var rarityColor = charactersData.getRarityColor(character.rarity);
     var attrs = character.attributes || {};
     var totalScore = Math.round(((attrs.culture || 0) + (attrs.fashion || 0) + (attrs.food || 0) + (attrs.history || 0)) / 4);
-    var cloudPath = 'cloud://cloud1-d9gshoz5s40d02b42.636c-cloud1-d9gshoz5s40d02b42-1442414269/cards/' + provinceId + '.png';
-    var self = this;
+    var cloudPath = imageConfig.getCardImage(provinceId);
 
     this.setData({
       provinceId: provinceId,
@@ -40,13 +39,7 @@ Page({
       rarityColor: rarityColor,
       totalScore: totalScore,
       isUnlocked: this.checkUnlocked(provinceId),
-      cardImage: ''
-    });
-
-    cloudImage.resolve(cloudPath, function(imageUrl) {
-      if (imageUrl) {
-        self.setData({ cardImage: imageUrl });
-      }
+      cardImage: cloudPath
     });
   },
 

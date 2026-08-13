@@ -24,22 +24,19 @@ App({
       showProvinceName: true,
       showCityCount: true
     },
-    useCloud: true // 是否使用云开发，false时使用本地模式
+    useCloud: false // 云服务已到期，使用本地模式
   },
 
   onLaunch: function() {
-    // 初始化云开发 - 使用 DYNAMIC_CURRENT_ENV 自动匹配当前环境
-    if (!wx.cloud) {
-      console.error('请使用 2.2.3 或以上的基础库以使用云能力');
-    } else {
+    // 尝试初始化云开发（失败不阻断应用）
+    if (wx.cloud) {
       try {
         wx.cloud.init({
           env: wx.cloud.DYNAMIC_CURRENT_ENV,
           traceUser: true
         });
-        console.log('云开发初始化成功');
       } catch (e) {
-        console.error('云开发初始化失败:', e);
+        console.warn('云开发初始化跳过:', e);
       }
     }
 
@@ -52,14 +49,12 @@ App({
     this.loadStoredData();
   },
 
-  // 自动登录（静默登录）
+  // 自动登录（本地模式）
   autoLogin: function() {
-    var self = this;
     var openid = wx.getStorageSync('openid');
     var userInfo = wx.getStorageSync('userInfo');
     
     if (openid && userInfo) {
-      // 已有openid和用户信息，说明之前登录过
       this.globalData.openid = openid;
       this.globalData.isLogin = true;
       try {
@@ -67,13 +62,18 @@ App({
       } catch (e) {
         console.error('解析用户信息失败');
       }
-      
-      // 获取用户信息
-      if (self.globalData.useCloud) {
-        setTimeout(function() {
-          self.syncFromCloud();
-        }, 2000);
-      }
+    } else {
+      // 首次使用，生成本地UUID作为用户标识
+      var localOpenid = 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+      var defaultUserInfo = {
+        nickName: '微信用户',
+        avatarUrl: '/images/avatar.jpg'
+      };
+      this.globalData.openid = localOpenid;
+      this.globalData.isLogin = true;
+      this.globalData.userInfo = defaultUserInfo;
+      wx.setStorageSync('openid', localOpenid);
+      wx.setStorageSync('userInfo', JSON.stringify(defaultUserInfo));
     }
   },
 
@@ -82,7 +82,7 @@ App({
   },
 
   refreshGroupCache: function(callback) {
-    if (!this.globalData.isLogin || !wx.cloud) {
+    if (!this.globalData.useCloud || !this.globalData.isLogin || !wx.cloud) {
       if (callback) callback(false);
       return;
     }
@@ -104,94 +104,38 @@ App({
     });
   },
 
-  // 微信登录：只获取 openid，不强制索取头像昵称授权
+  // 本地登录：生成用户标识，不依赖云函数
   login: function(callback) {
     var self = this;
-    
-    wx.showLoading({ title: '登录中...' });
-    
-    // 第一步：获取微信登录凭证
-    wx.login({
-      success: function(res) {
-        if (res.code) {
-          var localUserInfo = self.globalData.userInfo || {};
-          if (!localUserInfo.nickName || localUserInfo.nickName === '游客') {
-            localUserInfo.nickName = '微信用户';
-          }
-          if (!localUserInfo.avatarUrl) {
-            localUserInfo.avatarUrl = '/images/avatar.jpg';
-          }
+    var localUserInfo = this.globalData.userInfo || {};
+    if (!localUserInfo.nickName || localUserInfo.nickName === '游客') {
+      localUserInfo.nickName = '微信用户';
+    }
+    if (!localUserInfo.avatarUrl) {
+      localUserInfo.avatarUrl = '/images/avatar.jpg';
+    }
 
-          wx.cloud.callFunction({
-            name: 'login',
-            data: {
-              code: res.code,
-              userInfo: localUserInfo
-            },
-            timeout: 10000
-          }).then(function(res) {
-            wx.hideLoading();
-            var result = res.result;
+    // 生成本地用户标识
+    var localOpenid = 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+    self.globalData.openid = localOpenid;
+    self.globalData.isLogin = true;
+    self.globalData.useCloud = false;
+    self.globalData.userInfo = localUserInfo;
 
-            if (result && result.success) {
-              self.globalData.openid = result.openid;
-              self.globalData.isLogin = true;
-              self.globalData.useCloud = true;
-              self.globalData.userInfo = {
-                nickName: (result.userInfo && result.userInfo.nickName) || localUserInfo.nickName || '微信用户',
-                avatarUrl: (result.userInfo && result.userInfo.avatarUrl) || localUserInfo.avatarUrl || '/images/avatar.jpg'
-              };
+    wx.setStorageSync('openid', localOpenid);
+    wx.setStorageSync('userInfo', JSON.stringify(localUserInfo));
 
-              wx.setStorageSync('openid', result.openid);
-              wx.setStorageSync('userInfo', JSON.stringify(self.globalData.userInfo));
-
-              self.syncFromCloud();
-
-              wx.showToast({
-                title: '登录成功',
-                icon: 'success'
-              });
-
-              if (callback) callback(true);
-            } else {
-              wx.showToast({
-                title: '登录失败，请检查云函数',
-                icon: 'none'
-              });
-              if (callback) callback(false);
-            }
-          }).catch(function(err) {
-            wx.hideLoading();
-            console.error('登录调用失败:', err);
-            wx.showToast({
-              title: '登录失败，请部署 login 云函数',
-              icon: 'none'
-            });
-            if (callback) callback(false);
-          });
-        } else {
-          wx.hideLoading();
-          wx.showToast({
-            title: '登录失败',
-            icon: 'none'
-          });
-          if (callback) callback(false);
-        }
-      },
-      fail: function() {
-        wx.hideLoading();
-        wx.showToast({
-          title: '登录失败',
-          icon: 'none'
-        });
-        if (callback) callback(false);
-      }
+    wx.showToast({
+      title: '登录成功',
+      icon: 'success'
     });
+
+    if (callback) callback(true);
   },
 
-  // 从云端同步数据
+  // 从云端同步数据（本地模式下跳过）
   syncFromCloud: function() {
-    if (!this.globalData.isLogin) return;
+    if (!this.globalData.useCloud || !wx.cloud) return;
     
     var self = this;
     wx.cloud.callFunction({

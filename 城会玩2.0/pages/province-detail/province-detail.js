@@ -1,13 +1,7 @@
 var app = getApp();
 var provinces = require('../../utils/provinces.js').provinces;
-var cloudImage = require('../../utils/cloudImage.js');
+var imageConfig = require('../../utils/image-config.js');
 var provinceGuides = require('../../utils/province-guides.js');
-
-var CLOUD_BASE = 'cloud://cloud1-d9gshoz5s40d02b42.636c-cloud1-d9gshoz5s40d02b42-1442414269';
-
-function getProvinceCoverPath(provinceId) {
-  return CLOUD_BASE + '/cities/' + provinceId + '.png';
-}
 
 Page({
   data: {
@@ -46,10 +40,8 @@ Page({
     });
 
     var self = this;
-    var coverPath = getProvinceCoverPath(province.id);
-    cloudImage.resolve(coverPath, function(url) {
-      if (self.data.provinceId === province.id) self.setData({ provinceCover: url || '' });
-    });
+    var coverUrl = imageConfig.getCityImage(province.id);
+    if (self.data.provinceId === province.id) self.setData({ provinceCover: coverUrl });
   },
 
   refreshProvinceState: function() {

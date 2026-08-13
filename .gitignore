@@ -35,5 +35,9 @@ temp/
 替换-上传/
 .uploads/
 
+# raw cloud images (compressed versions in assets/)
+cloud-images/
+compress-images.ps1
+
 # duplicate/unused images
 城会玩2.0/images/tab-group.jpg

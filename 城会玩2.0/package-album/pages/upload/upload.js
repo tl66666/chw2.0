@@ -145,7 +145,8 @@ Page({
 
   checkContentSafety: function(note, photos, callback) {
     if (!app.globalData.useCloud || !wx.cloud) {
-      callback(true, photos);
+      // 云端不可用时，直接通过本地文件系统保存照片
+      this.uploadAndCheckPhotos(photos, 0, [], callback);
       return;
     }
 
@@ -186,42 +187,25 @@ Page({
 
     var filePath = photos[index];
     var extMatch = filePath.match(/\.[^.]+$/);
-    var cloudPath = 'footprints/' + Date.now() + '_' + index + (extMatch ? extMatch[0] : '.jpg');
+    var fs = wx.getFileSystemManager();
+    var savePath = wx.env.USER_DATA_PATH + '/footprints_' + Date.now() + '_' + index + (extMatch ? extMatch[0] : '.jpg');
 
-    wx.cloud.uploadFile({
-      cloudPath: cloudPath,
-      filePath: filePath
-    }).then(function(uploadRes) {
-      return wx.cloud.callFunction({
-        name: 'contentSecurity',
-        data: {
-          action: 'checkImage',
-          fileID: uploadRes.fileID
-        },
-        timeout: 20000
-      }).then(function(checkRes) {
-        if (checkRes.result && checkRes.result.pass === false) {
-          wx.cloud.deleteFile({ fileList: [uploadRes.fileID] }).catch(function() {});
-          self.setData({
-            securityErrorMessage: self.getSecurityMessage(checkRes.result, '图片安全校验失败')
-          });
-          callback(false, safePhotos);
-          return;
-        }
-        safePhotos.push(self.buildPhotoItem(uploadRes.fileID, 'verified', '', filePath));
+    fs.saveFile({
+      tempFilePath: filePath,
+      filePath: savePath,
+      success: function(res) {
+        var fileID = res.savedFilePath;
+        // 本地存储模式下跳过云端安全校验，直接标记为已验证
+        safePhotos.push(self.buildPhotoItem(fileID, 'verified', '', ''));
         self.uploadAndCheckPhotos(photos, index + 1, safePhotos, callback);
-      }).catch(function(err) {
-        safePhotos.push(self.buildPhotoItem(uploadRes.fileID, 'private', self.getSecurityMessage(err, '仅自己可见'), filePath));
+      },
+      fail: function(err) {
+        console.error('本地保存失败:', err);
         self.setData({
-          securityErrorMessage: self.getSecurityMessage(err, '图片校验超时，请稍后重试')
+          securityErrorMessage: self.getSecurityMessage(err, '图片保存失败')
         });
-        self.uploadAndCheckPhotos(photos, index + 1, safePhotos, callback);
-      });
-    }).catch(function(err) {
-      self.setData({
-        securityErrorMessage: self.getSecurityMessage(err, '图片上传或安全校验失败')
-      });
-      callback(false, safePhotos);
+        callback(false, safePhotos);
+      }
     });
   },
 
@@ -311,12 +295,24 @@ Page({
     });
   },
 
+  isLocalPhotoPath: function(fileId) {
+    if (!fileId) return false;
+    if (fileId.indexOf('wxfile://') === 0) return true;
+    if (fileId.indexOf('http://tmp') === 0) return true;
+    if (fileId.indexOf('http://store') === 0) return true;
+    try {
+      if (wx.env.USER_DATA_PATH && fileId.indexOf(wx.env.USER_DATA_PATH) === 0) return true;
+    } catch (e) {}
+    return false;
+  },
+
   queueFailedGroupPhotos: function(groupId, photos, selectedCity, visitDate) {
     if (!groupId || !app.queuePendingGroupPhotoReview || !selectedCity) return;
+    var self = this;
 
     (photos || []).forEach(function(photo) {
       var fileId = photoRecords.getFileId(photo);
-      if (!fileId || fileId.indexOf('cloud://') !== 0) return;
+      if (!fileId || !self.isLocalPhotoPath(fileId)) return;
       app.queuePendingGroupPhotoReview({
         groupId: groupId,
         fileId: fileId,
@@ -388,8 +384,8 @@ Page({
           return;
         }
         var fileID = photos[index++];
-        if (!fileID || fileID.indexOf('cloud://') !== 0) {
-          failed.push({ fileId: fileID || '', reason: '照片尚未完成云端上传' });
+        if (!fileID || !self.isLocalPhotoPath(fileID)) {
+          failed.push({ fileId: fileID || '', reason: '照片尚未完成本地保存' });
           next();
           return;
         }
